@@ -9,11 +9,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
 
+  // AMIGO ARTHUR, PRECISA REMOVER ESSE LOGIN FAKE
   const handleLogin = () => {
-    if (email && senha) {
-      router.push("/jogo")
+    if (email === "aluno@teste.com" && senha === "123") {
+      router.push("/aluno")
     } else {
-      alert("Preencha todos os campos!")
+      alert("Email ou senha inválidos!")
     }
   }
 
