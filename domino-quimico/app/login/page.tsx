@@ -1,3 +1,8 @@
+//cd Projeto_Integrador
+//PS C:\Users\luiza\PI\Projeto_Integrador> cd domino-quimico
+//PS C:\Users\luiza\PI\Projeto_Integrador\domino-quimico> npm run dev
+
+
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -9,7 +14,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
 
-  // AMIGO ARTHUR, PRECISA REMOVER ESSE LOGIN FAKE
   const handleLogin = () => {
     if (email === "aluno@teste.com" && senha === "123") {
       router.push("/aluno")
