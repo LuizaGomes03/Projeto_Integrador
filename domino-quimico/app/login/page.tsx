@@ -1,11 +1,7 @@
-//cd Projeto_Integrador
-//PS C:\Users\luiza\PI\Projeto_Integrador> cd domino-quimico
-//PS C:\Users\luiza\PI\Projeto_Integrador\domino-quimico> npm run dev
-
-
 "use client"
 
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { useState } from "react"
 
 export default function LoginPage() {
@@ -28,9 +24,11 @@ export default function LoginPage() {
       <div className="bg-white p-10 rounded-2xl shadow-xl w-[350px] text-center">
 
         {/* LOGO */}
-        <img
+        <Image
           src="/logo2.png"
           alt="Domino Químico"
+          width={200}
+          height={80}
           className="w-[200px] mx-auto mb-4"
         />
 

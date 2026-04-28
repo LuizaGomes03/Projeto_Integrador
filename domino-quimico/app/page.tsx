@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 export default function Home() {
   const router = useRouter()
@@ -10,9 +11,11 @@ export default function Home() {
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
 
-          <img
+          <Image
             src="/logo2.png"
             alt="Domino Químico"
+            width={400}
+            height={160}
             className="w-[400px] mx-auto mb-6"
           />
 
