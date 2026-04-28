@@ -50,8 +50,9 @@ Acesso: `http://localhost:3001`
 
 ## 👥 Colaboradores
 
-- **Front-end:** Você
-- **Back-end:** (Seu amigo)
+- **Front-end:** Luiza Ignacio Gomes
+- **Front-end:** Vitoria Andrade 
+- **Back-end:** Arthur Romanin
 
 ## 📝 Notas
 
