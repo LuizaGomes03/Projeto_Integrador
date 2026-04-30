@@ -29,16 +29,13 @@ export default function SignupPage() {
     }
     // Placeholder: enviar para API do backend
     alert("Conta criada com sucesso (simulação)")
-    router.push("/login")
+    router.push("/")
   }
 
-  // keep signup creation flow; existing users are redirected to /login
+  // keep signup creation flow; existing users are redirected to /
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-[#fffefe] to-[#fbf7f8] px-4">
-      {/* Botão voltar */}
-      <button onClick={() => router.back()} className="absolute top-6 left-4 bg-white/80 hover:bg-white text-gray-700 px-3 py-1 rounded-full shadow-sm">← Voltar</button>
-
       <div className="w-full max-w-md pt-12">
         <div className="flex flex-col items-center mb-6">
             <div className="rounded-full bg-white p-8 shadow-md mb-6 w-36 h-36 flex items-center justify-center">
@@ -86,7 +83,7 @@ export default function SignupPage() {
 
           <button onClick={handleCreate} className="w-full bg-red-600 text-white py-3 rounded-full font-bold shadow-md hover:bg-red-700 transition mb-4">CRIAR CONTA</button>
 
-          <p className="text-center text-sm text-gray-500 mt-4">Já possui uma conta de cientista? <button className="text-red-600 font-medium" onClick={()=>router.push('/login')}>Entrar agora</button></p>
+          <p className="text-center text-sm text-gray-500 mt-4">Já possui uma conta de cientista? <button className="text-red-600 font-medium" onClick={()=>router.push('/')}>Entrar agora</button></p>
         </div>
 
         <div className="text-center mt-8 text-xs text-gray-400">
