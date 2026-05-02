@@ -54,7 +54,7 @@ return ( <div className="min-h-screen bg-[#eceff4]">
         {/* TITULO */}
         <div>
           <h2 className="text-4xl md:text-5xl font-black text-slate-800">
-            Meu Desempenho
+            Meu Desempenhoo
           </h2>
           <p className="mt-2 text-slate-500">
             Sua evolução no laboratório de estratégia.
