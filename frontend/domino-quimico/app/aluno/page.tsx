@@ -7,8 +7,10 @@ import { FlaskConical, LogIn, Orbit, BarChart3, LogOut, UserPlus } from "lucide-
 
 const XP_STORAGE_KEY = "dominoQuimicoXp"
 const ROOMS_STORAGE_KEY = "dominoQuimicoRooms"
+const HOST_ROOM_CODE_KEY = "dominoQuimicoHostRoomCode"
 const XP_POR_NIVEL = 1000
 const NIVEL_BASE = 42
+const PLAYER_NAME = "Cientista"
 
 type Room = {
   code: string
@@ -66,14 +68,15 @@ export default function AlunoHome() {
 
       const room: Room = {
         code,
-        hostName: "Cientista",
+        hostName: PLAYER_NAME,
         createdAt: new Date().toISOString(),
-        players: ["Cientista"],
+        players: [PLAYER_NAME],
         status: "waiting",
       }
 
       rooms[code] = room
       saveRooms(rooms)
+      window.sessionStorage.setItem(HOST_ROOM_CODE_KEY, code)
       router.push(`/sala/${code}`)
     } catch {
       alert("Nao foi possivel criar a sala agora.")
@@ -91,6 +94,7 @@ export default function AlunoHome() {
 
     setMostrarModalEntrada(false)
     setCodigoSala("")
+    window.sessionStorage.removeItem(HOST_ROOM_CODE_KEY)
     router.push(`/sala/${code}`)
   }
 
@@ -193,7 +197,10 @@ export default function AlunoHome() {
               <p className="mt-2 text-base leading-7 text-rose-50">Pratique suas habilidades de ligações químicas contra a IA do laboratório.</p>
             </button>
 
-            <button className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
+            <button
+              onClick={() => router.push("/aluno/desempenho")}
+              className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"
+            >
               <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
                 <BarChart3 className="h-5 w-5" />
               </span>

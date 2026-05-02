@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 
 const ROOMS_STORAGE_KEY = "dominoQuimicoRooms"
+const HOST_ROOM_CODE_KEY = "dominoQuimicoHostRoomCode"
 
 type Room = {
   code: string
@@ -30,6 +31,19 @@ function saveRooms(rooms: Record<string, Room>) {
   window.localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(rooms))
 }
 
+function getTeamStatusLabel(status: string) {
+  switch (status) {
+    case "waiting":
+      return "Aguardando inicio"
+    case "in_progress":
+      return "Partida em andamento"
+    case "finished":
+      return "Partida finalizada"
+    default:
+      return status
+  }
+}
+
 export default function SalaPage() {
   const router = useRouter()
   const params = useParams<{ code: string }>()
@@ -38,11 +52,32 @@ export default function SalaPage() {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState("")
   const [room, setRoom] = useState<Room | null>(null)
+  const [waitingDots, setWaitingDots] = useState(".")
+  const [isHost, setIsHost] = useState(false)
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setWaitingDots((current) => {
+        if (current.length >= 3) {
+          return "."
+        }
+
+        return `${current}.`
+      })
+    }, 450)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [])
 
   useEffect(() => {
     if (!code) {
       return
     }
+
+    const hostRoomCode = window.sessionStorage.getItem(HOST_ROOM_CODE_KEY)
+    setIsHost(hostRoomCode === code)
 
     const carregarSala = async () => {
       try {
@@ -53,21 +88,26 @@ export default function SalaPage() {
         const existingRoom = rooms[code]
 
         if (existingRoom) {
-          setRoom(existingRoom)
+          const normalizedHost = existingRoom.hostName?.trim() || existingRoom.players?.[0] || "Cientista"
+          const normalizedPlayers =
+            Array.isArray(existingRoom.players) && existingRoom.players.length > 0
+              ? existingRoom.players
+              : [normalizedHost]
+
+          const normalizedRoom: Room = {
+            ...existingRoom,
+            hostName: normalizedHost,
+            players: normalizedPlayers,
+          }
+
+          rooms[code] = normalizedRoom
+          saveRooms(rooms)
+          setRoom(normalizedRoom)
           return
         }
 
-        const mockRoom: Room = {
-          code,
-          hostName: "Anfitriao",
-          createdAt: new Date().toISOString(),
-          players: [],
-          status: "waiting",
-        }
-
-        rooms[code] = mockRoom
-        saveRooms(rooms)
-        setRoom(mockRoom)
+        setErro("Sala nao encontrada.")
+        setRoom(null)
       } catch {
         setErro("Nao foi possivel abrir essa sala.")
       } finally {
@@ -96,9 +136,8 @@ export default function SalaPage() {
         {!loading && room && (
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <p className="text-sm text-slate-600">Anfitriao: <span className="font-semibold text-slate-800">{room.hostName}</span></p>
-            <p className="mt-1 text-sm text-slate-600">Status: <span className="font-semibold text-slate-800">{room.status}</span></p>
+            <p className="mt-1 text-sm text-slate-600">Status da equipe: <span className="font-semibold text-slate-800">{getTeamStatusLabel(room.status)}</span></p>
             <p className="mt-1 text-sm text-slate-600">Jogadores conectados: <span className="font-semibold text-slate-800">{room.players.length + 1}</span></p>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Modo local (mock) sem backend</p>
           </div>
         )}
 
@@ -109,12 +148,20 @@ export default function SalaPage() {
           >
             Voltar
           </button>
-          <button
-            onClick={() => alert("Em breve: iniciar partida multiplayer")}
-            className="rounded-xl border border-rose-500 bg-rose-500 px-4 py-2 font-semibold text-white transition hover:bg-rose-600"
-          >
-            Iniciar Partida
-          </button>
+
+          {isHost ? (
+            <button
+              onClick={() => alert("Em breve: iniciar partida multiplayer")}
+              className="rounded-xl border border-rose-500 bg-rose-500 px-4 py-2 font-semibold text-white transition hover:bg-rose-600"
+            >
+              Iniciar Partida
+            </button>
+          ) : (
+            <p className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 font-semibold text-slate-700">
+              Aguardando a partida ser iniciada
+              <span className="ml-1 inline-block w-5 text-left">{waitingDots}</span>
+            </p>
+          )}
         </div>
       </div>
     </div>
