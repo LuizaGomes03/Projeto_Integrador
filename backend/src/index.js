@@ -74,3 +74,13 @@ app.get('/api/salas/:code', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
 });
+
+import pool from './db.js'
+
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('❌ Erro ao conectar no banco:', err.message)
+  } else {
+    console.log('✅ Banco conectado:', res.rows[0].now)
+  }
+})

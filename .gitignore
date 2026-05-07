@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.production
+
+# Next.js
+frontend/domino-quimico/.next/
+frontend/domino-quimico/out/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+dist/
