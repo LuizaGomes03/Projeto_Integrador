@@ -84,6 +84,7 @@ export default function SalaPage() {
         setLoading(true)
         setErro("")
 
+        {/* Arthur: quando o aluno entrar em uma sala por código, esta busca precisa vir do banco. */ }
         const rooms = loadRooms()
         const existingRoom = rooms[code]
 
@@ -126,6 +127,7 @@ export default function SalaPage() {
 
         <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-rose-500">Codigo da Sala</p>
+          {/* Arthur: aqui entra a lógica do jogo em grupo por código, conectando sala, participantes e partida ao banco. */}
           <p className="mt-2 text-4xl font-black tracking-[0.2em] text-rose-600">{code || "------"}</p>
         </div>
 
@@ -135,6 +137,7 @@ export default function SalaPage() {
 
         {!loading && room && (
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            {/* Arthur: conectar aqui ao banco o status da equipe e a quantidade de jogadores conectados. */}
             <p className="text-sm text-slate-600">Anfitriao: <span className="font-semibold text-slate-800">{room.hostName}</span></p>
             <p className="mt-1 text-sm text-slate-600">Status da equipe: <span className="font-semibold text-slate-800">{getTeamStatusLabel(room.status)}</span></p>
             <p className="mt-1 text-sm text-slate-600">Jogadores conectados: <span className="font-semibold text-slate-800">{room.players.length + 1}</span></p>
@@ -151,7 +154,18 @@ export default function SalaPage() {
 
           {isHost ? (
             <button
-              onClick={() => alert("Em breve: iniciar partida multiplayer")}
+              onClick={() => {
+                /*
+                Arthur:
+                aqui depois entra:
+                - criação da partida
+                - sincronização multiplayer
+                - socket.io
+                - update status room
+                */
+
+                router.push("/jogo")
+              }}
               className="rounded-xl border border-rose-500 bg-rose-500 px-4 py-2 font-semibold text-white transition hover:bg-rose-600"
             >
               Iniciar Partida
