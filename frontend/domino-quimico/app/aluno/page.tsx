@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { FlaskConical, LogIn, Orbit, BarChart3, UserPlus } from "lucide-react"
+import { FlaskConical, LogIn, Orbit, BarChart3, UserPlus, LogOut } from "lucide-react"
 
 const XP_STORAGE_KEY = "dominoQuimicoXp"
 const ROOMS_STORAGE_KEY = "dominoQuimicoRooms"
@@ -128,99 +128,125 @@ export default function AlunoHome() {
   }, [xpAtual])
 
   return (
-    <div className="min-h-screen w-full bg-[#e9edf2]">
-      <header className="w-full border-b border-slate-300 bg-white">
-        <div className="mx-auto flex w-full max-w-7xl items-start justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Domino Químico" width={28} height={28} className="h-auto w-7" />
-            <p className="text-2xl font-black tracking-tight text-slate-900">DOMINÓ QUÍMICO</p>
+    <>
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+          <div className="relative flex items-center justify-center py-4">
+
+            {/* LOGO + TITULO */}
+            <div className="flex items-center gap-3">
+              <Image
+                src="/logo.png"
+                alt="Dominó Químico"
+                width={42}
+                height={42}
+                className="h-10 w-10 object-contain"
+              />
+
+              <h1 className="text-xl font-black tracking-tight text-slate-800">
+                Dominó <span className="text-red-600">Químico</span>
+              </h1>
+            </div>
+
+            {/* BOTAO SAIR */}
+            <button
+              onClick={() => {
+                localStorage.removeItem("dominoQuimicoXp")
+                localStorage.removeItem("dominoQuimicoRooms")
+                localStorage.removeItem("dominoQuimicoHostRoomCode")
+                router.push("/login")
+              }}
+              className="absolute right-0 flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600"
+            >
+              <LogOut size={18} />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-6 py-8 lg:py-10">
-        <section className="rounded-[30px] border border-slate-200 bg-[#f1f4f8] p-6 shadow-lg lg:p-8">
-          <div className="relative mb-7 border-b border-slate-200 pb-5">
-            <button
-              onClick={() => router.push("/")}
-              className="absolute left-0 top-0 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-[#8B8B8B] transition hover:text-[#666666]"
-            >
-              <span className="text-[14px] leading-none">←</span>
-              Sair
-            </button>
+      <div className="min-h-screen w-full bg-[#e9edf2] pt-2">
+        <main className="mx-auto w-full max-w-7xl px-6 py-8 lg:py-10">
+          <section className="rounded-[30px] border border-slate-200 bg-[#f1f4f8] p-6 shadow-lg lg:p-8">
+            <div className="relative mb-7 border-b border-slate-200 pb-5">
 
-            <div className="flex w-full flex-col items-center text-center">
-              <h1 className="text-4xl font-black tracking-tight text-slate-800 lg:text-5xl">Menu do Aluno</h1>
-              <p className="mt-2 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-rose-600">
-                <FlaskConical className="h-4 w-4" />
-                Espaço de Aprendizagem Molecular
-              </p>
+
+              <div className="flex w-full flex-col items-center text-center">
+                <h1 className="text-4xl font-black tracking-tight text-slate-800 lg:text-5xl">Menu do Aluno</h1>
+                <p className="mt-2 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-rose-600">
+                  <FlaskConical className="h-4 w-4" />
+                  Espaço de Aprendizagem Molecular
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <button
-              onClick={criarSala}
-              disabled={criandoSala}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-                <UserPlus className="h-5 w-5" />
-              </span>
-              <h2 className="text-2xl font-bold text-slate-800">{criandoSala ? "Criando Sala..." : "Criar Sala"}</h2>
-              <p className="mt-2 text-base leading-7 text-slate-600">Inicie uma nova partida e convide seus colegas para o laboratório.</p>
-            </button>
+            <div className="grid gap-5 md:grid-cols-2">
+              <button
+                onClick={criarSala}
+                disabled={criandoSala}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                  <UserPlus className="h-5 w-5" />
+                </span>
+                <h2 className="text-2xl font-bold text-slate-800">{criandoSala ? "Criando Sala..." : "Criar Sala"}</h2>
+                <p className="mt-2 text-base leading-7 text-slate-600">Inicie uma nova partida e convide seus colegas para o laboratório.</p>
+              </button>
 
-            <button
-              onClick={() => setMostrarModalEntrada(true)}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"
-            >
-              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-                <LogIn className="h-5 w-5" />
-              </span>
-              <h2 className="text-2xl font-bold text-slate-800">Entrar em Sala</h2>
-              <p className="mt-2 text-base leading-7 text-slate-600">Use um código de convite para participar de uma partida ativa.</p>
-            </button>
+              <button
+                onClick={() => setMostrarModalEntrada(true)}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"
+              >
+                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                  <LogIn className="h-5 w-5" />
+                </span>
+                <h2 className="text-2xl font-bold text-slate-800">Entrar em Sala</h2>
+                <p className="mt-2 text-base leading-7 text-slate-600">Use um código de convite para participar de uma partida ativa.</p>
+              </button>
 
-            <button
-              onClick={() => router.push("/jogo")}
-              className="md:col-span-2 rounded-2xl border border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 p-6 text-left text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-105"
-            >
-              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 text-white">
-                <Orbit className="h-5 w-5" />
-              </span>
-              <h2 className="text-3xl font-bold">Jogar Sozinho</h2>
-              <p className="mt-2 text-base leading-7 text-rose-50">Pratique suas habilidades de ligações químicas contra a IA do laboratório.</p>
-            </button>
+              <button
+                onClick={() => router.push("/jogo")}
+                className="md:col-span-2 rounded-2xl border border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 p-6 text-left text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-105"
+              >
+                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 text-white">
+                  <Orbit className="h-5 w-5" />
+                </span>
+                <h2 className="text-3xl font-bold">Jogar Sozinho</h2>
+                <p className="mt-2 text-base leading-7 text-rose-50">Pratique suas habilidades de ligações químicas contra a IA do laboratório.</p>
+              </button>
 
-            <button
-              onClick={() => router.push("/aluno/desempenho")}
-              className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"
-            >
-              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                <BarChart3 className="h-5 w-5" />
-              </span>
-              <h2 className="text-2xl font-bold text-slate-800">Meu Desempenho</h2>
-              {/* Arthur: conectar este Nível atual com o XP/nivel vindo do banco. */}
-              <p className="mt-2 text-base leading-7 text-slate-600">Confira suas conquistas, nível atual e histórico de experimentos. Nível atual: {nivelAtual}.</p>
-            </button>
-          </div>
-
-          <div className="mt-8 border-t border-slate-200 pt-6">
-            {/* Arthur: conectar este Progresso Molecular com a evolução real do aluno no banco. */}
-            <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wide text-rose-600">
-              <span>Progresso Molecular</span>
-              <span>{xpNoNivel}/{XP_POR_NIVEL} XP</span>
+              <button
+                onClick={() => router.push("/aluno/desempenho")}
+                className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"
+              >
+                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
+                  <BarChart3 className="h-5 w-5" />
+                </span>
+                <h2 className="text-2xl font-bold text-slate-800">Meu Desempenho</h2>
+                {/* Arthur: conectar este Nível atual com o XP/nivel vindo do banco. */}
+                <p className="mt-2 text-base leading-7 text-slate-600">Confira suas conquistas, nível atual e histórico de experimentos. Nível atual: {nivelAtual}.</p>
+              </button>
             </div>
-            <div className="h-3 overflow-hidden rounded-full bg-slate-200">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-rose-600 to-pink-500 transition-all duration-500"
-                style={{ width: `${porcentagemNivel}%` }}
-              />
+
+            <div className="mt-8 border-t border-slate-200 pt-6">
+              {/* Arthur: conectar este Progresso Molecular com a evolução real do aluno no banco. */}
+              <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wide text-rose-600">
+                <span>Progresso Molecular</span>
+                <span>{xpNoNivel}/{XP_POR_NIVEL} XP</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-rose-600 to-pink-500 transition-all duration-500"
+                  style={{ width: `${porcentagemNivel}%` }}
+                />
+              </div>
             </div>
-          </div>
-        </section>
-      </main>
+          </section>
+        </main>
+      </div>
 
       {mostrarModalEntrada && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
@@ -267,6 +293,6 @@ export default function AlunoHome() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

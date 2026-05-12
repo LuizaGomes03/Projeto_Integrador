@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import GlobalLogo from "./components/GlobalLogo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,7 +28,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-screen bg-gray-100 font-sans antialiased">
-        <GlobalLogo />
         {children}
       </body>
     </html>
