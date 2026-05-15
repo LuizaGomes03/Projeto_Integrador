@@ -148,17 +148,6 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* VOLTAR */}
-            <div className="absolute left-6 top-6">
-              <button
-                type="button"
-                onClick={() => router.push("/login")}
-                className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#9A9A9A] transition hover:text-[#666]"
-              >
-                ← Voltar
-              </button>
-            </div>
-
             {/* TITULO */}
             <div className="text-center">
 
