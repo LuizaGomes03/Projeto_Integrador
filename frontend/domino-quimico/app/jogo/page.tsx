@@ -59,8 +59,8 @@ function DominoPiece({
     <div
       onClick={disabled ? undefined : onClick}
       className={`
-        flex h-[90px] w-[46px] flex-col overflow-hidden border bg-white shadow-md
-        sm:h-[105px] sm:w-[52px]
+        flex h-[80px] w-[42px] flex-col overflow-hidden border bg-white shadow-md
+        sm:h-[95px] sm:w-[50px]
         xl:h-[116px] xl:w-[58px]
         ${onClick && !disabled ? "cursor-pointer hover:-translate-y-2 transition-transform" : ""}
         ${selected ? "border-[#2563EB] ring-2 ring-[#2563EB]" : "border-[#D7DCE2]"}
@@ -93,7 +93,7 @@ function PlayerCard({
   return (
     <div
       className={`
-        flex h-[72px] items-center justify-between border bg-white px-4 shadow-sm
+        flex h-[56px] sm:h-[64px] md:h-[72px] items-center justify-between border bg-white px-4 shadow-sm
         ${turn ? "border-[#2563EB] ring-2 ring-[#2563EB]" : "border-[#D7DCE2]"}
       `}
     >
@@ -147,8 +147,8 @@ function ModalVencedor({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
       <div className="w-full max-w-[480px] rounded-2xl bg-white p-8 shadow-2xl text-center">
         <div className="mb-5 flex justify-center">
-          <div className={`flex h-20 w-20 items-center justify-center rounded-full ${euVenci ? "bg-yellow-50" : "bg-slate-100"}`}>
-            <Trophy size={42} className={euVenci ? "text-yellow-500" : "text-slate-400"} />
+          <div className={`flex h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 items-center justify-center rounded-full ${euVenci ? "bg-yellow-50" : "bg-slate-100"}`}>
+            <Trophy size={34} className={euVenci ? "text-yellow-500" : "text-slate-400"} />
           </div>
         </div>
         <h2 className="text-[28px] font-black text-[#3A3A3A]">

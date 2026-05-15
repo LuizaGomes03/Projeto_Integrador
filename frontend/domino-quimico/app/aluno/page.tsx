@@ -170,12 +170,12 @@ export default function AlunoHome() {
 
       <div className="min-h-screen w-full bg-[#e9edf2] pt-2">
         <main className="mx-auto w-full max-w-7xl px-6 py-8 lg:py-10">
-          <section className="rounded-[30px] border border-slate-200 bg-[#f1f4f8] p-6 shadow-lg lg:p-8">
+          <section className="rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-[#f1f4f8] p-4 sm:p-6 lg:p-8 shadow-lg">
             <div className="relative mb-7 border-b border-slate-200 pb-5">
 
 
               <div className="flex w-full flex-col items-center text-center">
-                <h1 className="text-4xl font-black tracking-tight text-slate-800 lg:text-5xl">Menu do Aluno</h1>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-800">Menu do Aluno</h1>
                 <p className="mt-2 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-rose-600">
                   <FlaskConical className="h-4 w-4" />
                   Espaço de Aprendizagem Molecular
@@ -187,7 +187,7 @@ export default function AlunoHome() {
               <button
                 onClick={criarSala}
                 disabled={criandoSala}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 w-full"
               >
                 <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
                   <UserPlus className="h-5 w-5" />
@@ -198,7 +198,7 @@ export default function AlunoHome() {
 
               <button
                 onClick={() => setMostrarModalEntrada(true)}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"
+                className="rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md w-full"
               >
                 <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
                   <LogIn className="h-5 w-5" />
@@ -209,7 +209,7 @@ export default function AlunoHome() {
 
               <button
                 onClick={() => router.push("/jogo")}
-                className="md:col-span-2 rounded-2xl border border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 p-6 text-left text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-105"
+                className="md:col-span-2 rounded-xl sm:rounded-2xl border border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 p-4 sm:p-6 text-left text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-105 w-full"
               >
                 <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 text-white">
                   <Orbit className="h-5 w-5" />
@@ -220,7 +220,7 @@ export default function AlunoHome() {
 
               <button
                 onClick={() => router.push("/aluno/desempenho")}
-                className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"
+                className="md:col-span-2 rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md w-full"
               >
                 <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
                   <BarChart3 className="h-5 w-5" />
