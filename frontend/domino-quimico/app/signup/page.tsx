@@ -113,47 +113,7 @@ export default function SignupPage() {
         fontFamily: '"Poppins", sans-serif',
       }}
     >
-      {/* OVERLAY */}
-      <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]" />
-
-      {/* FUNDO */}
-      <div className="absolute inset-0 overflow-hidden">
-
-        {/* PEÇA O */}
-        <div className="absolute left-[-30px] top-[35%] hidden rotate-[-14deg] lg:block">
-          <div className="flex h-44 w-32 flex-col items-center justify-center rounded-[24px] border border-white/50 bg-gradient-to-br from-[#FFDFDF] to-[#FFBABA] shadow-[0_20px_40px_rgba(0,0,0,0.12)]">
-            <span className="text-6xl font-black text-white">O</span>
-
-            <span className="mt-2 text-lg font-semibold text-white/90">
-              15.999
-            </span>
-          </div>
-        </div>
-
-        {/* PEÇA C */}
-        <div className="absolute left-[10px] top-[58%] hidden rotate-[8deg] lg:block">
-          <div className="flex h-40 w-28 flex-col items-center justify-center rounded-[24px] border border-white/50 bg-gradient-to-br from-[#8F8F8F] to-[#5E5E5E] shadow-[0_20px_40px_rgba(0,0,0,0.15)]">
-            <span className="text-5xl font-black text-white">C</span>
-
-            <span className="mt-2 text-base font-semibold text-white/90">
-              12.011
-            </span>
-          </div>
-        </div>
-
-        {/* PEÇA H */}
-        <div className="absolute bottom-[18%] right-[8%] hidden rotate-[12deg] lg:block">
-          <div className="flex h-32 w-24 flex-col items-center justify-center rounded-[24px] border border-[#ECECEC] bg-white shadow-[0_20px_40px_rgba(0,0,0,0.08)]">
-            <span className="text-5xl font-black text-[#A0A0A0]">
-              H
-            </span>
-
-            <span className="mt-1 text-sm text-[#B0B0B0]">
-              1.008
-            </span>
-          </div>
-        </div>
-      </div>
+     
 
       {/* CONTAINER */}
       <div className="relative z-10 flex w-full items-center justify-center">
