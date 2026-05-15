@@ -110,29 +110,28 @@ export default function LoginPage() {
 
   return (
     <main
-      className="relative min-h-screen overflow-hidden px-4 py-10"
+      className="relative min-h-screen overflow-hidden px-3 py-6 sm:px-4 sm:py-10"
       style={{
         background: "radial-gradient(circle at top left, rgba(255,255,255,0.92) 0%, rgba(245,244,244,1) 55%, rgba(241,239,238,1) 100%)",
         fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif',
       }}
     >
-      <div className="absolute left-1/2 top-4 flex -translate-x-1/2 items-center justify-center rounded-full border border-[#EDEDED] bg-white/90 px-4 py-2 shadow-sm backdrop-blur-sm sm:top-7 sm:px-5 sm:py-3">
-        <img src="/logo.png" alt="Dominó Químico" className="h-20 w-auto object-contain sm:h-30" />
+      <div className="absolute left-1/2 top-4 flex -translate-x-1/2 items-center justify-center rounded-full border border-[#EDEDED] bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm sm:top-6 sm:px-4 sm:py-2">
+        <img src="/logo.png" alt="Dominó Químico" className="h-14 w-auto object-contain sm:h-20 md:h-28" />
       </div>
 
       <div className="absolute right-0 top-[58%] hidden h-[1px] w-[18vw] origin-left rotate-[-35deg] bg-[#F0D7D7] opacity-70 sm:block" />
 
-      <div className="absolute bottom-10 left-1/2 hidden -translate-x-1/2 items-end gap-4 sm:flex">
+      <div className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-end gap-3 md:flex">
         <PeriodicTile symbol="H" number="1.008" />
         <PeriodicTile symbol="O" number="15.999" accent />
         <PeriodicTile symbol="C" number="12.011" dark />
       </div>
 
-      <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-[460px] items-center justify-center">
-        <div className="w-full rounded-[42px] border border-[#EDEDED] bg-white px-7 pb-8 pt-10 shadow-[0_25px_70px_rgba(0,0,0,0.08)] sm:px-9">
+      <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-[460px] w-full items-center justify-center px-2">
+        <div className="w-full rounded-[28px] sm:rounded-[42px] border border-[#EDEDED] bg-white px-4 pb-6 pt-14 sm:px-7 sm:pb-8 sm:pt-16 md:px-9 shadow-[0_25px_70px_rgba(0,0,0,0.08)]">
           <div className="mb-8">
-            <h1
-              className="text-[34px] font-black leading-none tracking-[-0.05em] text-[#3A3A3A] sm:text-[40px]"
+            <h1 className="text-[28px] sm:text-[34px] md:text-[40px] font-black leading-none tracking-tight text-[#3A3A3A]"
               style={{ fontFamily: 'Montserrat, "Poppins", "Inter", "Segoe UI", sans-serif' }}
             >
               Bem-vindo
@@ -142,18 +141,18 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="mb-5">
+            <div className="mb-5">
             <label className="mb-3 block text-[12px] font-semibold uppercase tracking-[0.32em] text-[#8E8E8E]">
               Email Acadêmico
             </label>
-            <div className="flex h-[72px] items-center gap-3 rounded-[18px] bg-[#F8F8F8] px-4">
+            <div className="flex h-[56px] sm:h-[64px] md:h-[72px] items-center gap-3 rounded-[12px] sm:rounded-[18px] bg-[#F8F8F8] px-3 sm:px-4">
               <EmailIcon />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nome.sobrenome@aluno.cps.sp.gov.br"
-                className="w-full bg-transparent text-[16px] font-medium text-[#666666] outline-none placeholder:text-[#C2C2C2]"
+                className="w-full bg-transparent text-[15px] sm:text-[16px] font-medium text-[#666666] outline-none placeholder:text-[#C2C2C2]"
                 style={{ fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif' }}
               />
             </div>
@@ -174,14 +173,14 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="flex h-[72px] items-center gap-3 rounded-[18px] bg-[#F8F8F8] px-4">
+            <div className="flex h-[56px] sm:h-[64px] md:h-[72px] items-center gap-3 rounded-[12px] sm:rounded-[18px] bg-[#F8F8F8] px-3 sm:px-4">
               <LockIcon />
               <input
                 type={showPassword ? "text" : "password"}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-transparent text-[16px] font-medium text-[#666666] outline-none placeholder:text-[#C2C2C2]"
+                className="w-full bg-transparent text-[15px] sm:text-[16px] font-medium text-[#666666] outline-none placeholder:text-[#C2C2C2]"
                 style={{ fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif', letterSpacing: "0.28em" }}
               />
               <button type="button" onClick={() => setShowPassword((current) => !current)} className="shrink-0">
@@ -193,7 +192,7 @@ export default function LoginPage() {
 
           <button
             onClick={submitLogin}
-            className="mt-2 flex h-11 w-full items-center justify-center rounded-full text-[13px] font-extrabold uppercase tracking-[0.34em] text-white shadow-[0_14px_30px_rgba(255,59,48,0.24)] transition hover:brightness-105"
+            className="mt-3 w-full flex items-center justify-center rounded-full bg-rose-600 py-3 text-[14px] sm:text-[13px] font-extrabold uppercase tracking-[0.16em] sm:tracking-[0.34em] text-white shadow-[0_10px_24px_rgba(255,59,48,0.18)] transition hover:brightness-105"
             style={{ backgroundColor: AUTH_COLORS.accent, fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif' }}
           >
             Entrar <span className="ml-3 text-[16px] leading-none">→</span>
@@ -216,7 +215,7 @@ export default function LoginPage() {
 
       {showRecoveryModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_24px_60px_rgba(0,0,0,0.18)] sm:p-7">
+          <div className="w-full max-w-md rounded-[24px] sm:rounded-[28px] bg-white p-4 sm:p-6 md:p-7 shadow-[0_24px_60px_rgba(0,0,0,0.18)] max-h-[90vh] overflow-y-auto">
             <h2 className="text-[22px] font-extrabold tracking-[-0.03em] text-[#3A3A3A]" style={{ fontFamily: 'Montserrat, "Poppins", "Inter", "Segoe UI", sans-serif' }}>
               Recuperar senha
             </h2>

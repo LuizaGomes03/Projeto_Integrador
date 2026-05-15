@@ -93,7 +93,7 @@ export default function DesempenhoPage() {
         <section className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {/* TOPO */}
           <div>
-            <h2 className="text-3xl font-black tracking-[-0.04em] text-[#2F2F2F] sm:text-4xl lg:text-6xl">
+            <h2 className="text-[26px] sm:text-3xl lg:text-5xl font-black tracking-tight text-[#2F2F2F]">
               Meu Desempenho
             </h2>
 
@@ -112,7 +112,7 @@ export default function DesempenhoPage() {
             {/* ESQUERDA */}
             <div className="flex flex-col gap-6">
               {/* XP */}
-              <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] sm:p-6 lg:p-8">
+              <div className="rounded-[28px] sm:rounded-[32px] border border-[#E5E7EB] bg-white p-4 sm:p-6 lg:p-8 shadow-[0_10px_40px_rgba(0,0,0,0.06)]">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#94A3B8]">
@@ -120,7 +120,7 @@ export default function DesempenhoPage() {
                     </p>
 
                     <div className="mt-3 flex flex-wrap items-center gap-3">
-                      <h1 className="text-5xl font-black tracking-[-0.06em] text-[#1E293B] sm:text-6xl lg:text-7xl">
+                      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#1E293B]">
                         12.450
                       </h1>
 
@@ -167,12 +167,12 @@ export default function DesempenhoPage() {
               {/* STATS */}
               <div className="grid gap-6 sm:grid-cols-2">
                 {/* CARD */}
-                <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-5 shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-6">
+                <div className="rounded-[20px] sm:rounded-[32px] border border-[#E5E7EB] bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#F8F8F8]">
                     <Flame className="text-[#DC2626]" size={24} />
                   </div>
 
-                  <h3 className="mt-5 text-5xl font-black tracking-[-0.04em] text-[#1E293B]">
+                  <h3 className="mt-5 text-3xl sm:text-4xl font-black tracking-tight text-[#1E293B]">
                     12
                   </h3>
 
@@ -291,8 +291,8 @@ export default function DesempenhoPage() {
                 <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-3">
                   {/* MEDALHA 1 */}
                   <div className="flex flex-col items-center text-center">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#F8B4B4] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 sm:h-24 sm:w-24">
-                      <div className="flex h-[64px] w-[64px] items-center justify-center rounded-full border border-[#F3D1D1] sm:h-[78px] sm:w-[78px]">
+                    <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full border-2 border-[#F8B4B4] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1">
+                      <div className="flex h-[56px] w-[56px] sm:h-[64px] sm:w-[64px] items-center justify-center rounded-full border border-[#F3D1D1]">
                         <Trophy className="text-[#DC2626]" size={26} />
                       </div>
                     </div>
