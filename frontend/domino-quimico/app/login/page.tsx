@@ -1,264 +1,294 @@
 "use client"
 
-import { useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { AUTH_COLORS, AUTH_COPY, type AuthFieldErrors, validateLogin } from "../auth/authShared"
-
-function EmailIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5">
-      <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z" stroke="#C7C7C7" strokeWidth="1.7" />
-      <path d="m6.5 8 5.5 4 5.5-4" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function LockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5">
-      <path d="M8 11V8.5A4 4 0 0 1 12 4.5a4 4 0 0 1 4 4V11" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" />
-      <rect x="5" y="11" width="14" height="9" rx="2.5" stroke="#C7C7C7" strokeWidth="1.7" />
-    </svg>
-  )
-}
+import { useState } from "react"
 
 function EyeIcon({ open }: { open: boolean }) {
   if (!open) {
     return (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5">
-        <path d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z"
+          stroke="#C7C7C7"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         <circle cx="12" cy="12" r="2.5" stroke="#C7C7C7" strokeWidth="1.7" />
-        <path d="m4 20 16-16" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" />
+        <path
+          d="m4 20 16-16"
+          stroke="#C7C7C7"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+        />
       </svg>
     )
   }
 
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5">
-      <path d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z"
+        stroke="#C7C7C7"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <circle cx="12" cy="12" r="2.5" stroke="#C7C7C7" strokeWidth="1.7" />
     </svg>
   )
 }
 
-function PeriodicTile({ symbol, number, accent = false, dark = false }: { symbol: string; number: string; accent?: boolean; dark?: boolean }) {
-  return (
-    <div
-      className="flex h-28 w-20 flex-col items-center justify-between rounded-2xl border bg-white px-2 py-3 shadow-[0_10px_25px_rgba(0,0,0,0.08)]"
-      style={{
-        transform: accent ? "rotate(6deg)" : dark ? "rotate(-4deg)" : "rotate(0deg)",
-        backgroundColor: dark ? "#8E8E8E" : accent ? AUTH_COLORS.accent : AUTH_COLORS.white,
-        borderColor: dark ? "transparent" : "#EAEAEA",
-        color: dark || accent ? AUTH_COLORS.white : "#7B7B7B",
-      }}
-    >
-      <span className="text-xs font-medium opacity-90">{symbol}</span>
-      <span className="text-[10px] opacity-75">{number}</span>
-    </div>
-  )
-}
-
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [senha, setSenha] = useState("")
-  const [errors, setErrors] = useState<AuthFieldErrors>({})
-  const [showPassword, setShowPassword] = useState(false)
+
   const [showRecoveryModal, setShowRecoveryModal] = useState(false)
-  const [recoveryEmail, setRecoveryEmail] = useState("")
-  const [recoveryError, setRecoveryError] = useState("")
-
-  const submitLogin = () => {
-    const nextErrors: AuthFieldErrors = validateLogin(email, senha)
-
-    setErrors(nextErrors)
-
-    if (Object.keys(nextErrors).length > 0) {
-      return
-    }
-    router.push("/aluno")
-  }
-
-  const openRecoveryModal = () => {
-    setRecoveryError("")
-    setRecoveryEmail(email)
-    setShowRecoveryModal(true)
-  }
-
-  const closeRecoveryModal = () => {
-    setShowRecoveryModal(false)
-    setRecoveryError("")
-  }
-
-  const submitRecoveryRequest = () => {
-    const normalizedEmail = recoveryEmail.trim().toLowerCase()
-
-    if (!normalizedEmail) {
-      setRecoveryError("Digite seu email institucional.")
-      return
-    }
-
-    if (!normalizedEmail.endsWith("@aluno.cps.sp.gov.br")) {
-      setRecoveryError("Use seu email da faculdade, com @aluno.cps.sp.gov.br.")
-      return
-    }
-
-    setShowRecoveryModal(false)
-    setRecoveryError("")
-    alert(`Se o email ${normalizedEmail} estiver cadastrado, enviaremos as instruções de recuperação.`)
-  }
+  const [showPassword, setShowPassword] = useState(false)
 
   return (
     <main
-      className="relative min-h-screen overflow-hidden px-3 py-6 sm:px-4 sm:py-10"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-6"
       style={{
-        background: "radial-gradient(circle at top left, rgba(255,255,255,0.92) 0%, rgba(245,244,244,1) 55%, rgba(241,239,238,1) 100%)",
-        fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif',
+        backgroundImage:
+          "url('/ChatGPT Image 15 de mai. de 2026, 10_31_00.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        fontFamily: '"Poppins", sans-serif',
       }}
     >
-      <div className="absolute left-1/2 top-4 flex -translate-x-1/2 items-center justify-center rounded-full border border-[#EDEDED] bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm sm:top-6 sm:px-4 sm:py-2">
-        <img src="/logo.png" alt="Dominó Químico" className="h-14 w-auto object-contain sm:h-20 md:h-28" />
-      </div>
+      {/* FUNDO */}
+      <div className="absolute inset-0 overflow-hidden">
 
-      <div className="absolute right-0 top-[58%] hidden h-[1px] w-[18vw] origin-left rotate-[-35deg] bg-[#F0D7D7] opacity-70 sm:block" />
+        {/* PEÇA O */}
+        <div className="absolute left-[-30px] top-[35%] hidden rotate-[-14deg] lg:block">
+          <div className="flex h-44 w-32 flex-col items-center justify-center rounded-[24px] border border-white/50 bg-gradient-to-br from-[#FFDFDF] to-[#FFBABA] shadow-[0_20px_40px_rgba(0,0,0,0.12)]">
+            <span className="text-6xl font-black text-white">O</span>
 
-      <div className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-end gap-3 md:flex">
-        <PeriodicTile symbol="H" number="1.008" />
-        <PeriodicTile symbol="O" number="15.999" accent />
-        <PeriodicTile symbol="C" number="12.011" dark />
-      </div>
-
-      <div className="relative mx-auto flex min-h-[calc(100vh-80px)] max-w-[460px] w-full items-center justify-center px-2">
-        <div className="w-full rounded-[28px] sm:rounded-[42px] border border-[#EDEDED] bg-white px-4 pb-6 pt-14 sm:px-7 sm:pb-8 sm:pt-16 md:px-9 shadow-[0_25px_70px_rgba(0,0,0,0.08)]">
-          <div className="mb-8">
-            <h1 className="text-[28px] sm:text-[34px] md:text-[40px] font-black leading-none tracking-tight text-[#3A3A3A]"
-              style={{ fontFamily: 'Montserrat, "Poppins", "Inter", "Segoe UI", sans-serif' }}
-            >
-              Bem-vindo
-            </h1>
-            <p className="mt-3 text-[16px] font-normal leading-snug text-[#9B9B9B]">
-              Entre para continuar sua pesquisa.
-            </p>
+            <span className="mt-2 text-lg font-semibold text-white/90">
+              15.999
+            </span>
           </div>
+        </div>
 
-            <div className="mb-5">
-            <label className="mb-3 block text-[12px] font-semibold uppercase tracking-[0.32em] text-[#8E8E8E]">
-              Email Acadêmico
-            </label>
-            <div className="flex h-[56px] sm:h-[64px] md:h-[72px] items-center gap-3 rounded-[12px] sm:rounded-[18px] bg-[#F8F8F8] px-3 sm:px-4">
-              <EmailIcon />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nome.sobrenome@aluno.cps.sp.gov.br"
-                className="w-full bg-transparent text-[15px] sm:text-[16px] font-medium text-[#666666] outline-none placeholder:text-[#C2C2C2]"
-                style={{ fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif' }}
-              />
-            </div>
-            {errors.email ? <p className="mt-2 text-xs text-red-600">{errors.email}</p> : null}
+        {/* PEÇA C */}
+        <div className="absolute left-[10px] top-[58%] hidden rotate-[8deg] lg:block">
+          <div className="flex h-40 w-28 flex-col items-center justify-center rounded-[24px] border border-white/50 bg-gradient-to-br from-[#8F8F8F] to-[#5E5E5E] shadow-[0_20px_40px_rgba(0,0,0,0.15)]">
+            <span className="text-5xl font-black text-white">C</span>
+
+            <span className="mt-2 text-base font-semibold text-white/90">
+              12.011
+            </span>
           </div>
+        </div>
 
-          <div className="mb-5">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <label className="block text-[12px] font-semibold uppercase tracking-[0.32em] text-[#8E8E8E]">
-                Senha de Acesso
-              </label>
-              <button
-                type="button"
-                onClick={openRecoveryModal}
-                className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#FF3B30]"
-              >
-                Esqueci a senha
-              </button>
-            </div>
+        {/* PEÇA H */}
+        <div className="absolute bottom-[18%] right-[8%] hidden rotate-[12deg] lg:block">
+          <div className="flex h-32 w-24 flex-col items-center justify-center rounded-[24px] border border-[#ECECEC] bg-white shadow-[0_20px_40px_rgba(0,0,0,0.08)]">
+            <span className="text-5xl font-black text-[#A0A0A0]">
+              H
+            </span>
 
-            <div className="flex h-[56px] sm:h-[64px] md:h-[72px] items-center gap-3 rounded-[12px] sm:rounded-[18px] bg-[#F8F8F8] px-3 sm:px-4">
-              <LockIcon />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-transparent text-[15px] sm:text-[16px] font-medium text-[#666666] outline-none placeholder:text-[#C2C2C2]"
-                style={{ fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif', letterSpacing: "0.28em" }}
-              />
-              <button type="button" onClick={() => setShowPassword((current) => !current)} className="shrink-0">
-                <EyeIcon open={showPassword} />
-              </button>
-            </div>
-            {errors.senha ? <p className="mt-2 text-xs text-red-600">{errors.senha}</p> : null}
+            <span className="mt-1 text-sm text-[#B0B0B0]">
+              1.008
+            </span>
           </div>
-
-          <button
-            onClick={submitLogin}
-            className="mt-3 w-full flex items-center justify-center rounded-full bg-rose-600 py-3 text-[14px] sm:text-[13px] font-extrabold uppercase tracking-[0.16em] sm:tracking-[0.34em] text-white shadow-[0_10px_24px_rgba(255,59,48,0.18)] transition hover:brightness-105"
-            style={{ backgroundColor: AUTH_COLORS.accent, fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif' }}
-          >
-            Entrar <span className="ml-3 text-[16px] leading-none">→</span>
-          </button>
-
-          <div className="my-6 border-t border-[#EFEFEF]" />
-
-          <p className="text-center text-[13px] font-medium text-[#8D8D8D]">
-            Não tem conta?{" "}
-            <button
-              className="font-bold"
-              onClick={() => router.push("/signup")}
-              style={{ color: AUTH_COLORS.accent }}
-            >
-              Criar
-            </button>
-          </p>
         </div>
       </div>
 
-      {showRecoveryModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-md rounded-[24px] sm:rounded-[28px] bg-white p-4 sm:p-6 md:p-7 shadow-[0_24px_60px_rgba(0,0,0,0.18)] max-h-[90vh] overflow-y-auto">
-            <h2 className="text-[22px] font-extrabold tracking-[-0.03em] text-[#3A3A3A]" style={{ fontFamily: 'Montserrat, "Poppins", "Inter", "Segoe UI", sans-serif' }}>
-              Recuperar senha
-            </h2>
-            <p className="mt-2 text-[14px] leading-snug text-[#8B8B8B]">
-              Digite o email institucional da faculdade para receber as instruções.
-            </p>
+      {/* CONTAINER */}
+      <div className="relative z-10 flex w-full items-center justify-center">
+        
 
-            <label className="mt-5 block text-[12px] font-semibold uppercase tracking-[0.28em] text-[#8E8E8E]">
-              Email da faculdade
-            </label>
-            <div className="mt-3 flex h-[62px] items-center gap-3 rounded-[18px] bg-[#F8F8F8] px-4">
-              <EmailIcon />
-              <input
-                type="email"
-                value={recoveryEmail}
-                onChange={(e) => setRecoveryEmail(e.target.value)}
-                placeholder="nome.sobrenome@aluno.cps.sp.gov.br"
-                className="w-full bg-transparent text-[15px] font-medium text-[#666666] outline-none placeholder:text-[#C2C2C2]"
-                style={{ fontFamily: '"Poppins", "Inter", "Segoe UI", sans-serif' }}
+        {/* LOGIN */}
+        <div className="w-full max-w-[430px]">
+
+          {/* LOGO ETEC */}
+          <div className="flex justify-center pb-10 sm:pb-12 md:pb-14">
+            <Image
+              src="/etec_santo_andre.png"
+              alt="ETEC Santo André"
+              width={340}
+              height={120}
+              className="h-auto w-[190px] sm:w-[240px] md:w-[300px]"
+              priority
+            />
+          </div>
+
+          {/* CARD */}
+          <div className="relative mt-4 rounded-[34px] border border-white/60 bg-white/88 px-6 pb-7 pt-16 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:px-8 sm:pb-8 sm:pt-20">
+
+            {/* LOGO */}
+            <div className="absolute left-1/2 top-0 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#ECECEC] bg-white shadow-xl sm:h-28 sm:w-28">
+              <Image
+                src="/logo.png"
+                alt="Dominó Químico"
+                width={90}
+                height={90}
+                className="h-auto w-[58px] sm:w-[72px]"
+                priority
               />
             </div>
-            {recoveryError ? <p className="mt-2 text-xs text-red-600">{recoveryError}</p> : null}
 
-            <div className="mt-6 flex gap-3">
+            {/* TITULO */}
+            <div className="text-center">
+
+              <h1 className="text-[30px] font-black leading-none tracking-[-0.05em] text-[#2F2F2F] sm:text-[38px]">
+                DOMINÓ
+              </h1>
+
+              <h2 className="mt-1 text-[26px] font-black leading-none tracking-[0.16em] text-[#D62828] sm:text-[32px]">
+                QUÍMICO
+              </h2>
+
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.42em] text-[#A0A0A0]">
+                JOGO EDUCATIVO
+              </p>
+
+              {/* TEXTO */}
+              <div className="mt-9">
+                <h3 className="text-[32px] font-black tracking-[-0.06em] text-[#343434] sm:text-[42px]">
+                  Bem-vindo
+                </h3>
+
+                <p className="mt-2 text-[15px] text-[#8B8B8B] sm:text-[17px]">
+                  Entre para continuar sua jornada.
+                </p>
+              </div>
+            </div>
+
+            {/* FORM */}
+            <div className="mt-8 space-y-5">
+
+              {/* EMAIL */}
+              <div>
+                <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">
+                  Email Acadêmico
+                </label>
+
+                <div className="flex h-[58px] items-center rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4">
+
+                  <input
+                    type="email"
+                    placeholder="seu.nome@aluno.cps.sp.gov.br"
+                    className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7]"
+                  />
+                </div>
+              </div>
+
+              {/* SENHA */}
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+
+                  <label className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">
+                    Senha de acesso
+                  </label>
+
+                  <button
+                    onClick={() => setShowRecoveryModal(true)}
+                    className="text-[10px] font-black uppercase tracking-[0.18em] text-[#E12727] transition hover:opacity-70"
+                  >
+                    Esqueci a senha
+                  </button>
+                </div>
+
+                <div className="flex h-[58px] items-center gap-3 rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4">
+
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    className="w-full bg-transparent text-[14px] tracking-[0.3em] text-[#666] outline-none placeholder:text-[#C7C7C7]"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((current) => !current)}
+                    className="shrink-0"
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
+                </div>
+              </div>
+
+              {/* BOTÃO */}
+              <button className="mt-2 flex h-[58px] w-full items-center justify-center rounded-full bg-[#D62828] text-[13px] font-black uppercase tracking-[0.28em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105">
+
+                Entrar
+
+                <span className="ml-3 text-lg">
+                  →
+                </span>
+              </button>
+            </div>
+
+            {/* DIVISOR */}
+            <div className="my-7 border-t border-[#EFEFEF]" />
+
+            {/* CRIAR */}
+            <p className="text-center text-[14px] text-[#8D8D8D]">
+              Não tem conta?
+
               <button
-                type="button"
-                onClick={closeRecoveryModal}
-                className="h-11 flex-1 rounded-full border border-[#E7E7E7] text-[13px] font-bold uppercase tracking-[0.2em] text-[#666666] transition hover:bg-[#FAFAFA]"
+                onClick={() => router.push("/signup")}
+                className="ml-1 font-black text-[#D62828]"
+              >
+                Criar
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* MODAL */}
+      {showRecoveryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-[6px]">
+
+          <div className="w-full max-w-md rounded-[32px] bg-white p-6 shadow-[0_25px_80px_rgba(0,0,0,0.25)] sm:p-8">
+
+            <h2 className="text-[28px] font-black tracking-[-0.04em] text-[#2F2F2F]">
+              Recuperar senha
+            </h2>
+
+            <p className="mt-3 text-[15px] leading-relaxed text-[#8B8B8B]">
+              Digite seu email acadêmico para receber as instruções de recuperação.
+            </p>
+
+            <div className="mt-6">
+              <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">
+                Email acadêmico
+              </label>
+
+              <div className="flex h-[58px] items-center rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4">
+
+                <input
+                  type="email"
+                  placeholder="seu.nome@aluno.cps.sp.gov.br"
+                  className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7]"
+                />
+              </div>
+            </div>
+
+            <div className="mt-7 flex gap-3">
+
+              <button
+                onClick={() => setShowRecoveryModal(false)}
+                className="flex-1 rounded-full border border-[#E5E5E5] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-[#666] transition hover:bg-[#F8F8F8]"
               >
                 Cancelar
               </button>
+
               <button
-                type="button"
-                onClick={submitRecoveryRequest}
-                className="h-11 flex-1 rounded-full text-[13px] font-extrabold uppercase tracking-[0.2em] text-white transition hover:brightness-105"
-                style={{ backgroundColor: AUTH_COLORS.accent }}
+                onClick={() => setShowRecoveryModal(false)}
+                className="flex-1 rounded-full bg-[#D62828] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_25px_rgba(214,40,40,0.25)] transition hover:brightness-105"
               >
                 Enviar
               </button>
+
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </main>
   )
 }
