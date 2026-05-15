@@ -109,6 +109,7 @@ export default function SignupPage() {
           "url('/ChatGPT Image 15 de mai. de 2026, 10_31_00.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundAttachment: 'fixed',
         backgroundRepeat: "no-repeat",
         fontFamily: '"Poppins", sans-serif',
       }}
