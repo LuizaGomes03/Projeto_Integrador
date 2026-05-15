@@ -176,7 +176,11 @@ export default function LoginPage() {
               </div>
 
               {/* BOTÃO */}
-              <button className="mt-2 flex h-[58px] w-full items-center justify-center rounded-full bg-[#D62828] text-[13px] font-black uppercase tracking-[0.28em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105">
+              <button
+                type="button"
+                onClick={() => router.push("/aluno")}
+                className="mt-2 flex h-[58px] w-full items-center justify-center rounded-full bg-[#D62828] text-[13px] font-black uppercase tracking-[0.28em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105"
+              >
 
                 Entrar
 
