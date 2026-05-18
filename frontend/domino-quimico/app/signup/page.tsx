@@ -114,7 +114,7 @@ export default function SignupPage() {
         fontFamily: '"Poppins", sans-serif',
       }}
     >
-     
+
 
       {/* CONTAINER */}
       <div className="relative z-10 flex w-full items-center justify-center">
@@ -185,6 +185,12 @@ export default function SignupPage() {
 
                 <div className="flex h-[64px] items-center gap-3 rounded-[22px] border border-[#EEEEEE] bg-[#FAFAFA] px-4">
                   <UserIcon />
+
+
+                  {/* TODO BACKEND (Arthur):
+                   Conectar campos do formulário com backend de cadastro.
+                  Dados deverão ser enviados para API de criação de usuário.
+                  */}
 
                   <input
                     type="text"
@@ -264,6 +270,11 @@ export default function SignupPage() {
 
                   <LockIcon />
 
+                  {/* TODO BACKEND (Arthur):
+        Validar confirmação de senha.
+        Verificar se senha e confirmação coincidem antes do cadastro.
+    */}
+
                   <input
                     type={showConfirm ? "text" : "password"}
                     placeholder="••••••••"
@@ -277,38 +288,36 @@ export default function SignupPage() {
                   >
                     <EyeIcon open={showConfirm} />
                   </button>
+
                 </div>
               </div>
-
-              {/* BOTÃO */}
-              <button className="mt-3 flex h-[64px] w-full items-center justify-center rounded-full bg-[#D62828] text-[13px] font-black uppercase tracking-[0.28em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105">
-
-                Criar conta
-
-                <span className="ml-3 text-lg">
-                  →
-                </span>
-              </button>
             </div>
 
+            {/* BOTÃO */}
+            <button className="mt-3 flex h-[64px] w-full items-center justify-center rounded-full bg-[#D62828] text-[13px] font-black uppercase tracking-[0.28em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105">
+              Criar conta
+              <span className="ml-3 text-lg">
+
+              </span>
+            </button>
             {/* DIVISOR */}
-            <div className="my-7 border-t border-[#EFEFEF]" />
+          <div className="my-7 border-t border-[#EFEFEF]" />
 
-            {/* LOGIN */}
-            <p className="text-center text-[14px] text-[#8D8D8D]">
-              Já possui uma conta?
+          {/* LOGIN */}
+          <p className="text-center text-[14px] text-[#8D8D8D]">
+            Já possui uma conta?
 
-              <button
-                onClick={() => router.push("/login")}
-                className="ml-1 font-black text-[#D62828]"
-              >
-                Entrar
-              </button>
-            </p>
-
+            <button
+              onClick={() => router.push("/login")}
+              className="ml-1 font-black text-[#D62828]"
+            >
+              Entrar
+            </button>
+          </p>
           </div>
+
         </div>
       </div>
-    </main>
+    </main >
   )
 }
