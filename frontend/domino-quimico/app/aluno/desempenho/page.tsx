@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   ChevronRight,
   Zap,
-  Bolt,
 } from "lucide-react"
 
 const XP_STORAGE_KEY = "dominoQuimicoXp"
@@ -74,13 +73,19 @@ export default function DesempenhoPage() {
 
   return (
     <>
-      {/* HEADER */}
+      {/* ── HEADER ── */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative flex items-center justify-center py-4">
-            <div className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Dominó Químico" width={42} height={42} className="h-10 w-10 object-contain" />
-              <h1 className="text-xl font-black tracking-tight text-slate-800">
+          <div className="relative flex items-center justify-center py-3 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Image
+                src="/logo.png"
+                alt="Dominó Químico"
+                width={42}
+                height={42}
+                className="h-8 w-8 object-contain sm:h-10 sm:w-10"
+              />
+              <h1 className="text-lg font-black tracking-tight text-slate-800 sm:text-xl">
                 Dominó <span className="text-red-600">Químico</span>
               </h1>
             </div>
@@ -91,16 +96,16 @@ export default function DesempenhoPage() {
                 localStorage.removeItem("dominoQuimicoHostRoomCode")
                 router.push("/login")
               }}
-              className="absolute right-0 flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600"
+              className="absolute right-0 flex items-center gap-1.5 rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-600 sm:gap-2 sm:px-4 sm:py-2"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
               <span className="hidden sm:inline">Sair</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* FUNDO */}
+      {/* ── MAIN ── */}
       <main
         className="min-h-screen w-full"
         style={{
@@ -109,7 +114,11 @@ export default function DesempenhoPage() {
         }}
       >
         {/* Moléculas decorativas */}
-        <svg aria-hidden className="pointer-events-none fixed inset-0 h-full w-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          aria-hidden
+          className="pointer-events-none fixed inset-0 h-full w-full opacity-[0.08]"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <circle cx="6%" cy="30%" r="70" fill="none" stroke="#DC2626" strokeWidth="1.5" />
           <circle cx="6%" cy="30%" r="18" fill="#DC2626" />
           <line x1="6%" y1="30%" x2="12%" y2="20%" stroke="#DC2626" strokeWidth="1.2" />
@@ -124,60 +133,64 @@ export default function DesempenhoPage() {
           <circle cx="98%" cy="82%" r="7" fill="#DC2626" />
         </svg>
 
-        <section className="relative mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-6 py-8 sm:px-10 lg:py-12">
+        <section className="relative mx-auto flex w-full max-w-[1400px] flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 lg:px-10 lg:py-12">
 
-          {/* TOPO */}
-          <div className="relative flex flex-col gap-6 items-center">
+          {/* ── TOPO ── */}
+          <div className="flex flex-col gap-3">
             <button
               onClick={() => router.push("/aluno")}
-              className="absolute left-6 top-0 flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-800"
+              className="flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-800 sm:px-4 sm:py-2 sm:text-sm"
             >
-              <ArrowLeft size={15} />
+              <ArrowLeft size={13} />
               Voltar
             </button>
 
-            <div className="w-full max-w-3xl text-center">
-              <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white/70 px-4 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-rose-600">
-                <FlaskConical size={12} />
+            <div className="mx-auto w-full max-w-3xl text-center">
+              <p className="mb-3 inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/70 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-rose-600 sm:px-4 sm:text-xs">
+                <FlaskConical size={11} />
                 Laboratório de Progresso
               </p>
-              <h2 className="text-3xl font-black tracking-tight text-slate-800 sm:text-4xl">
-                Meu Desempenho
+              <h2 className="text-3xl font-black tracking-tight text-slate-800 sm:text-4xl md:text-5xl lg:text-6xl">
+                Meu Desenvolvimento
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Resumo completo do seu progresso, conquistas e próximos passos.
+              <p className="mt-2 text-sm text-slate-500 sm:mt-3">
+                Sua evolução no laboratório de estratégia.
               </p>
             </div>
           </div>
 
-          {/* DASHBOARD GRID */}
+          {/* ── DASHBOARD GRID ──
+              mobile (< sm) : 1 coluna
+              tablet (sm)   : 2 colunas
+              desktop (lg)  : 4 colunas
+          */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            {/* ── LINHA 1 ── */}
-
-            {/* Card XP — 2 colunas */}
-            <div className="relative col-span-1 overflow-hidden rounded-2xl bg-[#DC2626] p-6 shadow-lg sm:col-span-2">
-              <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-              <div aria-hidden className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-white/[0.07]" />
+            {/* Card XP — full em mobile, 2 cols em sm+, 2 cols em lg */}
+            <div className="relative overflow-hidden rounded-2xl bg-[#DC2626] p-5 shadow-lg sm:col-span-2 sm:p-6">
+              <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/10 sm:h-40 sm:w-40" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-white/[0.07] sm:h-24 sm:w-24" />
               <div className="relative z-10">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-200">
                     Potencial Atômico (XP)
                   </p>
-                  <span className="relative flex h-2.5 w-2.5">
+                  <span className="relative flex h-2.5 w-2.5 shrink-0">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-50" />
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
                   </span>
                 </div>
-                <div className="mt-3 flex items-center gap-3">
-                  <span className="text-4xl font-black tracking-tight text-white">
+                <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
+                  <span className="text-3xl font-black tracking-tight text-white sm:text-4xl">
                     {xpAtual.toLocaleString("pt-BR")}
                   </span>
                   <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-black text-white">
                     +450 XP
                   </span>
                 </div>
-                <p className="mt-4 text-base font-black text-white">Cientista Nível {nivelAtual}</p>
+                <p className="mt-4 text-sm font-black text-white sm:text-base">
+                  Cientista Nível {nivelAtual}
+                </p>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-rose-200">
                   Protocolo: Alquimista Sênior
                 </p>
@@ -194,12 +207,12 @@ export default function DesempenhoPage() {
             </div>
 
             {/* Stat: Dias de ofensiva */}
-            <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/[0.05]">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
-                <Flame size={22} className="text-[#DC2626]" />
+            <div className="mx-auto w-full max-w-md flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/[0.05] sm:max-w-none sm:p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 sm:h-11 sm:w-11">
+                <Flame size={20} className="text-[#DC2626]" />
               </div>
               <div>
-                <p className="text-5xl font-black tracking-tight text-slate-800">12</p>
+                <p className="text-4xl font-black tracking-tight text-slate-800 sm:text-5xl">12</p>
                 <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   Dias de ofensiva
                 </p>
@@ -207,31 +220,31 @@ export default function DesempenhoPage() {
             </div>
 
             {/* Stat: Reações descobertas */}
-            <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/[0.05]">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100">
-                <Activity size={22} className="text-slate-500" />
+            <div className="mx-auto w-full max-w-md flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/[0.05] sm:max-w-none sm:p-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 sm:h-11 sm:w-11">
+                <Activity size={20} className="text-slate-500" />
               </div>
               <div>
-                <p className="text-5xl font-black tracking-tight text-slate-800">158</p>
+                <p className="text-4xl font-black tracking-tight text-slate-800 sm:text-5xl">158</p>
                 <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   Reações descobertas
                 </p>
               </div>
             </div>
 
-            {/* ── LINHA 2 ── */}
-
-            {/* Card Nível — 2 colunas */}
-            <div className="col-span-1 flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/[0.05] sm:col-span-2">
-              <div className="flex items-center gap-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
-                  <Zap size={22} className="text-[#DC2626]" />
+            {/* Card Nível — 2 cols em sm+, 2 cols em lg */}
+            <div className="mx-auto w-full max-w-md flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/[0.05] sm:col-span-2 sm:max-w-none sm:gap-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 sm:h-11 sm:w-11">
+                  <Zap size={20} className="text-[#DC2626]" />
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
                     Sua posição
                   </p>
-                  <p className="text-2xl font-black text-slate-800">Nível {nivelAtual}</p>
+                  <p className="text-xl font-black text-slate-800 sm:text-2xl">
+                    Nível {nivelAtual}
+                  </p>
                 </div>
               </div>
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -254,19 +267,19 @@ export default function DesempenhoPage() {
               </div>
             </div>
 
-            {/* Card Medalhas — 2 colunas */}
-            <div className="col-span-1 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.05] sm:col-span-2">
-              <div className="relative overflow-hidden bg-[#DC2626] px-5 py-4">
+            {/* Card Medalhas — 2 cols em sm+, 2 cols em lg */}
+            <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.05] sm:col-span-2 sm:max-w-none">
+              <div className="relative overflow-hidden bg-[#DC2626] px-4 py-3 sm:px-5 sm:py-4">
                 <div aria-hidden className="pointer-events-none absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
                 <div className="relative flex items-center gap-2">
-                  <Medal size={15} className="text-white" />
+                  <Medal size={14} className="text-white" />
                   <h3 className="text-[10px] font-black uppercase tracking-[0.16em] text-white">
                     Medalhas de Mérito
                   </h3>
                 </div>
               </div>
-              <div className="p-5">
-                <div className="grid grid-cols-3 gap-3">
+              <div className="p-4 sm:p-5">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {[
                     { icon: Trophy, label: "Mestre do Lab", unlocked: true },
                     { icon: Flame, label: "Persistente", unlocked: true },
@@ -274,15 +287,22 @@ export default function DesempenhoPage() {
                   ].map(({ icon: Icon, label, unlocked }) => (
                     <div key={label} className="flex flex-col items-center gap-2 text-center">
                       <div
-                        className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
+                        className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-200 hover:-translate-y-0.5 sm:h-14 sm:w-14 ${
                           unlocked
                             ? "bg-red-50 ring-1 ring-red-200"
                             : "opacity-35 bg-slate-50 ring-1 ring-slate-200"
                         }`}
                       >
-                        <Icon size={22} className={unlocked ? "text-[#DC2626]" : "text-slate-300"} />
+                        <Icon
+                          size={20}
+                          className={unlocked ? "text-[#DC2626]" : "text-slate-300"}
+                        />
                       </div>
-                      <p className={`text-[10px] font-black uppercase leading-tight tracking-wide ${unlocked ? "text-slate-600" : "text-slate-400"}`}>
+                      <p
+                        className={`text-[9px] font-black uppercase leading-tight tracking-wide sm:text-[10px] ${
+                          unlocked ? "text-slate-600" : "text-slate-400"
+                        }`}
+                      >
                         {label}
                       </p>
                     </div>
@@ -305,37 +325,35 @@ export default function DesempenhoPage() {
               </div>
             </div>
 
-            {/* ── LINHA 3 ── */}
-
-            {/* Histórico — 2 colunas */}
-            <div className="col-span-1 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.05] sm:col-span-2">
-              <div className="flex items-center justify-between px-5 pt-5">
+            {/* Histórico — 2 cols em sm+, 2 cols em lg */}
+            <div className="mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/[0.05] sm:col-span-2 sm:max-w-none">
+              <div className="flex items-center justify-between px-4 pt-4 sm:px-5 sm:pt-5">
                 <div className="flex items-center gap-2">
-                  <FlaskConical size={14} className="text-[#DC2626]" />
+                  <FlaskConical size={13} className="text-[#DC2626]" />
                   <h3 className="text-[10px] font-black uppercase tracking-[0.16em] text-rose-500">
                     Histórico de Lab
                   </h3>
                 </div>
                 <button className="flex items-center gap-0.5 text-xs font-bold text-[#DC2626] transition hover:opacity-70">
-                  Ver tudo <ChevronRight size={13} />
+                  Ver tudo <ChevronRight size={12} />
                 </button>
               </div>
               <div className="mt-3 flex flex-col divide-y divide-slate-100">
                 {historico.map(({ icon: Icon, nome, meta, xp, resultado }) => (
                   <div
                     key={nome}
-                    className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-rose-50/30"
+                    className="flex items-center justify-between gap-2 px-4 py-3 transition-colors hover:bg-rose-50/30 sm:gap-0 sm:px-5 sm:py-4"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                        <Icon size={18} className="text-slate-500" />
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 sm:h-10 sm:w-10">
+                        <Icon size={16} className="text-slate-500" />
                       </div>
-                      <div>
-                        <p className="font-black text-slate-800">{nome}</p>
-                        <p className="mt-0.5 text-xs text-slate-400">{meta}</p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-slate-800">{nome}</p>
+                        <p className="mt-0.5 truncate text-xs text-slate-400">{meta}</p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="shrink-0 text-right">
                       <p className="text-sm font-black text-[#DC2626]">{xp}</p>
                       <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                         {resultado}
@@ -347,11 +365,11 @@ export default function DesempenhoPage() {
               <div className="pb-2" />
             </div>
 
-            {/* Curiosidade — 2 colunas */}
-            <div className="col-span-1 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm sm:col-span-2">
+            {/* Curiosidade — 2 cols em sm+, 2 cols em lg */}
+            <div className="mx-auto w-full max-w-md rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm sm:col-span-2 sm:max-w-none sm:p-5">
               <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100">
-                  <span className="text-lg">💡</span>
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 sm:h-10 sm:w-10">
+                  <span className="text-base sm:text-lg">💡</span>
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-amber-500">
@@ -366,27 +384,7 @@ export default function DesempenhoPage() {
           </div>
         </section>
 
-        {/* MENU MOBILE */}
-        <nav className="sticky bottom-0 z-40 border-t border-slate-200 bg-white pb-safe lg:hidden">
-          <div className="grid grid-cols-3">
-            {[
-              { icon: Gamepad2, label: "Play", active: false, action: () => {} },
-              { icon: Users, label: "Lobby", active: false, action: () => {} },
-              { icon: BarChart3, label: "Scores", active: true, action: () => {} },
-            ].map(({ icon: Icon, label, active, action }) => (
-              <button
-                key={label}
-                onClick={action}
-                className={`flex flex-col items-center gap-1 py-4 transition-colors ${
-                  active ? "text-[#DC2626]" : "text-slate-400 hover:text-slate-600"
-                }`}
-              >
-                <Icon size={22} />
-                <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
+        {/* ── MENU MOBILE (removido: bloco sobrando) ── */}
       </main>
     </>
   )
