@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { FlaskConical, LogIn, Orbit, BarChart3, UserPlus, LogOut } from "lucide-react"
+import { FlaskConical, LogIn, Orbit, BarChart3, UserPlus, LogOut, Zap, Copy, Check, ArrowRight } from "lucide-react"
 
 const XP_STORAGE_KEY = "dominoQuimicoXp"
 const ROOMS_STORAGE_KEY = "dominoQuimicoRooms"
@@ -23,21 +23,14 @@ type Room = {
 function generateRoomCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
   let code = ""
-
-  for (let i = 0; i < 6; i += 1) {
-    code += chars[Math.floor(Math.random() * chars.length)]
-  }
-
+  for (let i = 0; i < 6; i += 1) code += chars[Math.floor(Math.random() * chars.length)]
   return code
 }
 
 function loadRooms(): Record<string, Room> {
   try {
     const raw = window.localStorage.getItem(ROOMS_STORAGE_KEY)
-    if (!raw) {
-      return {}
-    }
-
+    if (!raw) return {}
     return JSON.parse(raw) as Record<string, Room>
   } catch {
     return {}
@@ -53,19 +46,17 @@ export default function AlunoHome() {
   const [xpAtual, setXpAtual] = useState(0)
   const [criandoSala, setCriandoSala] = useState(false)
   const [mostrarModalEntrada, setMostrarModalEntrada] = useState(false)
+  const [mostrarModalCriada, setMostrarModalCriada] = useState(false)
+  const [codigoCriado, setCodigoCriado] = useState("")
+  const [copiado, setCopiado] = useState(false)
   const [codigoSala, setCodigoSala] = useState("")
 
   const criarSala = async () => {
     try {
       setCriandoSala(true)
-
       const rooms = loadRooms()
       let code = generateRoomCode()
-
-      while (rooms[code]) {
-        code = generateRoomCode()
-      }
-
+      while (rooms[code]) code = generateRoomCode()
       const room: Room = {
         code,
         hostName: PLAYER_NAME,
@@ -73,11 +64,11 @@ export default function AlunoHome() {
         players: [PLAYER_NAME],
         status: "waiting",
       }
-
       rooms[code] = room
       saveRooms(rooms)
       window.sessionStorage.setItem(HOST_ROOM_CODE_KEY, code)
-      router.push(`/sala/${code}`)
+      setCodigoCriado(code)
+      setMostrarModalCriada(true)
     } catch {
       alert("Nao foi possivel criar a sala agora.")
     } finally {
@@ -85,17 +76,32 @@ export default function AlunoHome() {
     }
   }
 
+  const entrarNaSalaCriada = () => {
+    setMostrarModalCriada(false)
+    sessionStorage.setItem("dominoNome", PLAYER_NAME)
+    sessionStorage.setItem("dominoSala", codigoCriado)
+    router.push(`/jogo/jogo-online?jogador=${encodeURIComponent(PLAYER_NAME)}&sala=${codigoCriado}`)
+  }
+
+  const copiarCodigo = async () => {
+    try {
+      await navigator.clipboard.writeText(codigoCriado)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      // fallback silencioso
+    }
+  }
+
   const entrarSala = () => {
     const code = codigoSala.trim().toUpperCase()
-
-    if (!code) {
-      return
-    }
-
+    if (!code) return
     setMostrarModalEntrada(false)
     setCodigoSala("")
     window.sessionStorage.removeItem(HOST_ROOM_CODE_KEY)
-    router.push(`/sala/${code}`)
+    sessionStorage.setItem("dominoNome", PLAYER_NAME)
+    sessionStorage.setItem("dominoSala", code)
+    router.push(`/jogo/jogo-online?jogador=${encodeURIComponent(PLAYER_NAME)}&sala=${code}`)
   }
 
   useEffect(() => {
@@ -104,11 +110,9 @@ export default function AlunoHome() {
       const parsed = Number.parseInt(valor ?? "0", 10)
       setXpAtual(Number.isNaN(parsed) ? 0 : Math.max(0, parsed))
     }
-
     carregarXp()
     window.addEventListener("storage", carregarXp)
     window.addEventListener("domino-xp-updated", carregarXp as EventListener)
-
     return () => {
       window.removeEventListener("storage", carregarXp)
       window.removeEventListener("domino-xp-updated", carregarXp as EventListener)
@@ -119,7 +123,6 @@ export default function AlunoHome() {
     const nivelGanho = Math.floor(xpAtual / XP_POR_NIVEL)
     const xpRestante = xpAtual % XP_POR_NIVEL
     const porcentagem = (xpRestante / XP_POR_NIVEL) * 100
-
     return {
       nivelAtual: NIVEL_BASE + nivelGanho,
       xpNoNivel: xpRestante,
@@ -132,25 +135,13 @@ export default function AlunoHome() {
       {/* HEADER */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
           <div className="relative flex items-center justify-center py-4">
-
-            {/* LOGO + TITULO */}
             <div className="flex items-center gap-3">
-              <Image
-                src="/logo.png"
-                alt="Dominó Químico"
-                width={42}
-                height={42}
-                className="h-10 w-10 object-contain"
-              />
-
+              <Image src="/logo.png" alt="Dominó Químico" width={42} height={42} className="h-10 w-10 object-contain" />
               <h1 className="text-xl font-black tracking-tight text-slate-800">
                 Dominó <span className="text-red-600">Químico</span>
               </h1>
             </div>
-
-            {/* BOTAO SAIR */}
             <button
               onClick={() => {
                 localStorage.removeItem("dominoQuimicoXp")
@@ -163,133 +154,279 @@ export default function AlunoHome() {
               <LogOut size={18} />
               <span className="hidden sm:inline">Sair</span>
             </button>
-
           </div>
         </div>
       </header>
 
-      <div className="min-h-screen w-full bg-[#e9edf2] pt-2">
-        <main className="mx-auto w-full max-w-7xl px-6 py-8 lg:py-10">
-          <section className="rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-[#f1f4f8] p-4 sm:p-6 lg:p-8 shadow-lg">
-            <div className="relative mb-7 border-b border-slate-200 pb-5">
+      {/* FUNDO */}
+      <div
+        className="min-h-screen w-full"
+        style={{
+          background:
+            "radial-gradient(ellipse at 15% 60%, #ffe4e6 0%, transparent 50%), radial-gradient(ellipse at 85% 10%, #fecdd3 0%, transparent 45%), #fdf2f4",
+        }}
+      >
+        {/* Moléculas decorativas */}
+        <svg aria-hidden className="pointer-events-none fixed inset-0 h-full w-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="6%" cy="30%" r="70" fill="none" stroke="#DC2626" strokeWidth="1.5" />
+          <circle cx="6%" cy="30%" r="18" fill="#DC2626" />
+          <line x1="6%" y1="30%" x2="12%" y2="20%" stroke="#DC2626" strokeWidth="1.2" />
+          <circle cx="12%" cy="20%" r="11" fill="#DC2626" />
+          <line x1="6%" y1="30%" x2="2%" y2="42%" stroke="#DC2626" strokeWidth="1.2" />
+          <circle cx="2%" cy="42%" r="9" fill="#DC2626" />
+          <circle cx="94%" cy="72%" r="55" fill="none" stroke="#DC2626" strokeWidth="1.5" />
+          <circle cx="94%" cy="72%" r="14" fill="#DC2626" />
+          <line x1="94%" y1="72%" x2="89%" y2="62%" stroke="#DC2626" strokeWidth="1.2" />
+          <circle cx="89%" cy="62%" r="9" fill="#DC2626" />
+          <line x1="94%" y1="72%" x2="98%" y2="82%" stroke="#DC2626" strokeWidth="1.2" />
+          <circle cx="98%" cy="82%" r="7" fill="#DC2626" />
+        </svg>
 
+        <main className="relative mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
 
-              <div className="flex w-full flex-col items-center text-center">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-800">Menu do Aluno</h1>
-                <p className="mt-2 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-rose-600">
-                  <FlaskConical className="h-4 w-4" />
-                  Espaço de Aprendizagem Molecular
-                </p>
-              </div>
+          {/* Cabeçalho */}
+          <div className="mb-10 text-center">
+            <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">
+              <FlaskConical size={11} />
+              Espaço de aprendizagem molecular
+            </p>
+            <h2 className="text-4xl font-black tracking-tight text-slate-800 sm:text-5xl lg:text-6xl">
+              Menu do Aluno
+            </h2>
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-600 ring-1 ring-slate-200 shadow-sm">
+              <Zap size={14} className="text-rose-500" />
+              Nível {nivelAtual} · {xpNoNivel} / {XP_POR_NIVEL} XP
             </div>
+          </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+          {/* Grid de ações */}
+          <div className="flex flex-col gap-4">
+
+            {/* Linha 1 — Criar Sala + Entrar em Sala */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <button
                 onClick={criarSala}
                 disabled={criandoSala}
-                className="rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 w-full"
+                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-                  <UserPlus className="h-5 w-5" />
+                <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 transition-colors group-hover:bg-rose-100">
+                  <UserPlus size={26} />
                 </span>
-                <h2 className="text-2xl font-bold text-slate-800">{criandoSala ? "Criando Sala..." : "Criar Sala"}</h2>
-                <p className="mt-2 text-base leading-7 text-slate-600">Inicie uma nova partida e convide seus colegas para o laboratório.</p>
+                <p className="text-2xl font-black text-slate-800">
+                  {criandoSala ? "Criando..." : "Criar Sala"}
+                </p>
+                <p className="mt-2 text-base leading-relaxed text-slate-400">
+                  Inicie uma nova partida e convide seus colegas para o laboratório.
+                </p>
               </button>
 
               <button
                 onClick={() => setMostrarModalEntrada(true)}
-                className="rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md w-full"
+                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-lg"
               >
-                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-                  <LogIn className="h-5 w-5" />
+                <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 transition-colors group-hover:bg-rose-100">
+                  <LogIn size={26} />
                 </span>
-                <h2 className="text-2xl font-bold text-slate-800">Entrar em Sala</h2>
-                <p className="mt-2 text-base leading-7 text-slate-600">Use um código de convite para participar de uma partida ativa.</p>
-              </button>
-
-              <button
-                onClick={() => router.push("/jogo")}
-                className="md:col-span-2 rounded-xl sm:rounded-2xl border border-rose-500 bg-gradient-to-br from-rose-500 to-rose-600 p-4 sm:p-6 text-left text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-105 w-full"
-              >
-                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 text-white">
-                  <Orbit className="h-5 w-5" />
-                </span>
-                <h2 className="text-3xl font-bold">Jogar Sozinho</h2>
-                <p className="mt-2 text-base leading-7 text-rose-50">Pratique suas habilidades de ligações químicas contra a IA do laboratório.</p>
-              </button>
-
-              <button
-                onClick={() => router.push("/aluno/desempenho")}
-                className="md:col-span-2 rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6 text-left transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md w-full"
-              >
-                <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-200 text-slate-700">
-                  <BarChart3 className="h-5 w-5" />
-                </span>
-                <h2 className="text-2xl font-bold text-slate-800">Meu Desempenho</h2>
-                {/* Arthur: conectar este Nível atual com o XP/nivel vindo do banco. */}
-                <p className="mt-2 text-base leading-7 text-slate-600">Confira suas conquistas, nível atual e histórico de experimentos. Nível atual: {nivelAtual}.</p>
+                <p className="text-2xl font-black text-slate-800">Entrar em Sala</p>
+                <p className="mt-2 text-base leading-relaxed text-slate-400">
+                  Use um código de convite para participar de uma partida ativa.
+                </p>
               </button>
             </div>
 
-            <div className="mt-8 border-t border-slate-200 pt-6">
-              {/* Arthur: conectar este Progresso Molecular com a evolução real do aluno no banco. */}
-              <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-wide text-rose-600">
-                <span>Progresso Molecular</span>
-                <span>{xpNoNivel}/{XP_POR_NIVEL} XP</span>
+            {/* Linha 2 — Jogar Sozinho */}
+            <button
+              onClick={() => router.push("/jogo")}
+              className="group relative overflow-hidden rounded-2xl bg-[#DC2626] p-8 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-xl"
+            >
+              <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-52 w-52 rounded-full bg-white/10" />
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-white">
+                    <Orbit size={28} />
+                  </span>
+                  <p className="text-3xl font-black text-white sm:text-4xl">Jogar Sozinho</p>
+                  <p className="mt-2 text-base leading-relaxed text-rose-100">
+                    Pratique suas habilidades de ligações químicas contra a IA do laboratório.
+                  </p>
+                </div>
+                <div className="ml-6 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition-transform duration-200 group-hover:translate-x-1">
+                  <ArrowRight size={22} />
+                </div>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+            </button>
+
+            {/* Linha 3 — Meu Desempenho */}
+            <button
+              onClick={() => router.push("/aluno/desempenho")}
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-lg"
+            >
+              <div className="flex items-center gap-5">
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-colors group-hover:bg-rose-50 group-hover:text-rose-500">
+                  <BarChart3 size={26} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-black text-slate-800">Meu Desempenho</p>
+                  <p className="mt-1 text-base text-slate-400">
+                    Confira suas conquistas, nível atual e histórico de experimentos.
+                  </p>
+                </div>
+                <div className="hidden shrink-0 flex-col items-end gap-2 sm:flex">
+                  <span className="text-sm font-black text-rose-500">Nível {nivelAtual}</span>
+                  <div className="h-2 w-28 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-[#DC2626] transition-all duration-500"
+                      style={{ width: `${porcentagemNivel}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-400">{xpNoNivel} / {XP_POR_NIVEL} XP</span>
+                </div>
+              </div>
+            </button>
+
+            {/* Barra de progresso global */}
+            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-rose-500">
+                  <Zap size={12} />
+                  Progresso Molecular
+                </span>
+                <span className="text-sm font-black text-slate-500">
+                  {xpNoNivel} / {XP_POR_NIVEL} XP
+                </span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-rose-600 to-pink-500 transition-all duration-500"
+                  className="h-full rounded-full bg-[#DC2626] transition-all duration-500"
                   style={{ width: `${porcentagemNivel}%` }}
                 />
               </div>
             </div>
-          </section>
+
+          </div>
         </main>
       </div>
 
+      {/* ── MODAL SALA CRIADA ── */}
+      {mostrarModalCriada && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+
+            {/* Header vermelho */}
+            <div className="relative overflow-hidden bg-[#DC2626] px-6 py-7 text-center">
+              <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/10" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-black/10" />
+              <div className="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+                <UserPlus size={26} className="text-white" />
+              </div>
+              <h2 className="relative text-2xl font-black text-white">Sala criada!</h2>
+              <p className="relative mt-1 text-sm text-rose-100">
+                Compartilhe o código com seus colegas.
+              </p>
+            </div>
+
+            {/* Corpo */}
+            <div className="px-6 py-7">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+                Código da sala
+              </p>
+
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+                <span className="text-4xl font-black tracking-[0.18em] text-slate-800">
+                  {codigoCriado}
+                </span>
+                <button
+                  onClick={copiarCodigo}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200 ${
+                    copiado
+                      ? "bg-green-50 text-green-600"
+                      : "bg-white text-slate-400 hover:bg-rose-50 hover:text-rose-500 ring-1 ring-slate-200"
+                  }`}
+                  title="Copiar código"
+                >
+                  {copiado ? <Check size={18} /> : <Copy size={18} />}
+                </button>
+              </div>
+
+              {copiado && (
+                <p className="mt-2 text-center text-xs font-semibold text-green-600">
+                  Código copiado!
+                </p>
+              )}
+
+              <div className="mt-6 flex flex-col gap-3">
+                <button
+                  onClick={entrarNaSalaCriada}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#DC2626] px-5 py-3.5 font-black text-white transition hover:brightness-105"
+                >
+                  Entrar na sala
+                  <ArrowRight size={18} />
+                </button>
+                <button
+                  onClick={() => setMostrarModalCriada(false)}
+                  className="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-500 transition hover:bg-slate-50"
+                >
+                  Voltar ao menu
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL ENTRAR EM SALA ── */}
       {mostrarModalEntrada && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <h2 className="text-2xl font-black tracking-tight text-slate-800">Entrar em Sala</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Digite o código da sala para entrar sem usar a caixa de diálogo do navegador.</p>
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
 
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <label htmlFor="codigo-sala" className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+            {/* Header vermelho */}
+            <div className="relative overflow-hidden bg-[#DC2626] px-6 py-7 text-center">
+              <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/10" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-black/10" />
+              <div className="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+                <LogIn size={26} className="text-white" />
+              </div>
+              <h2 className="relative text-2xl font-black text-white">Entrar em Sala</h2>
+              <p className="relative mt-1 text-sm text-rose-100">
+                Digite o código da sala para participar.
+              </p>
+            </div>
+
+            {/* Corpo */}
+            <div className="px-6 py-7">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
                 Código da sala
-              </label>
-              <input
-                id="codigo-sala"
-                value={codigoSala}
-                onChange={(e) => setCodigoSala(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    entrarSala()
-                  }
-                }}
-                autoFocus
-                placeholder="Ex.: ABC123"
-                className="w-full bg-transparent text-lg font-semibold uppercase tracking-[0.2em] text-slate-800 outline-none placeholder:text-slate-300"
-              />
+              </p>
+
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+                <input
+                  id="codigo-sala"
+                  value={codigoSala}
+                  onChange={(e) => setCodigoSala(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") entrarSala() }}
+                  autoFocus
+                  placeholder="Ex.: ABC123"
+                  className="w-full bg-transparent text-4xl font-black uppercase tracking-[0.18em] text-slate-800 outline-none placeholder:text-slate-300 font-mono"
+                />
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3">
+                <button
+                  onClick={entrarSala}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#DC2626] px-5 py-3.5 font-black text-white transition hover:brightness-105"
+                >
+                  Entrar na sala
+                  <ArrowRight size={18} />
+                </button>
+                <button
+                  onClick={() => { setMostrarModalEntrada(false); setCodigoSala("") }}
+                  className="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-500 transition hover:bg-slate-50"
+                >
+                  Voltar ao menu
+                </button>
+              </div>
             </div>
 
-            <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button
-                onClick={() => {
-                  setMostrarModalEntrada(false)
-                  setCodigoSala("")
-                }}
-                className="rounded-full border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={entrarSala}
-                className="rounded-full bg-rose-600 px-5 py-3 font-semibold text-white transition hover:bg-rose-700"
-              >
-                Entrar
-              </button>
-            </div>
           </div>
         </div>
       )}
