@@ -1,11 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Settings, HelpCircle, LogOut, TriangleAlert, Trophy, RefreshCw } from "lucide-react"
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
-const POLL_INTERVAL = 2000
+import { useState, useRef, useCallback, useEffect } from "react"
+import { Trophy, RefreshCw, RotateCcw, AlertCircle, X } from "lucide-react"
 
 // ─── TIPOS ─────────────────────────────────────────────────────────────────────
 
@@ -35,355 +31,611 @@ type EstadoPartida = {
   pontas: Pontas
 }
 
-type Feedback = {
-  tipo: "sucesso" | "erro" | "info"
-  mensagem: string
+type DropZone = "esquerda" | "direita"
+
+// ─── COR POR FUNÇÃO ────────────────────────────────────────────────────────────
+
+const FUNCAO_COR: Record<string, { bg: string; border: string; text: string; dot: string }> = {
+  Ácido:    { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
+  Base:     { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
+  Óxido:    { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
+  Sal:      { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
+  Hidreto:  { bg: "#F9F0FF", border: "#722ED1", text: "#22075E", dot: "#722ED1" },
 }
 
-// ─── COMPONENTES ───────────────────────────────────────────────────────────────
+const getCor = (funcao: string) =>
+  FUNCAO_COR[funcao] ?? { bg: "#F5F5F5", border: "#8C8C8C", text: "#262626", dot: "#8C8C8C" }
 
-function DominoPiece({
-  top,
-  bottom,
+// ─── COMPONENTE: HALF DA PEÇA ──────────────────────────────────────────────────
+
+function PieceHalf({
+  label,
+  side,
+  small = false,
+}: {
+  label: string
+  side: "left" | "right"
+  small?: boolean
+}) {
+  const cor = getCor(label)
+  const radius = side === "left" ? "8px 0 0 8px" : "0 8px 8px 0"
+  const divider = side === "left"
+    ? { right: 0, borderRight: `2px dashed ${cor.border}33` }
+    : { left: 0, borderLeft: `2px dashed ${cor.border}33` }
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: small ? 3 : 5,
+        padding: small ? "8px 10px" : "12px 16px",
+        background: cor.bg,
+        borderRadius: radius,
+        minWidth: small ? 58 : 80,
+        flex: 1,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: "10%",
+          bottom: "10%",
+          width: 0,
+          ...divider,
+        }}
+      />
+      <div
+        style={{
+          width: small ? 10 : 14,
+          height: small ? 10 : 14,
+          borderRadius: "50%",
+          background: cor.dot,
+          flexShrink: 0,
+        }}
+      />
+      <span
+        style={{
+          fontSize: small ? 11 : 14,
+          fontWeight: 800,
+          color: cor.text,
+          letterSpacing: 0.3,
+          textAlign: "center",
+          lineHeight: 1.2,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  )
+}
+
+// ─── COMPONENTE: PEÇA HORIZONTAL ──────────────────────────────────────────────
+
+function DominoTile({
+  pedra,
+  small = false,
   selected = false,
+  playable = false,
   disabled = false,
+  draggable = false,
+  onDragStart,
+  onClick,
+  onClickPonta,
+  style,
+}: {
+  pedra: Pedra
+  small?: boolean
+  selected?: boolean
+  playable?: boolean
+  disabled?: boolean
+  draggable?: boolean
+  onDragStart?: (e: React.DragEvent) => void
+  onClick?: () => void
+  onClickPonta?: (side: DropZone) => void
+  style?: React.CSSProperties
+}) {
+  const borderColor = selected
+    ? "#2563EB"
+    : playable
+    ? "#16A34A"
+    : "#D1D5DB"
+
+  const shadow = selected
+    ? "0 0 0 3px #2563EB44"
+    : playable
+    ? "0 0 0 2px #16A34A33"
+    : "0 2px 8px rgba(0,0,0,0.10)"
+
+  return (
+    <div
+      draggable={draggable && !disabled}
+      onDragStart={onDragStart}
+      onClick={disabled ? undefined : onClick}
+      title={`${pedra.left} | ${pedra.right}`}
+      style={{
+        display: "inline-flex",
+        alignItems: "stretch",
+        border: `2px solid ${borderColor}`,
+        borderRadius: 10,
+        overflow: "hidden",
+        boxShadow: shadow,
+        cursor: draggable && !disabled
+          ? "grab"
+          : onClick && !disabled
+          ? "pointer"
+          : "default",
+        opacity: disabled ? 0.45 : 1,
+        transition: "box-shadow 0.15s, transform 0.12s, opacity 0.15s",
+        transform: selected ? "translateY(-4px)" : "none",
+        userSelect: "none",
+        background: "#FFF",
+        flexShrink: 0,
+        ...style,
+      }}
+    >
+      <PieceHalf label={pedra.left} side="left" small={small} />
+      <div
+        style={{
+          width: small ? 5 : 7,
+          background: "#E5E7EB",
+          flexShrink: 0,
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: small ? 5 : 7,
+            height: small ? 5 : 7,
+            borderRadius: "50%",
+            background: "#9CA3AF",
+          }}
+        />
+      </div>
+      <PieceHalf label={pedra.right} side="right" small={small} />
+    </div>
+  )
+}
+
+// ─── COMPONENTE: DROP ZONE INLINE (nas pontas do tabuleiro) ───────────────────
+
+function InlineDropZone({
+  side,
+  ponta,
+  over,
+  onDragOver,
+  onDragLeave,
+  onDrop,
   onClick,
 }: {
-  top: string
-  bottom: string
-  selected?: boolean
-  disabled?: boolean
+  side: DropZone
+  ponta: string | null
+  over: boolean
+  onDragOver: (e: React.DragEvent) => void
+  onDragLeave: () => void
+  onDrop: (e: React.DragEvent, side: DropZone) => void
   onClick?: () => void
 }) {
+  const cor = ponta ? getCor(ponta) : null
+  const arrow = side === "esquerda" ? "←" : "→"
+
   return (
     <div
-      onClick={disabled ? undefined : onClick}
-      className={`
-        flex h-[80px] w-[42px] flex-col overflow-hidden border bg-white shadow-md
-        sm:h-[95px] sm:w-[50px]
-        xl:h-[116px] xl:w-[58px]
-        ${onClick && !disabled ? "cursor-pointer hover:-translate-y-2 transition-transform" : ""}
-        ${selected ? "border-[#2563EB] ring-2 ring-[#2563EB]" : "border-[#D7DCE2]"}
-        ${disabled ? "opacity-40 cursor-not-allowed" : ""}
-      `}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={(e) => onDrop(e, side)}
+      onClick={onClick}
+      style={{
+        minWidth: 72,
+        minHeight: 72,
+        border: `2px dashed ${over ? "#60A5FA" : "rgba(255,255,255,0.3)"}`,
+        borderRadius: 10,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4,
+        padding: "6px 8px",
+        background: over ? "rgba(59,130,246,0.25)" : "rgba(255,255,255,0.07)",
+        transition: "all 0.15s",
+        cursor: "pointer",
+        flexShrink: 0,
+      }}
     >
-      <div className="flex flex-1 items-center justify-center border-b border-[#D7DCE2] bg-[#EEF3FF] text-[13px] font-black text-[#2563EB] sm:text-[15px] xl:text-[17px] text-center px-1">
-        {top}
-      </div>
-      <div className="flex flex-1 items-center justify-center bg-[#FFF1F1] text-[13px] font-black text-[#C62828] sm:text-[15px] xl:text-[17px] text-center px-1">
-        {bottom}
-      </div>
-    </div>
-  )
-}
-
-function PlayerCard({
-  name,
-  turn = false,
-  connected = true,
-  pecas,
-  isSelf = false,
-}: {
-  name: string
-  turn?: boolean
-  connected?: boolean
-  pecas: number
-  isSelf?: boolean
-}) {
-  return (
-    <div
-      className={`
-        flex h-[56px] sm:h-[64px] md:h-[72px] items-center justify-between border bg-white px-4 shadow-sm
-        ${turn ? "border-[#2563EB] ring-2 ring-[#2563EB]" : "border-[#D7DCE2]"}
-      `}
-    >
-      <div>
-        <p className="text-[15px] font-bold text-[#3A3A3A]">
-          {name}
-          {isSelf && <span className="ml-2 text-xs font-normal text-[#2563EB]">(você)</span>}
-        </p>
-        <p className="text-xs text-[#8A96A8]">
-          {turn ? "Jogando agora..." : connected ? `${pecas} pedras` : "Desconectado"}
-        </p>
-      </div>
-      <div className={`h-3 w-3 rounded-full ${connected ? "bg-[#22C55E]" : "bg-[#CBD5E1]"}`} />
-    </div>
-  )
-}
-
-function FeedbackBanner({ feedback }: { feedback: Feedback | null }) {
-  if (!feedback) return null
-  const estilos = {
-    sucesso: "bg-green-50 border-green-400 text-green-800",
-    erro: "bg-red-50 border-red-400 text-red-800",
-    info: "bg-blue-50 border-blue-400 text-blue-800",
-  }
-  return (
-    <div className={`border-l-4 px-4 py-3 text-sm font-semibold ${estilos[feedback.tipo]} transition-all`}>
-      {feedback.mensagem}
-    </div>
-  )
-}
-
-function ModalVencedor({
-  encerrado,
-  vencedor,
-  vencedores,
-  motivo,
-  meuNome,
-  onVoltar,
-}: {
-  encerrado: boolean
-  vencedor: string | null
-  vencedores: string[] | null
-  motivo: string | null
-  meuNome: string
-  onVoltar: () => void
-}) {
-  if (!encerrado) return null
-  const euVenci = vencedor === meuNome || (vencedores?.includes(meuNome) && vencedores.length > 1)
-  const empate = !vencedor && (vencedores?.length ?? 0) > 1
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="w-full max-w-[480px] rounded-2xl bg-white p-8 shadow-2xl text-center">
-        <div className="mb-5 flex justify-center">
-          <div className={`flex h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 items-center justify-center rounded-full ${euVenci ? "bg-yellow-50" : "bg-slate-100"}`}>
-            <Trophy size={34} className={euVenci ? "text-yellow-500" : "text-slate-400"} />
+      {ponta && cor ? (
+        <>
+          <span style={{ fontSize: 16, color: "rgba(255,255,255,0.5)" }}>{arrow}</span>
+          <div
+            style={{
+              padding: "3px 8px",
+              background: cor.bg,
+              border: `1.5px solid ${cor.border}`,
+              borderRadius: 6,
+              fontSize: 11,
+              fontWeight: 800,
+              color: cor.text,
+              textAlign: "center",
+            }}
+          >
+            {ponta}
           </div>
-        </div>
-        <h2 className="text-[28px] font-black text-[#3A3A3A]">
-          {empate ? "Empate!" : euVenci ? "Você venceu! 🎉" : `${vencedor} venceu!`}
-        </h2>
-        <p className="mt-3 text-sm text-[#64748B]">
-          {motivo === "vitoria"
-            ? `${vencedor} esvaziou a mão primeiro.`
-            : "O jogo travou — ninguém conseguia jogar."}
-        </p>
-        {empate && vencedores && (
-          <p className="mt-2 text-sm font-semibold text-[#64748B]">
-            Empataram: {vencedores.join(", ")}
-          </p>
-        )}
-        <button
-          onClick={onVoltar}
-          className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-6 py-4 font-bold text-white transition hover:bg-rose-700"
-        >
-          <RefreshCw size={18} />
-          Voltar ao Menu
-        </button>
-      </div>
+          {over && (
+            <span style={{ fontSize: 9, color: "#93C5FD", fontWeight: 700 }}>Soltar ✓</span>
+          )}
+        </>
+      ) : (
+        <>
+          <span style={{ fontSize: 20, color: "rgba(255,255,255,0.3)" }}>{arrow}</span>
+          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textAlign: "center", lineHeight: 1.3 }}>
+            Arraste<br/>aqui
+          </span>
+        </>
+      )}
     </div>
   )
 }
 
-// ─── PÁGINA PRINCIPAL ──────────────────────────────────────────────────────────
+// ─── COMPONENTE: TOAST DE ERRO ─────────────────────────────────────────────────
 
-export default function JogoPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+function ErrorToast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3500)
+    return () => clearTimeout(t)
+  }, [message, onClose])
 
-  // ─── IDENTIDADE DO JOGADOR ───────────────────────────────────────────────
-  // Derivado diretamente — sem setState em useEffect (evita cascading renders)
-  // Na primeira render (SSR/hydration) sessionStorage não existe ainda;
-  // useSearchParams() já é reativo, então basta ler aqui.
-  const { meuNome, codigoSala } = useMemo(() => {
-    const nomeParm = searchParams.get("jogador")
-    const salaParm = searchParams.get("sala")
-    const nomeSession = typeof window !== "undefined" ? sessionStorage.getItem("dominoNome") : null
-    const salaSession = typeof window !== "undefined" ? sessionStorage.getItem("dominoSala") : null
-    return {
-      meuNome: nomeParm || nomeSession || "Jogador",
-      codigoSala: (salaParm || salaSession || "DEMO").toUpperCase(),
-    }
-  }, [searchParams])
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 90,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        background: "#FEF2F2",
+        border: "1.5px solid #FCA5A5",
+        borderRadius: 12,
+        padding: "12px 18px",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        maxWidth: "calc(100vw - 32px)",
+        width: 380,
+        animation: "slideUp 0.2s ease",
+      }}
+    >
+      <AlertCircle size={18} color="#DC2626" style={{ flexShrink: 0 }} />
+      <span style={{ fontSize: 14, fontWeight: 600, color: "#991B1B", flex: 1 }}>
+        {message}
+      </span>
+      <button
+        onClick={onClose}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: 2,
+          display: "flex",
+          color: "#991B1B",
+        }}
+      >
+        <X size={14} />
+      </button>
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+      `}</style>
+    </div>
+  )
+}
 
-  // Estado da partida
+// ─── PÁGINA PRINCIPAL DO JOGO ──────────────────────────────────────────────────
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
+const POLL_INTERVAL = 2000
+
+// ─── LAYOUT SERPENTINA ──────────────────────────────────────────────────────
+// Linha par:  [dropEsq] [h][h][h][h][h][h] [V] ← ultima peca vertical (canto)
+// Linha impar:                         [V] [h][h][h][h][h][h] [dropDir]
+//                                      ^ primeira peca vertical (entrada)
+// Linha par seguinte: [dropEsq] [h]...[V]  etc.
+// As pecas verticais nos cantos sinalizama dobra da cadeia.
+
+const COLS = 6  // pecas horizontais por linha (sem contar as verticais de canto)
+
+type TileLayout = {
+  pedra: Pedra
+  // "h" = horizontal normal
+  // "v-exit"  = vertical de saida (ultima da linha, canto direito linha par / canto esquerdo linha impar)
+  // "v-enter" = vertical de entrada (primeira da linha impar, repete a mesma posicao do v-exit da linha anterior)
+  kind: "h" | "v-exit" | "v-enter"
+}
+type SnakeRow = { tiles: TileLayout[]; reversed: boolean }
+
+function buildSnakeRows(mesa: Pedra[]): SnakeRow[] {
+  if (mesa.length === 0) return []
+  // Distribui as pecas em grupos de COLS, com a ultima de cada grupo (exceto o ultimo)
+  // marcada como "v-exit". A proxima linha comeca com a mesma peca como "v-enter"
+  // para mostrar o canto — mas na verdade e so visual, nao duplica a peca.
+  // Mais simples: cada linha tem ate COLS pecas. A ultima linha incompleta nao tem canto.
+  const rows: SnakeRow[] = []
+  let i = 0
+  let rowIdx = 0
+  while (i < mesa.length) {
+    const reversed = rowIdx % 2 !== 0
+    const slice = mesa.slice(i, i + COLS)
+    const hasNextRow = i + COLS < mesa.length
+    const tiles: TileLayout[] = slice.map((pedra, li) => {
+      const isLast = li === slice.length - 1
+      const kind: TileLayout["kind"] = isLast && hasNextRow ? "v-exit" : "h"
+      return { pedra, kind }
+    })
+    rows.push({ tiles, reversed })
+    i += COLS
+    rowIdx++
+  }
+  return rows
+}
+
+
+export default function GameBoard() {
   const [partida, setPartida] = useState<EstadoPartida | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erroBusca, setErroBusca] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
-  // UI local
-  const [pedraSelecionada, setPedraSelecionada] = useState<string | null>(null)
+  const [selectedPedra, setSelectedPedra] = useState<string | null>(null)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dropOverLeft, setDropOverLeft] = useState(false)
+  const [dropOverRight, setDropOverRight] = useState(false)
   const [enviando, setEnviando] = useState(false)
-  const [showExitModal, setShowExitModal] = useState(false)
-  const [feedback, setFeedback] = useState<Feedback | null>(null)
+  const [showVencedor, setShowVencedor] = useState(false)
 
-  // ─── FEEDBACK ─────────────────────────────────────────────────────────────
+  const meuNome = typeof window !== "undefined"
+    ? (sessionStorage.getItem("dominoNome") ?? "Jogador")
+    : "Jogador"
+  const codigoSala = typeof window !== "undefined"
+    ? (sessionStorage.getItem("dominoSala") ?? "DEMO")
+    : "DEMO"
 
-  const exibirFeedback = useCallback((tipo: Feedback["tipo"], mensagem: string) => {
-    setFeedback({ tipo, mensagem })
-    setTimeout(() => setFeedback(null), 3500)
-  }, [])
+  const showError = useCallback((msg: string) => setErrorMsg(msg), [])
 
-  // ─── REFS — guardam valores atuais sem recriar callbacks ──────────────────
-  // Isso quebra a cadeia useCallback → deps → recriação → loop no useEffect
-
-  const meuNomeRef = useRef(meuNome)
-  const codigoSalaRef = useRef(codigoSala)
-  const exibirFeedbackRef = useRef(exibirFeedback)
-
-  useEffect(() => { meuNomeRef.current = meuNome }, [meuNome])
-  useEffect(() => { codigoSalaRef.current = codigoSala }, [codigoSala])
-  useEffect(() => { exibirFeedbackRef.current = exibirFeedback }, [exibirFeedback])
-
-  // ─── INICIAR PARTIDA SOLO ─────────────────────────────────────────────────
-
-  const iniciarPartidaSolo = useCallback(async () => {
-    const nome = meuNomeRef.current
-    const sala = codigoSalaRef.current
-    try {
-      const res = await fetch(`${API_URL}/api/partidas/iniciar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoSala: sala, jogadores: [nome, "IA Química"] }),
-      })
-      if (!res.ok) throw new Error("Falha ao iniciar partida")
-      const data: EstadoPartida = await res.json()
-      setPartida(data)
-      setErroBusca("")
-      exibirFeedbackRef.current("info", "Partida iniciada! A pedra Ácido-Hidreto já está na mesa.")
-    } catch {
-      setErroBusca("Não foi possível iniciar a partida.")
-    } finally {
-      setCarregando(false)
-    }
-  }, []) // estável — lê tudo via refs
-
-  // ─── BUSCAR ESTADO DA PARTIDA ─────────────────────────────────────────────
-
-  const buscarEstado = useCallback(async () => {
-    const nome = meuNomeRef.current
-    const sala = codigoSalaRef.current
-    if (!sala || !nome) return
-    try {
-      const res = await fetch(
-        `${API_URL}/api/partidas/${sala}?jogador=${encodeURIComponent(nome)}`
-      )
-      if (res.status === 404) {
-        await iniciarPartidaSolo()
-        return
-      }
-      if (!res.ok) throw new Error("Erro ao buscar partida")
-      const data: EstadoPartida = await res.json()
-      setPartida(data)
-      setErroBusca("")
-    } catch {
-      setErroBusca("Não foi possível conectar ao servidor.")
-    } finally {
-      setCarregando(false)
-    }
-  }, [iniciarPartidaSolo]) // iniciarPartidaSolo é estável (deps: [])
-
-  // Polling — inicia direto, refs já têm os valores corretos
-  useEffect(() => {
-    buscarEstado()
-    const interval = setInterval(buscarEstado, POLL_INTERVAL)
-    return () => clearInterval(interval)
-  }, [buscarEstado])
-
-  // ─── JOGAR PEDRA ──────────────────────────────────────────────────────────
-
-  const jogarPedra = useCallback(async () => {
-    if (!pedraSelecionada || !partida || enviando) return
-    const nome = meuNomeRef.current
-    const sala = codigoSalaRef.current
-    if (partida.turnoAtual !== nome) {
-      exibirFeedbackRef.current("erro", "Não é o seu turno!")
-      return
-    }
-    setEnviando(true)
-    try {
-      const res = await fetch(`${API_URL}/api/partidas/${sala}/jogar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jogador: nome, pedraId: pedraSelecionada }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        exibirFeedbackRef.current("erro", data.erro ?? "Jogada inválida.")
-        return
-      }
-      setPartida(data)
-      setPedraSelecionada(null)
-      exibirFeedbackRef.current("sucesso", "Pedra jogada com sucesso! ✓")
-    } catch {
-      exibirFeedbackRef.current("erro", "Erro de conexão com o servidor.")
-    } finally {
-      setEnviando(false)
-    }
-  }, [pedraSelecionada, partida, enviando]) // sem meuNome/codigoSala/exibirFeedback — todos via ref
-
-  // ─── PASSAR VEZ ───────────────────────────────────────────────────────────
-
-  const passarVez = useCallback(async () => {
-    if (!partida || enviando) return
-    const nome = meuNomeRef.current
-    const sala = codigoSalaRef.current
-    if (partida.turnoAtual !== nome) {
-      exibirFeedbackRef.current("erro", "Não é o seu turno!")
-      return
-    }
-    setEnviando(true)
-    try {
-      const res = await fetch(`${API_URL}/api/partidas/${sala}/passar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jogador: nome }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        exibirFeedbackRef.current("erro", data.erro ?? "Não é possível passar agora.")
-        return
-      }
-      setPartida(data)
-      setPedraSelecionada(null)
-      exibirFeedbackRef.current("info", "Você passou a vez.")
-    } catch {
-      exibirFeedbackRef.current("erro", "Erro de conexão com o servidor.")
-    } finally {
-      setEnviando(false)
-    }
-  }, [partida, enviando])
-
-  // ─── HELPERS ──────────────────────────────────────────────────────────────
-
-  const ehMeuTurno = partida?.turnoAtual === meuNome
-  const minhaMao: Pedra[] = partida?.minha_mao ?? []
-
-  const pedradePodeJogar = (pedra: Pedra): boolean => {
-    if (!partida) return false
-    const { esquerda, direita } = partida.pontas
+  const pedradePodeJogar = useCallback((pedra: Pedra, p: EstadoPartida | null) => {
+    if (!p) return false
+    const { esquerda, direita } = p.pontas
     return (
       pedra.left === direita ||
       pedra.right === direita ||
-      pedra.right === esquerda ||
-      pedra.left === esquerda
+      pedra.left === esquerda ||
+      pedra.right === esquerda
     )
+  }, [])
+
+  const ehMeuTurno = partida?.turnoAtual === meuNome
+
+  const buscarEstado = useCallback(async () => {
+    if (!codigoSala || !meuNome) return
+    try {
+      const res = await fetch(
+        `${API_URL}/api/partidas/${codigoSala}?jogador=${encodeURIComponent(meuNome)}`
+      )
+      if (res.status === 404) {
+        const r2 = await fetch(`${API_URL}/api/partidas/iniciar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            codigoSala,
+            jogadores: [meuNome, "IA Química"],
+          }),
+        })
+        if (!r2.ok) throw new Error("Falha ao iniciar")
+        const data: EstadoPartida = await r2.json()
+        setPartida(data)
+        setErroBusca("")
+        return
+      }
+      if (!res.ok) throw new Error("Erro ao buscar")
+      const data: EstadoPartida = await res.json()
+      setPartida(data)
+      setErroBusca("")
+      if (data.encerrado && !showVencedor) setShowVencedor(true)
+    } catch {
+      setErroBusca("Sem conexão com o servidor.")
+    } finally {
+      setCarregando(false)
+    }
+  }, [codigoSala, meuNome, showVencedor])
+
+  useEffect(() => {
+    buscarEstado()
+    const id = setInterval(buscarEstado, POLL_INTERVAL)
+    return () => clearInterval(id)
+  }, [buscarEstado])
+
+  const jogarPedra = useCallback(
+    async (pedraId: string) => {
+      if (!partida || enviando) return
+      if (partida.turnoAtual !== meuNome) {
+        showError("Aguarde o seu turno para jogar!")
+        return
+      }
+      setEnviando(true)
+      try {
+        const res = await fetch(`${API_URL}/api/partidas/${codigoSala}/jogar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jogador: meuNome, pedraId }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          const pontas = data.pontas as Pontas | undefined
+          const pontasInfo = pontas
+            ? ` As pontas abertas são: ${pontas.esquerda} e ${pontas.direita}.`
+            : ""
+          showError((data.erro ?? "Jogada inválida.") + pontasInfo)
+          setSelectedPedra(null)
+          setDraggingId(null)
+          return
+        }
+        setPartida(data)
+        setSelectedPedra(null)
+        setDraggingId(null)
+        if (data.encerrado) setShowVencedor(true)
+      } catch {
+        showError("Erro de conexão com o servidor.")
+      } finally {
+        setEnviando(false)
+      }
+    },
+    [partida, enviando, meuNome, codigoSala, showError]
+  )
+
+  const passarVez = useCallback(async () => {
+    if (!partida || enviando) return
+    if (partida.turnoAtual !== meuNome) {
+      showError("Não é o seu turno!")
+      return
+    }
+    setEnviando(true)
+    try {
+      const res = await fetch(`${API_URL}/api/partidas/${codigoSala}/passar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jogador: meuNome }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        showError(data.erro ?? "Não é possível passar agora.")
+        return
+      }
+      setPartida(data)
+      setSelectedPedra(null)
+      if (data.encerrado) setShowVencedor(true)
+    } catch {
+      showError("Erro de conexão com o servidor.")
+    } finally {
+      setEnviando(false)
+    }
+  }, [partida, enviando, meuNome, codigoSala, showError])
+
+  const handleDragStart = (e: React.DragEvent, pedraId: string) => {
+    e.dataTransfer.setData("pedraId", pedraId)
+    e.dataTransfer.effectAllowed = "move"
+    setDraggingId(pedraId)
+    setSelectedPedra(pedraId)
   }
 
-  const quantidadePedras = (nome: string): number => {
-    if (!partida) return 0
-    const val = partida.maos[nome]
-    return typeof val === "number" ? val : (val as Pedra[]).length
+  const handleDragOver = (e: React.DragEvent, side: DropZone) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+    if (side === "esquerda") setDropOverLeft(true)
+    else setDropOverRight(true)
   }
 
-  // ─── RENDER ───────────────────────────────────────────────────────────────
+  const handleDragLeave = (side: DropZone) => {
+    if (side === "esquerda") setDropOverLeft(false)
+    else setDropOverRight(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent, _side: DropZone) => {
+    e.preventDefault()
+    setDropOverLeft(false)
+    setDropOverRight(false)
+    const pedraId = e.dataTransfer.getData("pedraId")
+    if (!pedraId) return
+    await jogarPedra(pedraId)
+  }
+
+  // Clique na ponta do tabuleiro com pedra selecionada → joga
+  const handleClickPonta = useCallback(
+    async (_side: DropZone) => {
+      if (!selectedPedra || !ehMeuTurno) return
+      await jogarPedra(selectedPedra)
+    },
+    [selectedPedra, ehMeuTurno, jogarPedra]
+  )
+
+  const handleClickPedra = useCallback(
+    async (pedraId: string) => {
+      if (!ehMeuTurno) {
+        showError("Aguarde o seu turno!")
+        return
+      }
+      if (selectedPedra === pedraId) {
+        await jogarPedra(pedraId)
+      } else {
+        setSelectedPedra(pedraId)
+      }
+    },
+    [ehMeuTurno, selectedPedra, jogarPedra, showError]
+  )
 
   if (carregando) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F2F4F7]">
-        <p className="text-lg font-semibold text-slate-500 animate-pulse">Carregando partida...</p>
+      <div
+        style={{
+          minHeight: "100svh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#0F172A",
+        }}
+      >
+        <div style={{ textAlign: "center", color: "#94A3B8" }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              border: "3px solid #334155",
+              borderTopColor: "#C62828",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+              margin: "0 auto 12px",
+            }}
+          />
+          <p style={{ fontSize: 14, fontWeight: 500 }}>Carregando partida...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
       </div>
     )
   }
 
   if (erroBusca && !partida) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#F2F4F7] px-4">
-        <p className="text-red-600 font-semibold">{erroBusca}</p>
+      <div
+        style={{
+          minHeight: "100svh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
+          background: "#0F172A",
+          color: "#94A3B8",
+        }}
+      >
+        <AlertCircle size={36} color="#DC2626" />
+        <p style={{ fontSize: 14 }}>{erroBusca}</p>
         <button
           onClick={buscarEstado}
-          className="rounded-xl bg-rose-600 px-6 py-3 font-bold text-white hover:bg-rose-700"
+          style={{
+            background: "#C62828",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: "10px 24px",
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
         >
           Tentar novamente
         </button>
@@ -391,243 +643,545 @@ export default function JogoPage() {
     )
   }
 
+  const minhaMao = partida?.minha_mao ?? []
+  const mesa = partida?.mesa ?? []
+  const snakeRows = buildSnakeRows(mesa)
+
   return (
-    <main className="min-h-screen bg-[#F2F4F7] text-[#3A3A3A]">
+    <div
+      style={{
+        minHeight: "100svh",
+        height: "100svh",
+        background: "#0F172A",
+        fontFamily: "'Inter', 'Segoe UI', sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
+      <style>{`
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+        @media (max-width: 600px) {
+          .header-chips { flex-wrap: wrap; gap: 6px !important; }
+          .header-chips > div { padding: 3px 7px !important; }
+        }
+      `}</style>
 
-      {/* MODAL FIM DE JOGO */}
-      <ModalVencedor
-        encerrado={partida?.encerrado ?? false}
-        vencedor={partida?.vencedor ?? null}
-        vencedores={partida?.vencedores ?? null}
-        motivo={partida?.motivo ?? null}
-        meuNome={meuNome}
-        onVoltar={() => router.push("/aluno")}
-      />
-
-      {/* HEADER */}
-      <header className="flex flex-col gap-4 border-b border-[#D7DCE2] bg-white p-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <div className="flex flex-1 items-center justify-center gap-4">
-          <img src="/logo.png" alt="Dominó Químico" className="h-12 object-contain sm:h-14 lg:h-16" />
-          <div className="text-center">
-            <h1 className="text-[24px] font-black leading-none text-[#3A3A3A] sm:text-[28px]">
-              Dominó <span className="text-[#EF2B2B]">Químico</span>
-            </h1>
-            <p className="mt-1 text-sm text-[#8A96A8]">Sala Multiplayer Educacional</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 lg:gap-5">
-          <div className="border border-[#D7DCE2] bg-[#F8FAFC] px-4 py-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#8A96A8]">Sala</p>
-            <p className="text-[18px] font-black tracking-[0.18em] text-[#2563EB]">{codigoSala}</p>
-          </div>
-
-          <div className="border border-[#D7DCE2] bg-[#F8FAFC] px-4 py-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#8A96A8]">Jogador</p>
-            <p className="text-[14px] font-black text-[#3A3A3A]">{meuNome}</p>
-          </div>
-
-          <div className={`border px-4 py-2 ${ehMeuTurno ? "border-green-400 bg-green-50" : "border-[#D7DCE2] bg-[#F8FAFC]"}`}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#8A96A8]">Turno</p>
-            <p className={`text-[14px] font-black ${ehMeuTurno ? "text-green-700" : "text-[#3A3A3A]"}`}>
-              {partida?.turnoAtual ?? "—"}
-            </p>
-          </div>
-
-          <button className="flex h-11 w-11 items-center justify-center border border-[#D7DCE2] bg-[#F8FAFC] text-[#64748B] transition hover:bg-[#EEF2F7]">
-            <Settings size={21} />
-          </button>
-
-          <button
-            onClick={() => setShowExitModal(true)}
-            className="flex h-11 w-11 items-center justify-center border border-[#D7DCE2] bg-[#F8FAFC] text-[#64748B] transition hover:bg-[#FEE2E2]"
+      {/* ── MODAL VENCEDOR ── */}
+      {showVencedor && partida?.encerrado && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(4px)",
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              background: "#1E293B",
+              border: "1px solid #334155",
+              borderRadius: 20,
+              padding: 40,
+              textAlign: "center",
+              maxWidth: 380,
+              width: "100%",
+            }}
           >
-            <LogOut size={21} />
-          </button>
-        </div>
-
-        {/* MODAL SAIR */}
-        {showExitModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div className="w-[92%] max-w-[520px] rounded-2xl bg-white p-8 shadow-2xl">
-              <div className="mb-5 flex justify-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FEF2F2]">
-                  <TriangleAlert size={42} className="text-[#DC2626]" />
-                </div>
-              </div>
-              <h2 className="text-center text-[28px] font-black text-[#3A3A3A]">Deseja sair da partida?</h2>
-              <p className="mt-5 text-center text-[16px] leading-relaxed text-[#64748B]">
-                Seu progresso atual poderá ser perdido se sair agora.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <button
-                  onClick={() => setShowExitModal(false)}
-                  className="flex-1 rounded-xl border border-[#D7DCE2] bg-[#F8FAFC] px-6 py-4 font-bold text-[#3A3A3A] transition hover:bg-[#EEF2F7]"
-                >
-                  Continuar Jogando
-                </button>
-                <button
-                  onClick={() => router.push("/aluno")}
-                  className="flex-1 rounded-xl bg-[#DC2626] px-6 py-4 font-bold text-white shadow-lg transition hover:brightness-110"
-                >
-                  Sair da Partida
-                </button>
-              </div>
+            <div
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: "50%",
+                background: partida.vencedor === meuNome ? "#FEF3C7" : "#1E293B",
+                border: "2px solid #334155",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+              }}
+            >
+              <Trophy size={34} color={partida.vencedor === meuNome ? "#D97706" : "#475569"} />
             </div>
+            <h2 style={{ fontSize: 26, fontWeight: 800, color: "#F1F5F9", margin: "0 0 8px" }}>
+              {partida.vencedor === meuNome ? "Você venceu! 🎉" : `${partida.vencedor} venceu!`}
+            </h2>
+            <p style={{ fontSize: 13, color: "#94A3B8", margin: "0 0 28px" }}>
+              {partida.motivo === "vitoria"
+                ? `${partida.vencedor} esvaziou a mão primeiro.`
+                : "O jogo travou — ninguém conseguia jogar."}
+            </p>
+            <button
+              onClick={() => setShowVencedor(false)}
+              style={{
+                width: "100%",
+                background: "#C62828",
+                color: "#fff",
+                border: "none",
+                borderRadius: 12,
+                padding: "14px 0",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              <RefreshCw size={16} />
+              Voltar ao Menu
+            </button>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* ── TOAST DE ERRO ── */}
+      {errorMsg && <ErrorToast message={errorMsg} onClose={() => setErrorMsg("")} />}
+
+      {/* ── HEADER ── */}
+      <header
+        style={{
+          background: "#1E293B",
+          borderBottom: "1px solid #334155",
+          padding: "10px 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          flexShrink: 0,
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 100 }}>
+          <span style={{ fontSize: 16, fontWeight: 800, color: "#F1F5F9", letterSpacing: -0.3 }}>
+            Dominó <span style={{ color: "#EF4444" }}>Químico</span>
+          </span>
+        </div>
+        <div className="header-chips" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Chip label="Sala" value={codigoSala} accent="#2563EB" />
+          <Chip label="Jogador" value={meuNome} />
+          <Chip label="Turno" value={partida?.turnoAtual ?? "—"} accent={ehMeuTurno ? "#16A34A" : undefined} />
+          <Chip label="Monte" value={`${partida?.monte ?? 0}`} />
+        </div>
       </header>
 
-      {/* FEEDBACK BANNER */}
-      <FeedbackBanner feedback={feedback} />
+      {/* ── MESA + MÃO ── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
 
-      {/* MAIN */}
-      <section className="grid min-h-[calc(100vh-78px)] grid-cols-1 gap-4 p-4 xl:grid-cols-[240px_1fr_240px] xl:gap-6 xl:p-6">
+        {/* ── MESA DO JOGO ── */}
+        <div
+          style={{
+            flex: 1,
+            position: "relative",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+          }}
+        >
+          {/* feltro */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "radial-gradient(ellipse at center, #1B4332 0%, #14532D 40%, #0F3D22 100%)",
+              backgroundImage: "radial-gradient(ellipse at center, #1B4332 0%, #14532D 40%, #0F3D22 100%), repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.02) 19px, rgba(255,255,255,0.02) 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(255,255,255,0.02) 19px, rgba(255,255,255,0.02) 20px)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 10,
+              border: "2px solid rgba(255,255,255,0.07)",
+              borderRadius: 14,
+              pointerEvents: "none",
+            }}
+          />
 
-        {/* LEFT — jogadores 1 e 2 */}
-        <aside className="flex flex-col gap-4 md:grid md:grid-cols-2 xl:flex">
-          {(partida?.jogadores ?? []).slice(0, 2).map((nome) => (
-            <PlayerCard
-              key={nome}
-              name={nome}
-              turn={partida?.turnoAtual === nome}
-              connected
-              isSelf={nome === meuNome}
-              pecas={quantidadePedras(nome)}
-            />
-          ))}
-          <div className="border border-[#D7DCE2] bg-white p-5 shadow-sm xl:mt-auto">
-            <p className="text-[12px] font-black uppercase tracking-[0.22em] text-[#8A96A8]">Pontas da Mesa</p>
-            <div className="mt-3 flex items-center justify-between gap-2">
-              <div className="flex-1 rounded-lg border border-[#D7DCE2] bg-[#EEF3FF] p-2 text-center text-xs font-black text-[#2563EB]">
-                ← {partida?.pontas.esquerda ?? "—"}
+          {/* CONTEÚDO CENTRAL DA MESA */}
+          <div
+            style={{
+              position: "relative",
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "16px 12px",
+              gap: 12,
+              overflow: "auto",
+              minHeight: 0,
+            }}
+          >
+            {mesa.length === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  color: "rgba(255,255,255,0.25)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  letterSpacing: 1,
+                }}
+              >
+                Mesa vazia — jogue a primeira pedra
               </div>
-              <div className="flex-1 rounded-lg border border-[#D7DCE2] bg-[#FFF1F1] p-2 text-center text-xs font-black text-[#C62828]">
-                {partida?.pontas.direita ?? "—"} →
+            ) : (
+              /* SERPENTINA com cantos verticais */
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "stretch" }}>
+                {snakeRows.map((row, rowIdx) => {
+                  const isFirst = rowIdx === 0
+                  const isLast = rowIdx === snakeRows.length - 1
+                  const isOnly = snakeRows.length === 1
+
+                  // Linha revertida alinha à direita para continuar a cadeia
+                  const justif = row.reversed ? "flex-end" : "flex-start"
+
+                  // A ponta direita fica no fim da última linha não-revertida,
+                  // ou no início (visual esquerdo) da última linha revertida
+                  const dropEsqVisible = ehMeuTurno && (isFirst || isOnly) && !row.reversed
+                  const dropDirVisible = ehMeuTurno && (isLast || isOnly) && !row.reversed
+                  const dropDirReversed = ehMeuTurno && isLast && !isOnly && row.reversed
+
+                  return (
+                    <div
+                      key={rowIdx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        justifyContent: justif,
+                        flexWrap: "nowrap",
+                      }}
+                    >
+                      {/* Ponta esquerda: linha 0 normal */}
+                      {dropEsqVisible && (
+                        <InlineDropZone
+                          side="esquerda"
+                          ponta={partida?.pontas.esquerda ?? null}
+                          over={dropOverLeft}
+                          onDragOver={(e) => handleDragOver(e, "esquerda")}
+                          onDragLeave={() => handleDragLeave("esquerda")}
+                          onDrop={handleDrop}
+                          onClick={() => handleClickPonta("esquerda")}
+                        />
+                      )}
+                      {/* Ponta direita: última linha revertida (ponta chega no lado esquerdo visual) */}
+                      {dropDirReversed && (
+                        <InlineDropZone
+                          side="direita"
+                          ponta={partida?.pontas.direita ?? null}
+                          over={dropOverRight}
+                          onDragOver={(e) => handleDragOver(e, "direita")}
+                          onDragLeave={() => handleDragLeave("direita")}
+                          onDrop={handleDrop}
+                          onClick={() => handleClickPonta("direita")}
+                        />
+                      )}
+                      {(row.reversed ? [...row.tiles].reverse() : row.tiles).map(({ pedra, kind }, idx) => {
+                        const isCorner = kind === "v-exit"
+                        return (
+                          <div
+                            key={`${pedra.id}-${rowIdx}-${idx}`}
+                            style={{
+                              flexShrink: 0,
+                              transform: isCorner ? "rotate(90deg)" : "none",
+                              // Margem extra para o canto girado não sobrepor vizinhos
+                              margin: isCorner ? "0 10px" : "0",
+                              transition: "transform 0.2s ease",
+                            }}
+                          >
+                            <DominoTile pedra={pedra} small />
+                          </div>
+                        )
+                      })}
+                      {/* Ponta direita: fim da última linha normal */}
+                      {dropDirVisible && (
+                        <InlineDropZone
+                          side="direita"
+                          ponta={partida?.pontas.direita ?? null}
+                          over={dropOverRight}
+                          onDragOver={(e) => handleDragOver(e, "direita")}
+                          onDragLeave={() => handleDragLeave("direita")}
+                          onDrop={handleDrop}
+                          onClick={() => handleClickPonta("direita")}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-            </div>
-            <p className="mt-3 text-xs text-[#64748B]">
-              Monte: <span className="font-bold">{partida?.monte ?? 0}</span> pedras
-            </p>
-          </div>
-        </aside>
+            )}
 
-        {/* BOARD */}
-        <div className="relative flex flex-col overflow-hidden border border-[#D7DCE2] bg-white shadow-sm">
-          <div className="relative flex min-h-[300px] flex-1 items-center justify-center overflow-auto bg-[#E3ECE1] p-6 sm:min-h-[400px]">
-            <div className="absolute inset-2 border-[4px] border-[#CDD8C8] bg-[#DDE8D8] sm:inset-4 xl:inset-8 xl:border-[6px]" />
-            <div className="relative z-10 flex flex-wrap items-center justify-center gap-1">
-              {(partida?.mesa ?? []).map((pedra, idx) => (
-                <DominoPiece
-                  key={`${pedra.id}-${idx}`}
-                  top={pedra.left}
-                  bottom={pedra.right}
-                />
-              ))}
-              {(partida?.mesa ?? []).length === 0 && (
-                <p className="text-sm font-semibold text-[#8A96A8]">Mesa vazia</p>
-              )}
+            {/* pontas info quando não é meu turno */}
+            {!ehMeuTurno && partida?.pontas && (
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
+                <PontaTag label="← Esq" funcao={partida.pontas.esquerda} />
+                <PontaTag label="Dir →" funcao={partida.pontas.direita} />
+              </div>
+            )}
+
+            {/* aviso de turno */}
+            <div
+              style={{
+                background: ehMeuTurno ? "rgba(22,163,74,0.15)" : "rgba(255,255,255,0.06)",
+                border: `1px solid ${ehMeuTurno ? "#16A34A44" : "rgba(255,255,255,0.1)"}`,
+                borderRadius: 8,
+                padding: "6px 14px",
+                fontSize: 12,
+                fontWeight: 600,
+                color: ehMeuTurno ? "#86EFAC" : "#94A3B8",
+                letterSpacing: 0.4,
+                textAlign: "center",
+              }}
+            >
+              {ehMeuTurno
+                ? selectedPedra
+                  ? "✦ Clique numa ponta do tabuleiro ou arraste para jogar"
+                  : "✦ Sua vez — selecione uma pedra"
+                : `⟳ Vez de ${partida?.turnoAtual ?? "..."}`}
             </div>
           </div>
+        </div>
 
-          {/* MÃO DO JOGADOR */}
-          <footer className="border-t border-[#D7DCE2] bg-white px-4 py-5 sm:px-8">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-[12px] font-black uppercase tracking-[0.25em] text-[#8A96A8]">
+        {/* ── MÃO DO JOGADOR ── */}
+        <div
+          style={{
+            background: "#1E293B",
+            borderTop: "1px solid #334155",
+            padding: "12px 16px",
+            flexShrink: 0,
+          }}
+        >
+          {/* header da mão */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#64748B",
+                  letterSpacing: 1.2,
+                  textTransform: "uppercase",
+                }}
+              >
                 Sua mão — {meuNome}
-              </p>
-              <div className="flex items-center gap-2">
-                <p className="bg-[#EEF3FF] px-3 py-1 text-xs font-bold text-[#2563EB]">
-                  {minhaMao.length} pedras
-                </p>
-                {!ehMeuTurno && (
-                  <p className="bg-[#FFF1F1] px-3 py-1 text-xs font-bold text-[#C62828]">
-                    Vez de {partida?.turnoAtual}...
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-4 overflow-x-auto pb-2 xl:justify-center">
-              {minhaMao.map((pedra) => {
-                const podeJogar = pedradePodeJogar(pedra)
-                return (
-                  <div
-                    key={pedra.id}
-                    onClick={() => {
-                      if (!ehMeuTurno) {
-                        exibirFeedback("erro", "Aguarde o seu turno.")
-                        return
-                      }
-                      setPedraSelecionada(pedraSelecionada === pedra.id ? null : pedra.id)
-                    }}
-                    className="shrink-0"
-                  >
-                    <DominoPiece
-                      top={pedra.left}
-                      bottom={pedra.right}
-                      selected={pedraSelecionada === pedra.id}
-                      disabled={!ehMeuTurno || !podeJogar}
-                    />
-                    {ehMeuTurno && (
-                      <div className={`mt-1 h-1 rounded-full ${podeJogar ? "bg-green-400" : "bg-slate-200"}`} />
-                    )}
-                  </div>
-                )
-              })}
-              {minhaMao.length === 0 && (
-                <p className="py-4 text-sm text-[#8A96A8]">Sem pedras na mão</p>
+              </span>
+              <span
+                style={{
+                  background: "#0F172A",
+                  border: "1px solid #334155",
+                  borderRadius: 6,
+                  padding: "2px 8px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#94A3B8",
+                }}
+              >
+                {minhaMao.length} pedras
+              </span>
+              {selectedPedra && (
+                <span
+                  style={{
+                    background: "#1D4ED833",
+                    border: "1px solid #2563EB44",
+                    borderRadius: 6,
+                    padding: "2px 8px",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "#93C5FD",
+                  }}
+                >
+                  Clique na ponta ↑ ou 2× na pedra
+                </span>
               )}
             </div>
 
             {ehMeuTurno && (
-              <div className="mt-4 flex gap-3">
-                <button
-                  onClick={jogarPedra}
-                  disabled={!pedraSelecionada || enviando}
-                  className="flex-1 rounded-xl bg-[#2563EB] px-4 py-3 font-bold text-white transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {enviando ? "Jogando..." : "Jogar Pedra Selecionada"}
-                </button>
-                <button
-                  onClick={passarVez}
-                  disabled={enviando}
-                  className="rounded-xl border border-[#D7DCE2] bg-[#F8FAFC] px-4 py-3 font-bold text-[#64748B] transition hover:bg-slate-100 disabled:opacity-40"
-                >
-                  Passar Vez
-                </button>
-              </div>
+              <button
+                onClick={passarVez}
+                disabled={enviando}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "transparent",
+                  border: "1px solid #475569",
+                  borderRadius: 8,
+                  padding: "6px 14px",
+                  color: "#94A3B8",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: enviando ? "not-allowed" : "pointer",
+                  opacity: enviando ? 0.5 : 1,
+                }}
+              >
+                <RotateCcw size={13} />
+                Passar vez
+              </button>
             )}
-          </footer>
-        </div>
-
-        {/* RIGHT — jogadores 3 e 4 */}
-        <aside className="flex flex-col gap-4 md:grid md:grid-cols-2 xl:flex">
-          {(partida?.jogadores ?? []).slice(2, 4).map((nome) => (
-            <PlayerCard
-              key={nome}
-              name={nome}
-              turn={partida?.turnoAtual === nome}
-              connected
-              isSelf={nome === meuNome}
-              pecas={quantidadePedras(nome)}
-            />
-          ))}
-          <div className="border border-[#D7DCE2] bg-white p-5 shadow-sm xl:mt-auto">
-            <div className="mb-4 flex items-center gap-3">
-              <HelpCircle className="text-[#2563EB]" size={22} />
-              <h3 className="font-black">Regras rápidas</h3>
-            </div>
-            <ul className="space-y-3 text-sm text-[#64748B]">
-              <li>• Inicia com a pedra <strong>Ácido-Hidreto</strong>.</li>
-              <li>• Encaixe função com função nas pontas.</li>
-              <li>• Barras <span className="text-green-600 font-bold">verdes</span> = pedra válida.</li>
-              <li>• Passe a vez se não tiver jogada.</li>
-              <li>• Ganha quem esvaziar a mão primeiro.</li>
-            </ul>
           </div>
-        </aside>
-      </section>
-    </main>
+
+          {/* pedras na mão */}
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              overflowX: "auto",
+              padding: "4px 2px 8px",
+              scrollbarWidth: "thin",
+              scrollbarColor: "#334155 transparent",
+              alignItems: "flex-end",
+            }}
+          >
+            {minhaMao.length === 0 ? (
+              <span style={{ fontSize: 13, color: "#475569" }}>Sem pedras na mão</span>
+            ) : (
+              minhaMao.map((pedra) => {
+                const podeJogar = pedradePodeJogar(pedra, partida)
+                const isSelected = selectedPedra === pedra.id
+                const isDragging = draggingId === pedra.id
+
+                return (
+                  <div
+                    key={pedra.id}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 4,
+                      opacity: isDragging ? 0.4 : 1,
+                      transition: "opacity 0.15s",
+                    }}
+                  >
+                    <DominoTile
+                      pedra={pedra}
+                      selected={isSelected}
+                      playable={false}
+                      disabled={!ehMeuTurno}
+                      draggable={ehMeuTurno}
+                      onDragStart={(e) => handleDragStart(e, pedra.id)}
+                      onClick={() => handleClickPedra(pedra.id)}
+                    />
+                    {isSelected && (
+                      <div
+                        style={{
+                          width: 32,
+                          height: 3,
+                          borderRadius: 2,
+                          background: "#2563EB",
+                          transition: "background 0.2s",
+                        }}
+                      />
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* legenda de cores */}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              marginTop: 8,
+              paddingTop: 8,
+              borderTop: "1px solid #1E293B",
+              alignItems: "center",
+            }}
+          >
+            {Object.entries(FUNCAO_COR).map(([funcao, cor]) => (
+              <div key={funcao} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: cor.dot }} />
+                <span style={{ fontSize: 10, color: "#64748B", fontWeight: 500 }}>{funcao}</span>
+              </div>
+            ))}
+            <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+              <LegendItem color="#2563EB" label="Selecionada" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── UTILITÁRIOS VISUAIS ───────────────────────────────────────────────────────
+
+function Chip({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div
+      style={{
+        background: "#0F172A",
+        border: `1px solid ${accent ? accent + "55" : "#334155"}`,
+        borderRadius: 8,
+        padding: "4px 10px",
+      }}
+    >
+      <div style={{ fontSize: 9, color: "#64748B", fontWeight: 600, letterSpacing: 0.8 }}>
+        {label.toUpperCase()}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: accent ?? "#E2E8F0" }}>{value}</div>
+    </div>
+  )
+}
+
+function PontaTag({ label, funcao }: { label: string; funcao: string | null }) {
+  if (!funcao) return null
+  const cor = getCor(funcao)
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        background: "rgba(0,0,0,0.3)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: 8,
+        padding: "6px 12px",
+      }}
+    >
+      <span style={{ fontSize: 10, color: "#94A3B8" }}>{label}</span>
+      <div
+        style={{
+          padding: "3px 8px",
+          background: cor.bg,
+          border: `1.5px solid ${cor.border}`,
+          borderRadius: 5,
+          fontSize: 11,
+          fontWeight: 700,
+          color: cor.text,
+        }}
+      >
+        {funcao}
+      </div>
+    </div>
+  )
+}
+
+function LegendItem({ color, label }: { color: string; label: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+      <div style={{ width: 24, height: 3, borderRadius: 2, background: color }} />
+      <span style={{ fontSize: 10, color: "#64748B" }}>{label}</span>
+    </div>
   )
 }
