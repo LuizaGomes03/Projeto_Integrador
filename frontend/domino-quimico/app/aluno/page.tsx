@@ -76,7 +76,6 @@ export default function AlunoHome() {
     }
   }
 
-  // ── CORRIGIDO: vai para /jogo/jogo-online (page2.tsx) ──
   const entrarNaSalaCriada = () => {
     setMostrarModalCriada(false)
     sessionStorage.setItem("dominoNome", PLAYER_NAME)
@@ -94,7 +93,6 @@ export default function AlunoHome() {
     }
   }
 
-  // ── CORRIGIDO: entrar em sala também vai para /jogo/jogo-online ──
   const entrarSala = () => {
     const code = codigoSala.trim().toUpperCase()
     if (!code) return
@@ -134,7 +132,7 @@ export default function AlunoHome() {
 
   return (
     <>
-      {/* HEADER — inalterado */}
+      {/* HEADER */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative flex items-center justify-center py-4">
@@ -236,7 +234,7 @@ export default function AlunoHome() {
               </button>
             </div>
 
-            {/* Linha 2 — Jogar Sozinho → /jogo (page.tsx com IA) */}
+            {/* Linha 2 — Jogar Sozinho */}
             <button
               onClick={() => router.push("/jogo")}
               className="group relative overflow-hidden rounded-2xl bg-[#DC2626] p-8 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-xl"
@@ -379,37 +377,56 @@ export default function AlunoHome() {
       {/* ── MODAL ENTRAR EM SALA ── */}
       {mostrarModalEntrada && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <h2 className="text-2xl font-black tracking-tight text-slate-800">Entrar em Sala</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Digite o código da sala para entrar sem usar a caixa de diálogo do navegador.</p>
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <label htmlFor="codigo-sala" className="mb-2 block text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+
+            {/* Header vermelho */}
+            <div className="relative overflow-hidden bg-[#DC2626] px-6 py-7 text-center">
+              <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-white/10" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 rounded-full bg-black/10" />
+              <div className="relative mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+                <LogIn size={26} className="text-white" />
+              </div>
+              <h2 className="relative text-2xl font-black text-white">Entrar em Sala</h2>
+              <p className="relative mt-1 text-sm text-rose-100">
+                Digite o código da sala para participar.
+              </p>
+            </div>
+
+            {/* Corpo */}
+            <div className="px-6 py-7">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
                 Código da sala
-              </label>
-              <input
-                id="codigo-sala"
-                value={codigoSala}
-                onChange={(e) => setCodigoSala(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") entrarSala() }}
-                autoFocus
-                placeholder="Ex.: ABC123"
-                className="w-full bg-transparent text-lg font-semibold uppercase tracking-[0.2em] text-slate-800 outline-none placeholder:text-slate-300"
-              />
+              </p>
+
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+                <input
+                  id="codigo-sala"
+                  value={codigoSala}
+                  onChange={(e) => setCodigoSala(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") entrarSala() }}
+                  autoFocus
+                  placeholder="Ex.: ABC123"
+                  className="w-full bg-transparent text-4xl font-black uppercase tracking-[0.18em] text-slate-800 outline-none placeholder:text-slate-300 font-mono"
+                />
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3">
+                <button
+                  onClick={entrarSala}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#DC2626] px-5 py-3.5 font-black text-white transition hover:brightness-105"
+                >
+                  Entrar na sala
+                  <ArrowRight size={18} />
+                </button>
+                <button
+                  onClick={() => { setMostrarModalEntrada(false); setCodigoSala("") }}
+                  className="rounded-2xl border border-slate-200 bg-white px-5 py-3.5 font-semibold text-slate-500 transition hover:bg-slate-50"
+                >
+                  Voltar ao menu
+                </button>
+              </div>
             </div>
-            <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button
-                onClick={() => { setMostrarModalEntrada(false); setCodigoSala("") }}
-                className="rounded-full border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={entrarSala}
-                className="rounded-full bg-rose-600 px-5 py-3 font-semibold text-white transition hover:bg-rose-700"
-              >
-                Entrar
-              </button>
-            </div>
+
           </div>
         </div>
       )}
