@@ -21,3 +21,5 @@ Thumbs.db
 # Build
 build/
 dist/
+
+certs/
