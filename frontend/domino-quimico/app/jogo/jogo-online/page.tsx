@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Settings, HelpCircle, LogOut, TriangleAlert, Trophy, RefreshCw } from "lucide-react"
+import { apiFetch } from "@/lib/api"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 const POLL_INTERVAL = 2000
 
 // ─── TIPOS ─────────────────────────────────────────────────────────────────────
@@ -232,7 +232,7 @@ export default function JogoPage() {
     const nome = meuNomeRef.current
     const sala = codigoSalaRef.current
     try {
-      const res = await fetch(`${API_URL}/api/partidas/iniciar`, {
+      const res = await apiFetch(`/api/partidas/iniciar`, {  
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ codigoSala: sala, jogadores: [nome, "IA Química"] }),
@@ -256,8 +256,8 @@ export default function JogoPage() {
     const sala = codigoSalaRef.current
     if (!sala || !nome) return
     try {
-      const res = await fetch(
-        `${API_URL}/api/partidas/${sala}?jogador=${encodeURIComponent(nome)}`
+      const res = await apiFetch(
+        `/api/partidas/${sala}?jogador={encodeURIComponent(nome)}`
       )
       if (res.status === 404) {
         await iniciarPartidaSolo()
@@ -293,7 +293,7 @@ export default function JogoPage() {
     }
     setEnviando(true)
     try {
-      const res = await fetch(`${API_URL}/api/partidas/${sala}/jogar`, {
+      const res = await apiFetch(`/api/partidas/${sala}/jogar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jogador: nome, pedraId: pedraSelecionada }),
@@ -325,7 +325,7 @@ export default function JogoPage() {
     }
     setEnviando(true)
     try {
-      const res = await fetch(`${API_URL}/api/partidas/${sala}/passar`, {
+      const res = await apiFetch(`/api/partidas/${sala}/passar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jogador: nome }),

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Trophy, RefreshCw, RotateCcw, AlertCircle, X } from "lucide-react"
+import { apiFetch } from "@/lib/api"
 
 // ─── TIPOS ─────────────────────────────────────────────────────────────────────
 
@@ -36,11 +37,11 @@ type DropZone = "esquerda" | "direita"
 // ─── COR POR FUNÇÃO ────────────────────────────────────────────────────────────
 
 const FUNCAO_COR: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  Ácido:    { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
-  Base:     { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
-  Óxido:    { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
-  Sal:      { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
-  Hidreto:  { bg: "#F9F0FF", border: "#722ED1", text: "#22075E", dot: "#722ED1" },
+  Ácido: { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
+  Base: { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
+  Óxido: { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
+  Sal: { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
+  Hidreto: { bg: "#F9F0FF", border: "#722ED1", text: "#22075E", dot: "#722ED1" },
 }
 
 const getCor = (funcao: string) =>
@@ -142,14 +143,14 @@ function DominoTile({
   const borderColor = selected
     ? "#2563EB"
     : playable
-    ? "#16A34A"
-    : "#D1D5DB"
+      ? "#16A34A"
+      : "#D1D5DB"
 
   const shadow = selected
     ? "0 0 0 3px #2563EB44"
     : playable
-    ? "0 0 0 2px #16A34A33"
-    : "0 2px 8px rgba(0,0,0,0.10)"
+      ? "0 0 0 2px #16A34A33"
+      : "0 2px 8px rgba(0,0,0,0.10)"
 
   return (
     <div
@@ -167,8 +168,8 @@ function DominoTile({
         cursor: draggable && !disabled
           ? "grab"
           : onClick && !disabled
-          ? "pointer"
-          : "default",
+            ? "pointer"
+            : "default",
         opacity: disabled ? 0.45 : 1,
         transition: "box-shadow 0.15s, transform 0.12s, opacity 0.15s",
         transform: selected ? "translateY(-4px)" : "none",
@@ -274,7 +275,7 @@ function InlineDropZone({
         <>
           <span style={{ fontSize: 20, color: "rgba(255,255,255,0.3)" }}>{arrow}</span>
           <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textAlign: "center", lineHeight: 1.3 }}>
-            Arraste<br/>aqui
+            Arraste<br />aqui
           </span>
         </>
       )}
@@ -340,7 +341,6 @@ function ErrorToast({ message, onClose }: { message: string; onClose: () => void
 
 // ─── PÁGINA PRINCIPAL DO JOGO ──────────────────────────────────────────────────
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 const POLL_INTERVAL = 2000
 
 // ─── LAYOUT SERPENTINA ──────────────────────────────────────────────────────
@@ -425,11 +425,11 @@ export default function GameBoard() {
   const buscarEstado = useCallback(async () => {
     if (!codigoSala || !meuNome) return
     try {
-      const res = await fetch(
-        `${API_URL}/api/partidas/${codigoSala}?jogador=${encodeURIComponent(meuNome)}`
+      const res = await apiFetch(
+        `/api/partidas/${codigoSala}?jogador=${encodeURIComponent(meuNome)}`
       )
       if (res.status === 404) {
-        const r2 = await fetch(`${API_URL}/api/partidas/iniciar`, {
+        const r2 = await apiFetch(`/api/partidas/iniciar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -470,9 +470,8 @@ export default function GameBoard() {
       }
       setEnviando(true)
       try {
-        const res = await fetch(`${API_URL}/api/partidas/${codigoSala}/jogar`, {
+        const res = await apiFetch(`/api/partidas/${codigoSala}/jogar`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ jogador: meuNome, pedraId }),
         })
         const data = await res.json()
@@ -507,9 +506,8 @@ export default function GameBoard() {
     }
     setEnviando(true)
     try {
-      const res = await fetch(`${API_URL}/api/partidas/${codigoSala}/passar`, {
+      const res = await apiFetch(`/api/partidas/${codigoSala}/passar`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jogador: meuNome }),
       })
       const data = await res.json()
