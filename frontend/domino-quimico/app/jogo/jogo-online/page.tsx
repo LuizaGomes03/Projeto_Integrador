@@ -183,16 +183,17 @@ export default function JogoPage() {
   const searchParams = useSearchParams()
 
   // ─── IDENTIDADE DO JOGADOR ───────────────────────────────────────────────
-  // Derivado diretamente — sem setState em useEffect (evita cascading renders)
-  // Na primeira render (SSR/hydration) sessionStorage não existe ainda;
-  // useSearchParams() já é reativo, então basta ler aqui.
-  const { meuNome, codigoSala } = useMemo(() => {
+  // Lê o usuarioId numérico salvo pelo login (Sprint 1)
+  const { meuNome, meuId, codigoSala } = useMemo(() => {
     const nomeParm = searchParams.get("jogador")
     const salaParm = searchParams.get("sala")
     const nomeSession = typeof window !== "undefined" ? sessionStorage.getItem("dominoNome") : null
+    const idSession = typeof window !== "undefined" ? sessionStorage.getItem("dominoUserId") : null
     const salaSession = typeof window !== "undefined" ? sessionStorage.getItem("dominoSala") : null
     return {
       meuNome: nomeParm || nomeSession || "Jogador",
+      // FIX: id numérico para enviar ao backend; -99 como fallback seguro (não é IA = -1)
+      meuId: idSession ? Number(idSession) : -99,
       codigoSala: (salaParm || salaSession || "DEMO").toUpperCase(),
     }
   }, [searchParams])
@@ -216,13 +217,14 @@ export default function JogoPage() {
   }, [])
 
   // ─── REFS — guardam valores atuais sem recriar callbacks ──────────────────
-  // Isso quebra a cadeia useCallback → deps → recriação → loop no useEffect
 
   const meuNomeRef = useRef(meuNome)
+  const meuIdRef = useRef(meuId)
   const codigoSalaRef = useRef(codigoSala)
   const exibirFeedbackRef = useRef(exibirFeedback)
 
   useEffect(() => { meuNomeRef.current = meuNome }, [meuNome])
+  useEffect(() => { meuIdRef.current = meuId }, [meuId])
   useEffect(() => { codigoSalaRef.current = codigoSala }, [codigoSala])
   useEffect(() => { exibirFeedbackRef.current = exibirFeedback }, [exibirFeedback])
 
@@ -230,12 +232,17 @@ export default function JogoPage() {
 
   const iniciarPartidaSolo = useCallback(async () => {
     const nome = meuNomeRef.current
+    const id = meuIdRef.current
     const sala = codigoSalaRef.current
     try {
-      const res = await apiFetch(`/api/partidas/iniciar`, {  
+      const res = await apiFetch(`/api/partidas/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoSala: sala, jogadores: [nome, "IA Química"] }),
+        // FIX: envia objeto { id, nome } que o backend espera em jogadores[]
+        body: JSON.stringify({
+          codigoSala: sala,
+          jogadores: [{ id, nome }, { id: -1, nome: "IA Química" }],
+        }),
       })
       if (!res.ok) throw new Error("Falha ao iniciar partida")
       const data: EstadoPartida = await res.json()
@@ -247,17 +254,18 @@ export default function JogoPage() {
     } finally {
       setCarregando(false)
     }
-  }, []) // estável — lê tudo via refs
+  }, [])
 
   // ─── BUSCAR ESTADO DA PARTIDA ─────────────────────────────────────────────
 
   const buscarEstado = useCallback(async () => {
-    const nome = meuNomeRef.current
+    const id = meuIdRef.current
     const sala = codigoSalaRef.current
-    if (!sala || !nome) return
+    if (!sala) return
     try {
+      // FIX: template string corrigida (${ em vez de {) + usa id numérico
       const res = await apiFetch(
-        `/api/partidas/${sala}?jogador={encodeURIComponent(nome)}`
+        `/api/partidas/${sala}?jogador=${encodeURIComponent(id)}`
       )
       if (res.status === 404) {
         await iniciarPartidaSolo()
@@ -272,9 +280,9 @@ export default function JogoPage() {
     } finally {
       setCarregando(false)
     }
-  }, [iniciarPartidaSolo]) // iniciarPartidaSolo é estável (deps: [])
+  }, [iniciarPartidaSolo])
 
-  // Polling — inicia direto, refs já têm os valores corretos
+  // Polling
   useEffect(() => {
     buscarEstado()
     const interval = setInterval(buscarEstado, POLL_INTERVAL)
@@ -286,6 +294,7 @@ export default function JogoPage() {
   const jogarPedra = useCallback(async () => {
     if (!pedraSelecionada || !partida || enviando) return
     const nome = meuNomeRef.current
+    const id = meuIdRef.current
     const sala = codigoSalaRef.current
     if (partida.turnoAtual !== nome) {
       exibirFeedbackRef.current("erro", "Não é o seu turno!")
@@ -296,7 +305,8 @@ export default function JogoPage() {
       const res = await apiFetch(`/api/partidas/${sala}/jogar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jogador: nome, pedraId: pedraSelecionada }),
+        // FIX: envia usuarioId numérico que o backend espera
+        body: JSON.stringify({ usuarioId: id, pedraId: pedraSelecionada }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -311,13 +321,14 @@ export default function JogoPage() {
     } finally {
       setEnviando(false)
     }
-  }, [pedraSelecionada, partida, enviando]) // sem meuNome/codigoSala/exibirFeedback — todos via ref
+  }, [pedraSelecionada, partida, enviando])
 
   // ─── PASSAR VEZ ───────────────────────────────────────────────────────────
 
   const passarVez = useCallback(async () => {
     if (!partida || enviando) return
     const nome = meuNomeRef.current
+    const id = meuIdRef.current
     const sala = codigoSalaRef.current
     if (partida.turnoAtual !== nome) {
       exibirFeedbackRef.current("erro", "Não é o seu turno!")
@@ -328,7 +339,8 @@ export default function JogoPage() {
       const res = await apiFetch(`/api/partidas/${sala}/passar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jogador: nome }),
+        // FIX: envia usuarioId numérico que o backend espera
+        body: JSON.stringify({ usuarioId: id }),
       })
       const data = await res.json()
       if (!res.ok) {
