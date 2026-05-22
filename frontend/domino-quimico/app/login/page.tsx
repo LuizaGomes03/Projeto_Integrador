@@ -121,7 +121,7 @@ export default function LoginPage() {
         fontFamily: '"Poppins", sans-serif',
       }}
     >
-      <div className="w-full max-w-[430px]">
+      <div className="w-full max-w-[540px]">
 
         {/* LOGO ETEC */}
         <div className="flex justify-center pb-10 sm:pb-12 md:pb-14">

@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Dominó Químico",
   description: "Plataforma interativa para aprendizado de química",
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({
