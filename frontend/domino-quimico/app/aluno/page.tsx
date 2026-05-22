@@ -134,11 +134,11 @@ export default function AlunoHome() {
     <>
       {/* HEADER */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative flex items-center justify-center py-4">
-            <div className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Dominó Químico" width={42} height={42} className="h-10 w-10 object-contain" />
-              <h1 className="text-xl font-black tracking-tight text-slate-800">
+          <div className="w-full px-6 lg:px-12">
+          <div className="relative flex items-center justify-center py-3 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Image src="/logo.png" alt="Dominó Químico" width={42} height={42} className="h-8 w-8 sm:h-10 sm:w-10 object-contain" />
+              <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-800">
                 Dominó <span className="text-red-600">Químico</span>
               </h1>
             </div>
@@ -149,9 +149,9 @@ export default function AlunoHome() {
                 localStorage.removeItem("dominoQuimicoHostRoomCode")
                 router.push("/login")
               }}
-              className="absolute right-0 flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600"
+              className="absolute right-2 sm:right-0 flex items-center gap-2 rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-600"
             >
-              <LogOut size={18} />
+              <LogOut size={16} />
               <span className="hidden sm:inline">Sair</span>
             </button>
           </div>
@@ -163,7 +163,7 @@ export default function AlunoHome() {
         className="min-h-screen w-full"
         style={{
           background:
-            "radial-gradient(ellipse at 15% 60%, #ffe4e6 0%, transparent 50%), radial-gradient(ellipse at 85% 10%, #fecdd3 0%, transparent 45%), #fdf2f4",
+            "radial-gradient(ellipse at 15% 60%, #ffd6d6 0%, transparent 45%), radial-gradient(ellipse at 85% 10%, #ffc1c1 0%, transparent 40%), #ffe6e8",
         }}
       >
         {/* Moléculas decorativas */}
@@ -182,7 +182,7 @@ export default function AlunoHome() {
           <circle cx="98%" cy="82%" r="7" fill="#DC2626" />
         </svg>
 
-        <main className="relative mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:py-14">
+        <main className="relative mx-auto w-full max-w-[1700px] px-6 py-10 lg:px-12 lg:py-14">
 
           {/* Cabeçalho */}
           <div className="mb-10 text-center">
@@ -234,55 +234,88 @@ export default function AlunoHome() {
               </button>
             </div>
 
-            {/* Linha 2 — Jogar Sozinho */}
-            <button
-              onClick={() => router.push("/jogo")}
-              className="group relative overflow-hidden rounded-2xl bg-[#DC2626] p-8 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-xl"
-            >
-              <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-52 w-52 rounded-full bg-white/10" />
-              <div className="relative flex items-center justify-between">
-                <div>
-                  <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-white">
-                    <Orbit size={28} />
-                  </span>
-                  <p className="text-3xl font-black text-white sm:text-4xl">Jogar Sozinho</p>
-                  <p className="mt-2 text-base leading-relaxed text-rose-100">
-                    Pratique suas habilidades de ligações químicas contra a IA do laboratório.
-                  </p>
-                </div>
-                <div className="ml-6 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition-transform duration-200 group-hover:translate-x-1">
-                  <ArrowRight size={22} />
-                </div>
-              </div>
-            </button>
+            {/* LINHA 2 — JOGAR + DESEMPENHO */}
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
 
-            {/* Linha 3 — Meu Desempenho */}
-            <button
-              onClick={() => router.push("/aluno/desempenho")}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-lg"
-            >
-              <div className="flex items-center gap-5">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-colors group-hover:bg-rose-50 group-hover:text-rose-500">
-                  <BarChart3 size={26} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-2xl font-black text-slate-800">Meu Desempenho</p>
-                  <p className="mt-1 text-base text-slate-400">
-                    Confira suas conquistas, nível atual e histórico de experimentos.
-                  </p>
-                </div>
-                <div className="hidden shrink-0 flex-col items-end gap-2 sm:flex">
-                  <span className="text-sm font-black text-rose-500">Nível {nivelAtual}</span>
-                  <div className="h-2 w-28 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-[#DC2626] transition-all duration-500"
-                      style={{ width: `${porcentagemNivel}%` }}
-                    />
+              {/* JOGAR SOZINHO */}
+              <button
+                onClick={() => router.push("/jogo")}
+                className="group relative overflow-hidden rounded-3xl bg-[#DC2626] p-8 text-left shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+              >
+                {/* Glow */}
+                <div className="absolute -right-10 -top-10 h-52 w-52 rounded-full bg-white/10" />
+
+                <div className="relative flex h-full flex-col justify-between">
+
+                  <div>
+                    <span className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-white">
+                      <Orbit size={30} />
+                    </span>
+
+                    <p className="text-4xl font-black text-white">
+                      Jogar Sozinho
+                    </p>
+
+                    <p className="mt-3 max-w-xl text-base leading-relaxed text-rose-100">
+                      Pratique suas habilidades de ligações químicas
+                      contra a IA do laboratório.
+                    </p>
                   </div>
-                  <span className="text-xs text-slate-400">{xpNoNivel} / {XP_POR_NIVEL} XP</span>
+
+                  <div className="mt-8 flex justify-end">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-white transition-transform duration-300 group-hover:translate-x-1">
+                      <ArrowRight size={24} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+
+              {/* MEU DESEMPENHO */}
+              <button
+                onClick={() => router.push("/aluno/desempenho")}
+                className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-200 hover:shadow-xl"
+              >
+                <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-rose-100/30 blur-3xl" />
+
+                <div className="relative flex h-full flex-col justify-between">
+
+                  <div>
+                    <span className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 transition-colors group-hover:bg-rose-100">
+                      <BarChart3 size={28} />
+                    </span>
+
+                    <p className="text-3xl font-black text-slate-800">
+                      Meu Desempenho
+                    </p>
+
+                    <p className="mt-3 text-base leading-relaxed text-slate-500">
+                      Confira suas conquistas, nível atual
+                      e histórico de experimentos.
+                    </p>
+                  </div>
+
+                  <div className="mt-8">
+
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm font-black text-rose-500">
+                        Nível {nivelAtual}
+                      </span>
+
+                      <span className="text-xs font-semibold text-slate-400">
+                        {xpNoNivel} / {XP_POR_NIVEL} XP
+                      </span>
+                    </div>
+
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-[#DC2626] transition-all duration-500"
+                        style={{ width: `${porcentagemNivel}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
 
             {/* Barra de progresso global */}
             <div className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
