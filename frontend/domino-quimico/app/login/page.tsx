@@ -1,7 +1,5 @@
 "use client"
 
-// Salvar em: frontend/domino-quimico/app/login/page.tsx
-
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -51,14 +49,12 @@ export default function LoginPage() {
   // Modal recuperação de senha
   const [showRecoveryModal, setShowRecoveryModal] = useState(false)
   const [emailRecovery, setEmailRecovery] = useState("")
-  const [recoveryEnviado, setRecoveryEnviado] = useState(false)
 
   // ─── SUBMIT LOGIN ──────────────────────────────────────────────────────────
 
   const handleLogin = async () => {
     setErro("")
 
-    // Validação básica no frontend
     if (!email.trim()) {
       setErro("Informe seu email.")
       return
@@ -80,7 +76,6 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        // Mensagem de erro vinda do backend
         setErro(data.erro ?? "Erro ao fazer login. Tente novamente.")
         return
       }
@@ -88,6 +83,9 @@ export default function LoginPage() {
       // Salvar token e dados do usuário
       localStorage.setItem("dominoToken", data.token)
       localStorage.setItem("dominoUsuario", JSON.stringify(data.usuario))
+
+      sessionStorage.setItem("dominoUserId", String(data.usuario.id))
+      sessionStorage.setItem("dominoNome", data.usuario.nome)
 
       // Redirecionar conforme o tipo do usuário
       if (data.usuario.tipo === "professor") {
@@ -102,7 +100,6 @@ export default function LoginPage() {
     }
   }
 
-  // Permite enviar com Enter
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !carregando) handleLogin()
   }
@@ -136,7 +133,10 @@ export default function LoginPage() {
         </div>
 
         {/* CARD */}
-        <div className="relative mt-4 rounded-[34px] border border-white/60 bg-white/88 px-6 pb-7 pt-16 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:px-8 sm:pb-8 sm:pt-20">
+        <div
+          className="relative mt-4 rounded-[34px] border border-white/60 bg-white/88 px-6 pb-7 pt-16 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:px-8 sm:pb-8 sm:pt-20"
+          onKeyDown={handleKeyDown}
+        >
 
           {/* LOGO CENTRAL */}
           <div className="absolute left-1/2 top-0 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#ECECEC] bg-white shadow-xl sm:h-28 sm:w-28">
@@ -162,7 +162,6 @@ export default function LoginPage() {
               JOGO EDUCATIVO
             </p>
 
-            {/* TEXTO */}
             <div className="mt-9">
               <h3 className="text-[32px] font-black tracking-[-0.06em] text-[#343434] sm:text-[42px]">
                 Bem-vindo
@@ -185,20 +184,23 @@ export default function LoginPage() {
 
             {/* EMAIL */}
             <div>
-              <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">
+              <label
+                htmlFor="email"
+                className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
+              >
                 Email Acadêmico
               </label>
 
-              <div className="flex h-[58px] items-center rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4">
-
+              <div className={`flex h-[58px] items-center rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !email ? "border-red-300" : "border-[#EEEEEE]"}`}>
                 <input
+                  id="email"
                   type="email"
                   placeholder="seu.nome@aluno.cps.sp.gov.br"
-
-                  // TODO BACKEND (Arthur):
-                  // Integrar campo de email com autenticação backend.
-
-                  className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7]"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setErro("") }}
+                  disabled={carregando}
+                  autoComplete="email"
+                  className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7] disabled:opacity-50"
                 />
               </div>
             </div>
@@ -206,7 +208,10 @@ export default function LoginPage() {
             {/* SENHA */}
             <div>
               <div className="mb-3 flex items-center justify-between">
-                <label className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">
+                <label
+                  htmlFor="senha"
+                  className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
+                >
                   Senha de acesso
                 </label>
                 <button
@@ -218,16 +223,16 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              <div className="flex h-[58px] items-center gap-3 rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4">
-
+              <div className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !senha ? "border-red-300" : "border-[#EEEEEE]"}`}>
                 <input
+                  id="senha"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-
-                  // TODO BACKEND (Arthur):
-                  // Integrar autenticação de senha com backend.
-
-                  className="w-full bg-transparent text-[14px] tracking-[0.3em] text-[#666] outline-none placeholder:text-[#C7C7C7]"
+                  value={senha}
+                  onChange={(e) => { setSenha(e.target.value); setErro("") }}
+                  disabled={carregando}
+                  autoComplete="current-password"
+                  className="w-full bg-transparent text-[14px] tracking-[0.3em] text-[#666] outline-none placeholder:text-[#C7C7C7] disabled:opacity-50"
                 />
                 <button
                   type="button"
@@ -240,7 +245,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-
             {/* BOTÃO */}
             <button
               type="button"
@@ -248,9 +252,17 @@ export default function LoginPage() {
               disabled={carregando}
               className="mt-2 flex h-[58px] w-full items-center justify-center rounded-full bg-[#D62828] text-[13px] font-black uppercase tracking-[0.28em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Entrar
-              <span className="ml-3 text-lg">
-              </span>
+              {carregando ? (
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Entrando...
+                </span>
+              ) : (
+                "Entrar"
+              )}
             </button>
           </div>
 
@@ -259,8 +271,7 @@ export default function LoginPage() {
 
           {/* CRIAR CONTA */}
           <p className="text-center text-[14px] text-[#8D8D8D]">
-            Não tem conta?
-
+            Não tem conta?{" "}
             <button
               type="button"
               onClick={() => router.push("/signup")}
@@ -272,64 +283,58 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* MODAL */}
-      {
-        showRecoveryModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-[6px]">
+      {/* MODAL RECUPERAÇÃO DE SENHA */}
+      {showRecoveryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-[6px]">
+          <div className="w-full max-w-md rounded-[32px] bg-white p-6 shadow-[0_25px_80px_rgba(0,0,0,0.25)] sm:p-8">
 
-            <div className="w-full max-w-md rounded-[32px] bg-white p-6 shadow-[0_25px_80px_rgba(0,0,0,0.25)] sm:p-8">
+            <h2 className="text-[28px] font-black tracking-[-0.04em] text-[#2F2F2F]">
+              Recuperar senha
+            </h2>
 
-              <h2 className="text-[28px] font-black tracking-[-0.04em] text-[#2F2F2F]">
-                Recuperar senha
-              </h2>
+            <p className="mt-3 text-[15px] leading-relaxed text-[#8B8B8B]">
+              Digite seu email acadêmico para receber as instruções de recuperação.
+            </p>
 
-              <p className="mt-3 text-[15px] leading-relaxed text-[#8B8B8B]">
-                Digite seu email acadêmico para receber as instruções de recuperação.
-              </p>
+            <div className="mt-6">
+              <label
+                htmlFor="emailRecovery"
+                className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
+              >
+                Email acadêmico
+              </label>
 
-              <div className="mt-6">
-                <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">
-                  Email acadêmico
-                </label>
-
-                <div className="flex h-[58px] items-center rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4">
-
-                  <input
-                    type="email"
-                    placeholder="seu.nome@aluno.cps.sp.gov.br"
-
-                    // TODO BACKEND (Arthur):
-                    // Validar se email existe no banco de dados.
-
-                    className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7]"
-                  />
-                </div>
-              </div>
-
-              {/* TODO BACKEND (Arthur):
-            Implementar recuperação de senha via email.
-            Gerar token temporário de redefinição.
-            Enviar link de recuperação para o usuário.
-        */}
-
-              <div className="mt-7 flex gap-3">
-                <button
-                  onClick={() => setShowRecoveryModal(false)}
-                  className="flex-1 rounded-full border border-[#E5E5E5] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-[#666] transition hover:bg-[#F8F8F8]"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  onClick={() => setShowRecoveryModal(false)}
-                  className="flex-1 rounded-full bg-[#D62828] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_25px_rgba(214,40,40,0.25)] transition hover:brightness-105"
-                >
-                  Enviar
-                </button>
-
+              <div className="flex h-[58px] items-center rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4 focus-within:border-[#D62828] transition-colors">
+                <input
+                  id="emailRecovery"
+                  type="email"
+                  placeholder="seu.nome@aluno.cps.sp.gov.br"
+                  value={emailRecovery}
+                  onChange={(e) => setEmailRecovery(e.target.value)}
+                  className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7]"
+                />
               </div>
             </div>
+
+            {/* TODO (Arthur): chamar POST /api/auth/reset-request com { email: emailRecovery } */}
+
+            <div className="mt-7 flex gap-3">
+              <button
+                onClick={() => { setShowRecoveryModal(false); setEmailRecovery("") }}
+                className="flex-1 rounded-full border border-[#E5E5E5] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-[#666] transition hover:bg-[#F8F8F8]"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={() => { setShowRecoveryModal(false); setEmailRecovery("") }}
+                className="flex-1 rounded-full bg-[#D62828] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_25px_rgba(214,40,40,0.25)] transition hover:brightness-105"
+              >
+                Enviar
+              </button>
+            </div>
           </div>
+        </div>
       )}
     </main>
   )
