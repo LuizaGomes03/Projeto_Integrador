@@ -1,84 +1,186 @@
-import { Router } from 'express';
+import { Router } from 'express'
+import pool from '../db.js'
 
-const router = Router();
+const router = Router()
 
-// Exportado para partidas.js poder acessar
-export const rooms = new Map();
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 function generateRoomCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 6; i += 1) {
-        code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return code;
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < 6; i += 1) {
+    code += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return code
 }
 
-function createUniqueCode() {
-    let code = generateRoomCode();
-    let tries = 0;
-    while (rooms.has(code) && tries < 5) {
-        code = generateRoomCode();
-        tries += 1;
-    }
-    return code;
+async function createUniqueCode(client) {
+  let code = generateRoomCode()
+  let tries = 0
+  while (tries < 5) {
+    const { rows } = await client.query('SELECT 1 FROM salas WHERE code = $1', [code])
+    if (rows.length === 0) return code
+    code = generateRoomCode()
+    tries += 1
+  }
+  return code
 }
 
-// POST /api/salas — criar sala
-router.post('/', (req, res) => {
-    const { hostName } = req.body ?? {};
-    const code = createUniqueCode();
+/**
+ * Monta o objeto de sala no formato esperado pelo frontend,
+ * buscando os jogadores da tabela sala_jogadores + usuarios.
+ */
+async function buildRoomPayload(client, salaRow) {
+  const { rows: jogadores } = await client.query(
+    `SELECT u.id, u.nome
+       FROM sala_jogadores sj
+       JOIN usuarios u ON u.id = sj.usuario_id
+      WHERE sj.sala_id = $1
+      ORDER BY sj.entrou_em`,
+    [salaRow.id]
+  )
 
-    const room = {
-        code,
-        hostName: typeof hostName === 'string' && hostName.trim() ? hostName.trim() : 'Anfitrião',
-        createdAt: new Date().toISOString(),
-        players: [],
-        status: 'waiting',
-    };
+  return {
+    id: salaRow.id,
+    code: salaRow.code,
+    hostId: salaRow.host_id,
+    createdAt: salaRow.criado_em,
+    status: salaRow.status,
+    players: jogadores.map((j) => ({ id: j.id, nome: j.nome })),
+  }
+}
 
-    rooms.set(code, room);
-    res.status(201).json(room);
-});
+// ─── POST /api/salas — criar sala ─────────────────────────────────────────────
+// Body: { hostId }
+router.post('/', async (req, res) => {
+  const { hostId } = req.body ?? {}
 
-// GET /api/salas/:code — buscar sala
-router.get('/:code', (req, res) => {
-    const code = String(req.params.code ?? '').toUpperCase();
-    const room = rooms.get(code);
+  if (!hostId) {
+    return res.status(400).json({ erro: 'hostId é obrigatório.' })
+  }
 
-    if (!room) {
-        return res.status(404).json({ message: 'Sala não encontrada.' });
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const code = await createUniqueCode(client)
+
+    const { rows: salaRows } = await client.query(
+      `INSERT INTO salas (code, host_id, status)
+       VALUES ($1, $2, 'waiting')
+       RETURNING *`,
+      [code, hostId]
+    )
+    const sala = salaRows[0]
+
+    // Adiciona o host como primeiro jogador
+    await client.query(
+      `INSERT INTO sala_jogadores (sala_id, usuario_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [sala.id, hostId]
+    )
+
+    await client.query('COMMIT')
+
+    const payload = await buildRoomPayload(client, sala)
+    return res.status(201).json(payload)
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('[salas POST /]', err)
+    return res.status(500).json({ erro: 'Erro ao criar sala.' })
+  } finally {
+    client.release()
+  }
+})
+
+// ─── GET /api/salas/:code — buscar sala por código ────────────────────────────
+router.get('/:code', async (req, res) => {
+  const code = String(req.params.code ?? '').toUpperCase()
+
+  const client = await pool.connect()
+  try {
+    const { rows } = await client.query('SELECT * FROM salas WHERE code = $1', [code])
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Sala não encontrada.' })
+    }
+    const payload = await buildRoomPayload(client, rows[0])
+    return res.json(payload)
+  } catch (err) {
+    console.error('[salas GET /:code]', err)
+    return res.status(500).json({ erro: 'Erro ao buscar sala.' })
+  } finally {
+    client.release()
+  }
+})
+
+// ─── POST /api/salas/:code/entrar — jogador entra na sala ─────────────────────
+// Body: { usuarioId }
+router.post('/:code/entrar', async (req, res) => {
+  const code = String(req.params.code ?? '').toUpperCase()
+  const { usuarioId } = req.body ?? {}
+
+  if (!usuarioId) {
+    return res.status(400).json({ erro: 'usuarioId é obrigatório.' })
+  }
+
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const { rows: salaRows } = await client.query(
+      'SELECT * FROM salas WHERE code = $1',
+      [code]
+    )
+    if (salaRows.length === 0) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ erro: 'Sala não encontrada.' })
     }
 
-    res.json(room);
-});
+    const sala = salaRows[0]
 
-// POST /api/salas/:code/entrar — jogador entra na sala
-router.post('/:code/entrar', (req, res) => {
-    const code = String(req.params.code ?? '').toUpperCase();
-    const { nome } = req.body ?? {};
-
-    const room = rooms.get(code);
-    if (!room) return res.status(404).json({ erro: 'Sala não encontrada.' });
-    if (room.status !== 'waiting') return res.status(400).json({ erro: 'A partida desta sala já foi iniciada.' });
-    if (!nome || typeof nome !== 'string' || !nome.trim()) {
-        return res.status(400).json({ erro: 'Nome do jogador é obrigatório.' });
+    if (sala.status !== 'waiting') {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'A partida desta sala já foi iniciada.' })
     }
 
-    const nomeTrimmed = nome.trim();
-
-    if (room.players.includes(nomeTrimmed)) {
-        // Jogador já está na sala — retorna sala sem erro (reconexão)
-        return res.json(room);
+    // Reconexão — jogador já está na sala
+    const { rows: jaEsta } = await client.query(
+      'SELECT 1 FROM sala_jogadores WHERE sala_id = $1 AND usuario_id = $2',
+      [sala.id, usuarioId]
+    )
+    if (jaEsta.length > 0) {
+      await client.query('ROLLBACK')
+      const payload = await buildRoomPayload(client, sala)
+      return res.json(payload)
     }
 
-    if (room.players.length >= 4) {
-        return res.status(400).json({ erro: 'Sala cheia. Máximo de 4 jogadores.' });
+    // Limite de 4 jogadores
+    const { rows: countRows } = await client.query(
+      'SELECT COUNT(*) AS total FROM sala_jogadores WHERE sala_id = $1',
+      [sala.id]
+    )
+    if (Number(countRows[0].total) >= 4) {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'Sala cheia. Máximo de 4 jogadores.' })
     }
 
-    room.players.push(nomeTrimmed);
-    rooms.set(code, room);
-    res.json(room);
-});
+    await client.query(
+      'INSERT INTO sala_jogadores (sala_id, usuario_id) VALUES ($1, $2)',
+      [sala.id, usuarioId]
+    )
 
-export default router;
+    await client.query('COMMIT')
+
+    const payload = await buildRoomPayload(client, sala)
+    return res.json(payload)
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('[salas POST /:code/entrar]', err)
+    return res.status(500).json({ erro: 'Erro ao entrar na sala.' })
+  } finally {
+    client.release()
+  }
+})
+
+export default router

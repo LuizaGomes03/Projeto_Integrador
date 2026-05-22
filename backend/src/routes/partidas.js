@@ -1,390 +1,733 @@
-import { Router } from 'express';
-import { rooms } from './salas.js';
+import { Router } from 'express'
+import pool from '../db.js'
 
-const router = Router();
+const router = Router()
 
-// ─── CONSTANTES ────────────────────────────────────────────────────────────────
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 
-const FUNCOES = ['Ácido', 'Base', 'Óxido', 'Sal', 'Hidreto'];
-const PEDRA_INICIAL = { left: 'Ácido', right: 'Hidreto' };
-const PEDRAS_POR_JOGADOR = 7;
-
-// Armazenamento em memória das partidas ativas
-const partidas = new Map();
-
-// ─── GERAÇÃO DE PEÇAS ──────────────────────────────────────────────────────────
-
-function gerarTodasAsPedras() {
-    const pedras = [];
-    let id = 1;
-
-    for (let i = 0; i < FUNCOES.length; i++) {
-        for (let j = i; j < FUNCOES.length; j++) {
-            pedras.push({
-                id: String(id++),
-                left: FUNCOES[i],
-                right: FUNCOES[j],
-            });
-        }
-    }
-
-    return pedras;
+function generateRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < 6; i += 1) {
+    code += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return code
 }
 
-function embaralhar(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-}
-
-function distribuirPedras(jogadores) {
-    const todas = embaralhar(gerarTodasAsPedras());
-
-    // Garante que a pedra inicial sempre exista no baralho
-    const idxInicial = todas.findIndex(
-        (p) => p.left === PEDRA_INICIAL.left && p.right === PEDRA_INICIAL.right,
-    );
-    const pedraInicial = todas.splice(idxInicial, 1)[0];
-
-    const maos = {};
-    for (const jogador of jogadores) {
-        maos[jogador] = todas.splice(0, PEDRAS_POR_JOGADOR);
-    }
-
-    const monte = todas;
-    return { maos, monte, pedraInicial };
-}
-
-// ─── VALIDAÇÃO ─────────────────────────────────────────────────────────────────
-
-function obterPontas(mesa) {
-    if (mesa.length === 0) return { esquerda: null, direita: null };
-    return {
-        esquerda: mesa[0].left,
-        direita: mesa[mesa.length - 1].right,
-    };
-}
-
-function validarJogada(pedra, mesa) {
-    const { esquerda, direita } = obterPontas(mesa);
-
-    if (esquerda === null) return { valido: true, lado: 'direita', virar: false };
-
-    if (pedra.left === direita) return { valido: true, lado: 'direita', virar: false };
-    if (pedra.right === direita) return { valido: true, lado: 'direita', virar: true };
-    if (pedra.right === esquerda) return { valido: true, lado: 'esquerda', virar: false };
-    if (pedra.left === esquerda) return { valido: true, lado: 'esquerda', virar: true };
-
-    return { valido: false, lado: null, virar: false };
-}
-
-function aplicarJogada(pedra, mesa, lado, virar) {
-    const pedraFinal = virar
-        ? { ...pedra, left: pedra.right, right: pedra.left }
-        : { ...pedra };
-
-    return lado === 'esquerda' ? [pedraFinal, ...mesa] : [...mesa, pedraFinal];
-}
-
-// ─── TURNOS ────────────────────────────────────────────────────────────────────
-
-function proximoJogador(jogadores, jogadorAtual) {
-    const idx = jogadores.indexOf(jogadorAtual);
-    return jogadores[(idx + 1) % jogadores.length];
-}
-
-function alguemPodeJogar(maos, mesa) {
-    for (const pedras of Object.values(maos)) {
-        for (const pedra of pedras) {
-            if (validarJogada(pedra, mesa).valido) return true;
-        }
-    }
-    return false;
-}
-
-function verificarFimDeJogo(maos, mesa) {
-    // Vitória: alguém esvaziou a mão
-    for (const [jogador, pedras] of Object.entries(maos)) {
-        if (pedras.length === 0) {
-            return { encerrado: true, motivo: 'vitoria', vencedor: jogador, vencedores: [jogador] };
-        }
-    }
-
-    // Travamento: ninguém pode jogar
-    if (!alguemPodeJogar(maos, mesa)) {
-        let minPedras = Infinity;
-        let vencedores = [];
-
-        for (const [jogador, pedras] of Object.entries(maos)) {
-            if (pedras.length < minPedras) {
-                minPedras = pedras.length;
-                vencedores = [jogador];
-            } else if (pedras.length === minPedras) {
-                vencedores.push(jogador);
-            }
-        }
-
-        return {
-            encerrado: true,
-            motivo: 'travado',
-            vencedor: vencedores.length === 1 ? vencedores[0] : null,
-            vencedores,
-        };
-    }
-
-    return { encerrado: false };
-}
-
-// ─── IA ────────────────────────────────────────────────────────────────────────
-
-const IA_NOME = 'IA Química';
-
-function jogadaIA(estado) {
-    const mao = estado.maos[IA_NOME];
-    if (!mao || mao.length === 0) return;
-
-    // Tenta encontrar uma pedra válida
-    for (const pedra of mao) {
-        const { valido, lado, virar } = validarJogada(pedra, estado.mesa);
-        if (valido) {
-            estado.mesa = aplicarJogada(pedra, estado.mesa, lado, virar);
-            estado.maos[IA_NOME] = mao.filter((p) => p.id !== pedra.id);
-            estado.historico.push({
-                jogador: IA_NOME,
-                pedra,
-                lado,
-                virar,
-                timestamp: new Date().toISOString(),
-            });
-            return;
-        }
-    }
-
-    // IA não tem jogada — passa a vez
-    estado.historico.push({
-        jogador: IA_NOME,
-        acao: 'passou',
-        timestamp: new Date().toISOString(),
-    });
+async function createUniqueCode(client) {
+  let code = generateRoomCode()
+  let tries = 0
+  while (tries < 5) {
+    const { rows } = await client.query('SELECT 1 FROM salas WHERE code = $1', [code])
+    if (rows.length === 0) return code
+    code = generateRoomCode()
+    tries += 1
+  }
+  return code
 }
 
 /**
- * Executa turnos da IA enquanto for a vez dela.
- * Evita loop infinito com limite de iterações.
+ * Monta o objeto de sala no formato esperado pelo frontend,
+ * buscando os jogadores da tabela sala_jogadores + usuarios.
  */
+async function buildRoomPayload(client, salaRow) {
+  const { rows: jogadores } = await client.query(
+    `SELECT u.id, u.nome
+       FROM sala_jogadores sj
+       JOIN usuarios u ON u.id = sj.usuario_id
+      WHERE sj.sala_id = $1
+      ORDER BY sj.entrou_em`,
+    [salaRow.id]
+  )
+
+  return {
+    id: salaRow.id,
+    code: salaRow.code,
+    hostId: salaRow.host_id,
+    createdAt: salaRow.criado_em,
+    status: salaRow.status,
+    players: jogadores.map((j) => ({ id: j.id, nome: j.nome })),
+  }
+}
+
+// ─── POST /api/salas — criar sala ─────────────────────────────────────────────
+// Body: { hostId }
+router.post('/', async (req, res) => {
+  const { hostId } = req.body ?? {}
+
+  if (!hostId) {
+    return res.status(400).json({ erro: 'hostId é obrigatório.' })
+  }
+
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const code = await createUniqueCode(client)
+
+    const { rows: salaRows } = await client.query(
+      `INSERT INTO salas (code, host_id, status)
+       VALUES ($1, $2, 'waiting')
+       RETURNING *`,
+      [code, hostId]
+    )
+    const sala = salaRows[0]
+
+    // Adiciona o host como primeiro jogador
+    await client.query(
+      `INSERT INTO sala_jogadores (sala_id, usuario_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [sala.id, hostId]
+    )
+
+    await client.query('COMMIT')
+
+    const payload = await buildRoomPayload(client, sala)
+    return res.status(201).json(payload)
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('[salas POST /]', err)
+    return res.status(500).json({ erro: 'Erro ao criar sala.' })
+  } finally {
+    client.release()
+  }
+})
+
+// ─── GET /api/salas/:code — buscar sala por código ────────────────────────────
+router.get('/:code', async (req, res) => {
+  const code = String(req.params.code ?? '').toUpperCase()
+
+  const client = await pool.connect()
+  try {
+    const { rows } = await client.query('SELECT * FROM salas WHERE code = $1', [code])
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Sala não encontrada.' })
+    }
+    const payload = await buildRoomPayload(client, rows[0])
+    return res.json(payload)
+  } catch (err) {
+    console.error('[salas GET /:code]', err)
+    return res.status(500).json({ erro: 'Erro ao buscar sala.' })
+  } finally {
+    client.release()
+  }
+})
+
+// ─── POST /api/salas/:code/entrar — jogador entra na sala ─────────────────────
+// Body: { usuarioId }
+router.post('/:code/entrar', async (req, res) => {
+  const code = String(req.params.code ?? '').toUpperCase()
+  const { usuarioId } = req.body ?? {}
+
+  if (!usuarioId) {
+    return res.status(400).json({ erro: 'usuarioId é obrigatório.' })
+  }
+
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const { rows: salaRows } = await client.query(
+      'SELECT * FROM salas WHERE code = $1',
+      [code]
+    )
+    if (salaRows.length === 0) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ erro: 'Sala não encontrada.' })
+    }
+
+    const sala = salaRows[0]
+
+    if (sala.status !== 'waiting') {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'A partida desta sala já foi iniciada.' })
+    }
+
+    // Reconexão — jogador já está na sala
+    const { rows: jaEsta } = await client.query(
+      'SELECT 1 FROM sala_jogadores WHERE sala_id = $1 AND usuario_id = $2',
+      [sala.id, usuarioId]
+    )
+    if (jaEsta.length > 0) {
+      await client.query('ROLLBACK')
+      const payload = await buildRoomPayload(client, sala)
+      return res.json(payload)
+    }
+
+    // Limite de 4 jogadores
+    const { rows: countRows } = await client.query(
+      'SELECT COUNT(*) AS total FROM sala_jogadores WHERE sala_id = $1',
+      [sala.id]
+    )
+    if (Number(countRows[0].total) >= 4) {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'Sala cheia. Máximo de 4 jogadores.' })
+    }
+
+    await client.query(
+      'INSERT INTO sala_jogadores (sala_id, usuario_id) VALUES ($1, $2)',
+      [sala.id, usuarioId]
+    )
+
+    await client.query('COMMIT')
+
+    const payload = await buildRoomPayload(client, sala)
+    return res.json(payload)
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('[salas POST /:code/entrar]', err)
+    return res.status(500).json({ erro: 'Erro ao entrar na sala.' })
+  } finally {
+    client.release()
+  }
+})
+
+// ─── CONSTANTES ───────────────────────────────────────────────────────────────
+
+const FUNCOES = ['Ácido', 'Base', 'Óxido', 'Sal', 'Hidreto']
+const PEDRA_INICIAL = { left: 'Ácido', right: 'Hidreto' }
+const PEDRAS_POR_JOGADOR = 7
+const IA_NOME = 'IA Química'
+const IA_ID = -1 // ID fictício para a IA no mapa de maos
+
+// ─── GERAÇÃO DE PEÇAS ─────────────────────────────────────────────────────────
+
+function gerarTodasAsPedras() {
+  const pedras = []
+  let id = 1
+  for (let i = 0; i < FUNCOES.length; i++) {
+    for (let j = i; j < FUNCOES.length; j++) {
+      pedras.push({ id: String(id++), left: FUNCOES[i], right: FUNCOES[j] })
+    }
+  }
+  return pedras
+}
+
+function embaralhar(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function distribuirPedras(jogadores) {
+  const todas = embaralhar(gerarTodasAsPedras())
+  const idxInicial = todas.findIndex(
+    (p) => p.left === PEDRA_INICIAL.left && p.right === PEDRA_INICIAL.right
+  )
+  const pedraInicial = todas.splice(idxInicial, 1)[0]
+  const maos = {}
+  for (const j of jogadores) {
+    maos[j.id] = todas.splice(0, PEDRAS_POR_JOGADOR)
+  }
+  return { maos, monte: todas, pedraInicial }
+}
+
+// ─── VALIDAÇÃO ────────────────────────────────────────────────────────────────
+
+function obterPontas(mesa) {
+  if (mesa.length === 0) return { esquerda: null, direita: null }
+  return { esquerda: mesa[0].left, direita: mesa[mesa.length - 1].right }
+}
+
+function validarJogada(pedra, mesa) {
+  const { esquerda, direita } = obterPontas(mesa)
+  if (esquerda === null) return { valido: true, lado: 'direita', virar: false }
+  if (pedra.left === direita)   return { valido: true, lado: 'direita',   virar: false }
+  if (pedra.right === direita)  return { valido: true, lado: 'direita',   virar: true  }
+  if (pedra.right === esquerda) return { valido: true, lado: 'esquerda',  virar: false }
+  if (pedra.left === esquerda)  return { valido: true, lado: 'esquerda',  virar: true  }
+  return { valido: false, lado: null, virar: false }
+}
+
+function aplicarJogada(pedra, mesa, lado, virar) {
+  const pedraFinal = virar ? { ...pedra, left: pedra.right, right: pedra.left } : { ...pedra }
+  return lado === 'esquerda' ? [pedraFinal, ...mesa] : [...mesa, pedraFinal]
+}
+
+// ─── TURNOS ───────────────────────────────────────────────────────────────────
+
+function proximoJogador(jogadores, jogadorAtualId) {
+  const idx = jogadores.findIndex((j) => j.id === jogadorAtualId)
+  return jogadores[(idx + 1) % jogadores.length]
+}
+
+function alguemPodeJogar(maos, mesa) {
+  for (const pedras of Object.values(maos)) {
+    for (const pedra of pedras) {
+      if (validarJogada(pedra, mesa).valido) return true
+    }
+  }
+  return false
+}
+
+function verificarFimDeJogo(maos, mesa, jogadores) {
+  for (const j of jogadores) {
+    if ((maos[j.id] ?? []).length === 0) {
+      return { encerrado: true, motivo: 'vitoria', vencedorId: j.id, vencedores: [j] }
+    }
+  }
+  if (!alguemPodeJogar(maos, mesa)) {
+    let minPedras = Infinity
+    let vencedores = []
+    for (const j of jogadores) {
+      const qtd = (maos[j.id] ?? []).length
+      if (qtd < minPedras) { minPedras = qtd; vencedores = [j] }
+      else if (qtd === minPedras) vencedores.push(j)
+    }
+    return {
+      encerrado: true,
+      motivo: 'travado',
+      vencedorId: vencedores.length === 1 ? vencedores[0].id : null,
+      vencedores,
+    }
+  }
+  return { encerrado: false }
+}
+
+// ─── IA ───────────────────────────────────────────────────────────────────────
+
+function jogadaIA(estado) {
+  const mao = estado.maos[IA_ID] ?? []
+  if (mao.length === 0) return
+  for (const pedra of mao) {
+    const { valido, lado, virar } = validarJogada(pedra, estado.mesa)
+    if (valido) {
+      estado.mesa = aplicarJogada(pedra, estado.mesa, lado, virar)
+      estado.maos[IA_ID] = mao.filter((p) => p.id !== pedra.id)
+      estado.historico.push({ jogadorId: IA_ID, nome: IA_NOME, pedra, lado, virar, timestamp: new Date().toISOString() })
+      return
+    }
+  }
+  estado.historico.push({ jogadorId: IA_ID, nome: IA_NOME, acao: 'passou', timestamp: new Date().toISOString() })
+}
+
 function processarTurnosIA(estado) {
-    let iteracoes = 0;
-    const MAX = estado.jogadores.length * 2;
-
-    while (
-        !estado.encerrado &&
-        estado.turnoAtual === IA_NOME &&
-        iteracoes < MAX
-    ) {
-        jogadaIA(estado);
-
-        const fim = verificarFimDeJogo(estado.maos, estado.mesa);
-        if (fim.encerrado) {
-            estado.encerrado = true;
-            estado.vencedor = fim.vencedor ?? null;
-            estado.vencedores = fim.vencedores ?? [];
-            estado.motivo = fim.motivo;
-            return;
-        }
-
-        estado.turnoAtual = proximoJogador(estado.jogadores, IA_NOME);
-        iteracoes++;
+  let iteracoes = 0
+  const MAX = estado.jogadores.length * 2
+  while (!estado.encerrado && estado.turnoAtualId === IA_ID && iteracoes < MAX) {
+    jogadaIA(estado)
+    const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
+    if (fim.encerrado) {
+      estado.encerrado = true
+      estado.vencedorId = fim.vencedorId ?? null
+      estado.vencedores = fim.vencedores ?? []
+      estado.motivo = fim.motivo
+      return
     }
+    estado.turnoAtualId = proximoJogador(estado.jogadores, IA_ID).id
+    iteracoes++
+  }
 }
 
-// ─── HELPER ────────────────────────────────────────────────────────────────────
+// ─── SERIALIZAÇÃO PARA O FRONTEND ─────────────────────────────────────────────
+// O frontend espera { minha_mao, maos, mesa, turnoAtual (nome), pontas, ... }
+// Mantemos compatibilidade convertendo IDs → nomes onde necessário.
 
-function sanitizarEstado(estado, jogador) {
-    const maosPublicas = {};
-    for (const [nome, pedras] of Object.entries(estado.maos)) {
-        maosPublicas[nome] = nome === jogador ? pedras : pedras.length;
-    }
+function sanitizarEstado(estado, usuarioId) {
+  const maosPublicas = {}
+  for (const j of estado.jogadores) {
+    const pedras = estado.maos[j.id] ?? []
+    maosPublicas[j.nome] = j.id === usuarioId ? pedras : pedras.length
+  }
 
-    return {
-        sala: estado.sala,
-        jogadores: estado.jogadores,
-        turnoAtual: estado.turnoAtual,
-        mesa: estado.mesa,
-        minha_mao: jogador ? (estado.maos[jogador] ?? []) : undefined,
-        maos: maosPublicas,
-        monte: estado.monte?.length ?? 0,
-        encerrado: estado.encerrado,
-        vencedor: estado.vencedor ?? null,
-        vencedores: estado.vencedores ?? null,
-        motivo: estado.motivo ?? null,
-        historico: estado.historico,
-        pontas: obterPontas(estado.mesa),
-    };
+  const jogadorAtual = estado.jogadores.find((j) => j.id === estado.turnoAtualId)
+
+  return {
+    sala: estado.salaCode,
+    jogadores: estado.jogadores.map((j) => j.nome),
+    turnoAtual: jogadorAtual?.nome ?? '',
+    mesa: estado.mesa,
+    minha_mao: usuarioId != null
+      ? (estado.maos[usuarioId] ?? [])
+      : undefined,
+    maos: maosPublicas,
+    monte: estado.monte?.length ?? 0,
+    encerrado: estado.encerrado,
+    vencedor: estado.vencedores?.find((j) => j.id === estado.vencedorId)?.nome ?? null,
+    vencedores: estado.vencedores?.map((j) => j.nome) ?? null,
+    motivo: estado.motivo ?? null,
+    historico: estado.historico,
+    pontas: obterPontas(estado.mesa),
+  }
 }
 
-function criarEstado({ sala, jogadores, maos, monte, pedraInicial }) {
-    return {
-        sala,
-        jogadores,
-        turnoAtual: jogadores[0],
-        mesa: [pedraInicial],
-        maos,
-        monte,
-        encerrado: false,
-        vencedor: null,
-        vencedores: null,
-        motivo: null,
-        historico: [],
-    };
+// ─── ACESSO AO BANCO ──────────────────────────────────────────────────────────
+
+async function getEstado(client, salaId) {
+  const { rows } = await client.query(
+    'SELECT * FROM partida_estado WHERE sala_id = $1',
+    [salaId]
+  )
+  if (rows.length === 0) return null
+  return { ...rows[0].estado, _partidaId: rows[0].partida_id }
 }
 
-// ─── ROTAS ─────────────────────────────────────────────────────────────────────
+async function saveEstado(client, partidaId, salaId, estado) {
+  // Remove metadado interno antes de salvar
+  const { _partidaId, ...estadoLimpo } = estado
+  await client.query(
+    `INSERT INTO partida_estado (partida_id, sala_id, estado, updated_at)
+     VALUES ($1, $2, $3::jsonb, NOW())
+     ON CONFLICT (partida_id) DO UPDATE
+       SET estado = EXCLUDED.estado,
+           updated_at = NOW()`,
+    [partidaId, salaId, JSON.stringify(estadoLimpo)]
+  )
+}
+
+/**
+ * Quando a partida encerra: grava resultados em `partidas` e `desempenho_jogadores`.
+ * Ignora a IA (usuarioId = IA_ID = -1).
+ */
+async function finalizarPartida(client, estadoFinal) {
+  const { _partidaId, vencedorId, motivo, maos, jogadores } = estadoFinal
+
+  // Atualiza partida principal
+  const vencedorReal = vencedorId !== IA_ID ? vencedorId : null
+  await client.query(
+    `UPDATE partidas
+        SET vencedor_id = $1,
+            motivo      = $2,
+            encerrado   = TRUE,
+            finalizado_em = NOW()
+      WHERE id = $3`,
+    [vencedorReal, motivo, _partidaId]
+  )
+
+  // Grava desempenho por jogador (ignora IA)
+  for (const j of jogadores) {
+    if (j.id === IA_ID) continue
+
+    const venceu = vencedorId === j.id
+    // Conta acertos pelo histórico: jogadas bem-sucedidas deste jogador
+    const acertos = estadoFinal.historico.filter(
+      (h) => h.jogadorId === j.id && h.pedra
+    ).length
+    const erros = estadoFinal.historico.filter(
+      (h) => h.jogadorId === j.id && h.acao === 'passou'
+    ).length
+
+    await client.query(
+      `INSERT INTO desempenho_jogadores (partida_id, usuario_id, acertos, erros, venceu)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT DO NOTHING`,
+      [_partidaId, j.id, acertos, erros, venceu]
+    )
+  }
+}
+
+// ─── ROTAS ────────────────────────────────────────────────────────────────────
 
 // POST /api/partidas/iniciar
-// Aceita: { jogadores, codigoSala } — ou valida a partir de uma sala existente
-router.post('/iniciar', (req, res) => {
-    const { jogadores, codigoSala } = req.body ?? {};
+// Body: { codigoSala, jogadores?: [{ id, nome }] }
+// jogadores[] só é usado no modo solo (sem sala no banco)
+router.post('/iniciar', async (req, res) => {
+  const { codigoSala, jogadores: jogadoresDireto } = req.body ?? {}
+  const salaCode = String(codigoSala ?? '').toUpperCase()
 
-    let sala = String(codigoSala ?? '').toUpperCase();
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
 
-    // Se a sala existir no mapa, valida os jogadores a partir dela
-    if (sala && rooms.has(sala)) {
-        const room = rooms.get(sala);
+    // ── Busca sala no banco ──────────────────────────────────────────────────
+    const { rows: salaRows } = await client.query(
+      'SELECT * FROM salas WHERE code = $1',
+      [salaCode]
+    )
 
-        if (room.status === 'playing') {
-            return res.status(400).json({ erro: 'Esta sala já tem uma partida em andamento.' });
-        }
+    let salaId
+    let jogadores // [{ id, nome }]
 
-        const jogadoresSala = room.players.length > 0 ? room.players : jogadores;
+    if (salaRows.length > 0) {
+      const sala = salaRows[0]
 
-        if (!Array.isArray(jogadoresSala) || jogadoresSala.length < 2) {
-            return res.status(400).json({ erro: 'Mínimo de 2 jogadores necessário.' });
-        }
+      if (sala.status === 'playing') {
+        await client.query('ROLLBACK')
+        return res.status(400).json({ erro: 'Esta sala já tem uma partida em andamento.' })
+      }
 
-        room.status = 'playing';
-        rooms.set(sala, room);
+      // Busca jogadores cadastrados na sala
+      const { rows: jogadoresRows } = await client.query(
+        `SELECT u.id, u.nome
+           FROM sala_jogadores sj
+           JOIN usuarios u ON u.id = sj.usuario_id
+          WHERE sj.sala_id = $1
+          ORDER BY sj.entrou_em`,
+        [sala.id]
+      )
 
-        const { maos, monte, pedraInicial } = distribuirPedras(jogadoresSala);
-        const estado = criarEstado({ sala, jogadores: jogadoresSala, maos, monte, pedraInicial });
-        partidas.set(sala, estado);
+      if (jogadoresRows.length < 2) {
+        await client.query('ROLLBACK')
+        return res.status(400).json({ erro: 'Mínimo de 2 jogadores necessário.' })
+      }
 
-        // Processa turno da IA se ela começa
-        processarTurnosIA(estado);
-        partidas.set(sala, estado);
+      salaId = sala.id
+      jogadores = jogadoresRows
 
-        return res.status(201).json(sanitizarEstado(estado, null));
+      await client.query("UPDATE salas SET status = 'playing' WHERE id = $1", [salaId])
+    } else {
+      // ── Modo solo / demo: sala não existe no banco ───────────────────────
+      if (!Array.isArray(jogadoresDireto) || jogadoresDireto.length < 2) {
+        await client.query('ROLLBACK')
+        return res.status(400).json({ erro: 'Mínimo de 2 jogadores necessário.' })
+      }
+
+      // Cria sala temporária
+      const code = salaCode || Math.random().toString(36).slice(2, 8).toUpperCase()
+      // Usa o id do primeiro jogador como host (se for numérico), senão usa NULL
+      const hostId = typeof jogadoresDireto[0].id === 'number' && jogadoresDireto[0].id > 0
+        ? jogadoresDireto[0].id
+        : null
+
+      const { rows: novaSala } = await client.query(
+        `INSERT INTO salas (code, host_id, status)
+         VALUES ($1, $2, 'playing')
+         ON CONFLICT (code) DO UPDATE SET status = 'playing'
+         RETURNING id`,
+        [code, hostId]
+      )
+      salaId = novaSala[0].id
+
+      // Normaliza: garante que IA tenha id = IA_ID
+      jogadores = jogadoresDireto.map((j) =>
+        j.nome === IA_NOME ? { id: IA_ID, nome: IA_NOME } : j
+      )
     }
 
-    // Sala não existe — modo direto (solo ou demo)
-    if (!Array.isArray(jogadores) || jogadores.length < 2) {
-        return res.status(400).json({ erro: 'Mínimo de 2 jogadores necessário.' });
+    // ── Cria registro principal em partidas ──────────────────────────────
+    // usuario_id = host (primeiro jogador humano)
+    const primeiroHumano = jogadores.find((j) => j.id !== IA_ID)
+    const { rows: partidaRows } = await client.query(
+      `INSERT INTO partidas (sala_id, usuario_id, encerrado)
+       VALUES ($1, $2, FALSE)
+       RETURNING id`,
+      [salaId, primeiroHumano?.id ?? null]
+    )
+    const partidaId = partidaRows[0].id
+
+    // ── Distribui pedras e monta estado inicial ───────────────────────────
+    const { maos, monte, pedraInicial } = distribuirPedras(jogadores)
+
+    const estado = {
+      salaCode: salaCode || jogadores[0]?.nome,
+      salaId,
+      jogadores,
+      turnoAtualId: jogadores[0].id,
+      mesa: [pedraInicial],
+      maos,
+      monte,
+      encerrado: false,
+      vencedorId: null,
+      vencedores: null,
+      motivo: null,
+      historico: [],
     }
 
-    if (!sala) {
-        sala = crypto.randomUUID().slice(0, 6).toUpperCase();
+    processarTurnosIA(estado)
+
+    await saveEstado(client, partidaId, salaId, estado)
+
+    // Anexa _partidaId para uso interno
+    estado._partidaId = partidaId
+
+    await client.query('COMMIT')
+
+    return res.status(201).json(sanitizarEstado(estado, null))
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('[partidas POST /iniciar]', err)
+    return res.status(500).json({ erro: 'Erro ao iniciar partida.' })
+  } finally {
+    client.release()
+  }
+})
+
+// GET /api/partidas/:sala?jogador=<usuarioId>
+router.get('/:sala', async (req, res) => {
+  const salaCode = req.params.sala.toUpperCase()
+  const usuarioId = req.query.jogador ? Number(req.query.jogador) : null
+
+  const client = await pool.connect()
+  try {
+    const { rows: salaRows } = await client.query(
+      'SELECT id FROM salas WHERE code = $1',
+      [salaCode]
+    )
+    if (salaRows.length === 0) {
+      return res.status(404).json({ erro: 'Partida não encontrada.' })
     }
 
-    const { maos, monte, pedraInicial } = distribuirPedras(jogadores);
-    const estado = criarEstado({ sala, jogadores, maos, monte, pedraInicial });
-    partidas.set(sala, estado);
+    const estado = await getEstado(client, salaRows[0].id)
+    if (!estado) return res.status(404).json({ erro: 'Partida não encontrada.' })
 
-    // Processa turno da IA se ela começa
-    processarTurnosIA(estado);
-    partidas.set(sala, estado);
-
-    res.status(201).json(sanitizarEstado(estado, null));
-});
-
-// GET /api/partidas/:sala?jogador=Nome
-router.get('/:sala', (req, res) => {
-    const sala = req.params.sala.toUpperCase();
-    const jogador = req.query.jogador ?? null;
-
-    const estado = partidas.get(sala);
-    if (!estado) return res.status(404).json({ erro: 'Partida não encontrada.' });
-
-    res.json(sanitizarEstado(estado, jogador));
-});
+    return res.json(sanitizarEstado(estado, usuarioId))
+  } catch (err) {
+    console.error('[partidas GET /:sala]', err)
+    return res.status(500).json({ erro: 'Erro ao buscar partida.' })
+  } finally {
+    client.release()
+  }
+})
 
 // POST /api/partidas/:sala/jogar
-router.post('/:sala/jogar', (req, res) => {
-    const sala = req.params.sala.toUpperCase();
-    const { jogador, pedraId } = req.body ?? {};
+// Body: { usuarioId, pedraId }
+router.post('/:sala/jogar', async (req, res) => {
+  const salaCode = req.params.sala.toUpperCase()
+  const { usuarioId, pedraId } = req.body ?? {}
+  const uid = Number(usuarioId)
 
-    const estado = partidas.get(sala);
-    if (!estado) return res.status(404).json({ erro: 'Partida não encontrada.' });
-    if (estado.encerrado) return res.status(400).json({ erro: 'Partida já encerrada.' });
-    if (estado.turnoAtual !== jogador) return res.status(403).json({ erro: 'Não é o seu turno.' });
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
 
-    const mao = estado.maos[jogador];
-    const pedra = mao?.find((p) => p.id === String(pedraId));
-    if (!pedra) return res.status(400).json({ erro: 'Pedra não encontrada na sua mão.' });
+    const { rows: salaRows } = await client.query(
+      'SELECT id FROM salas WHERE code = $1',
+      [salaCode]
+    )
+    if (salaRows.length === 0) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ erro: 'Partida não encontrada.' })
+    }
 
-    const { valido, lado, virar } = validarJogada(pedra, estado.mesa);
+    const estado = await getEstado(client, salaRows[0].id)
+    if (!estado) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ erro: 'Partida não encontrada.' })
+    }
+
+    if (estado.encerrado) {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'Partida já encerrada.' })
+    }
+
+    if (estado.turnoAtualId !== uid) {
+      await client.query('ROLLBACK')
+      return res.status(403).json({ erro: 'Não é o seu turno.' })
+    }
+
+    const mao = estado.maos[uid] ?? []
+    const pedra = mao.find((p) => p.id === String(pedraId))
+    if (!pedra) {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'Pedra não encontrada na sua mão.' })
+    }
+
+    const { valido, lado, virar } = validarJogada(pedra, estado.mesa)
     if (!valido) {
-        return res.status(400).json({
-            erro: 'Jogada inválida. A pedra não encaixa nas pontas disponíveis.',
-            pontas: obterPontas(estado.mesa),
-        });
+      await client.query('ROLLBACK')
+      return res.status(400).json({
+        erro: 'Jogada inválida. A pedra não encaixa nas pontas disponíveis.',
+        pontas: obterPontas(estado.mesa),
+      })
     }
 
-    // Aplica jogada do jogador humano
-    estado.mesa = aplicarJogada(pedra, estado.mesa, lado, virar);
-    estado.maos[jogador] = mao.filter((p) => p.id !== pedraId);
-    estado.historico.push({ jogador, pedra, lado, virar, timestamp: new Date().toISOString() });
+    estado.mesa = aplicarJogada(pedra, estado.mesa, lado, virar)
+    estado.maos[uid] = mao.filter((p) => p.id !== pedraId)
+    estado.historico.push({ jogadorId: uid, pedra, lado, virar, timestamp: new Date().toISOString() })
 
-    const fim = verificarFimDeJogo(estado.maos, estado.mesa);
+    const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
     if (fim.encerrado) {
-        estado.encerrado = true;
-        estado.vencedor = fim.vencedor ?? null;
-        estado.vencedores = fim.vencedores ?? [];
-        estado.motivo = fim.motivo;
+      estado.encerrado = true
+      estado.vencedorId = fim.vencedorId ?? null
+      estado.vencedores = fim.vencedores ?? []
+      estado.motivo = fim.motivo
+      await saveEstado(client, estado._partidaId, salaRows[0].id, estado)
+      await finalizarPartida(client, estado)
     } else {
-        estado.turnoAtual = proximoJogador(estado.jogadores, jogador);
-
-        // Processa turno(s) da IA automaticamente
-        processarTurnosIA(estado);
+      estado.turnoAtualId = proximoJogador(estado.jogadores, uid).id
+      processarTurnosIA(estado)
+      await saveEstado(client, estado._partidaId, salaRows[0].id, estado)
     }
 
-    partidas.set(sala, estado);
-    res.json({ sucesso: true, ...sanitizarEstado(estado, jogador) });
-});
+    await client.query('COMMIT')
+    return res.json({ sucesso: true, ...sanitizarEstado(estado, uid) })
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('[partidas POST /:sala/jogar]', err)
+    return res.status(500).json({ erro: 'Erro ao processar jogada.' })
+  } finally {
+    client.release()
+  }
+})
 
 // POST /api/partidas/:sala/passar
-router.post('/:sala/passar', (req, res) => {
-    const sala = req.params.sala.toUpperCase();
-    const { jogador } = req.body ?? {};
+// Body: { usuarioId }
+router.post('/:sala/passar', async (req, res) => {
+  const salaCode = req.params.sala.toUpperCase()
+  const { usuarioId } = req.body ?? {}
+  const uid = Number(usuarioId)
 
-    const estado = partidas.get(sala);
-    if (!estado) return res.status(404).json({ erro: 'Partida não encontrada.' });
-    if (estado.encerrado) return res.status(400).json({ erro: 'Partida já encerrada.' });
-    if (estado.turnoAtual !== jogador) return res.status(403).json({ erro: 'Não é o seu turno.' });
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
 
-    const mao = estado.maos[jogador] ?? [];
-    const temJogada = mao.some((p) => validarJogada(p, estado.mesa).valido);
+    const { rows: salaRows } = await client.query(
+      'SELECT id FROM salas WHERE code = $1',
+      [salaCode]
+    )
+    if (salaRows.length === 0) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ erro: 'Partida não encontrada.' })
+    }
+
+    const estado = await getEstado(client, salaRows[0].id)
+    if (!estado) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ erro: 'Partida não encontrada.' })
+    }
+
+    if (estado.encerrado) {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'Partida já encerrada.' })
+    }
+
+    if (estado.turnoAtualId !== uid) {
+      await client.query('ROLLBACK')
+      return res.status(403).json({ erro: 'Não é o seu turno.' })
+    }
+
+    const mao = estado.maos[uid] ?? []
+    const temJogada = mao.some((p) => validarJogada(p, estado.mesa).valido)
     if (temJogada) {
-        return res.status(400).json({ erro: 'Você ainda possui jogadas válidas. Não é possível passar.' });
+      await client.query('ROLLBACK')
+      return res.status(400).json({ erro: 'Você ainda possui jogadas válidas. Não é possível passar.' })
     }
 
-    estado.historico.push({ jogador, acao: 'passou', timestamp: new Date().toISOString() });
-    estado.turnoAtual = proximoJogador(estado.jogadores, jogador);
+    estado.historico.push({ jogadorId: uid, acao: 'passou', timestamp: new Date().toISOString() })
+    estado.turnoAtualId = proximoJogador(estado.jogadores, uid).id
 
-    const fim = verificarFimDeJogo(estado.maos, estado.mesa);
+    const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
     if (fim.encerrado) {
-        estado.encerrado = true;
-        estado.vencedor = fim.vencedor ?? null;
-        estado.vencedores = fim.vencedores ?? [];
-        estado.motivo = fim.motivo;
+      estado.encerrado = true
+      estado.vencedorId = fim.vencedorId ?? null
+      estado.vencedores = fim.vencedores ?? []
+      estado.motivo = fim.motivo
+      await saveEstado(client, estado._partidaId, salaRows[0].id, estado)
+      await finalizarPartida(client, estado)
     } else {
-        // Processa turno(s) da IA automaticamente
-        processarTurnosIA(estado);
+      processarTurnosIA(estado)
+      await saveEstado(client, estado._partidaId, salaRows[0].id, estado)
     }
 
-    partidas.set(sala, estado);
-    res.json({ sucesso: true, mensagem: `${jogador} passou a vez.`, ...sanitizarEstado(estado, jogador) });
-});
+    const jogadorNome = estado.jogadores.find((j) => j.id === uid)?.nome ?? uid
 
-export default router;
+    await client.query('COMMIT')
+    return res.json({
+      sucesso: true,
+      mensagem: `${jogadorNome} passou a vez.`,
+      ...sanitizarEstado(estado, uid),
+    })
+  } catch (err) {
+    await client.query('ROLLBACK')
+    console.error('[partidas POST /:sala/passar]', err)
+    return res.status(500).json({ erro: 'Erro ao passar a vez.' })
+  } finally {
+    client.release()
+  }
+})
+
+export default router
