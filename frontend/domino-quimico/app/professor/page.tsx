@@ -29,7 +29,6 @@ const styles = `
     min-height: 100vh;
   }
 
-  /* SIDEBAR */
   .sidebar {
     grid-row: 1 / 3;
     background: var(--dark); color: var(--white);
@@ -114,7 +113,6 @@ const styles = `
   .user-name { font-size: 13px; font-weight: 600; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .user-role { font-size: 11px; color: #666; }
 
-  /* TOPBAR */
   .topbar {
     background: var(--white); border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
@@ -128,7 +126,6 @@ const styles = `
   .breadcrumb-link { cursor: pointer; transition: color 0.15s; }
   .breadcrumb-link:hover { color: var(--red); }
 
-  /* MAIN */
   .main { padding: 36px 40px 60px; overflow-y: auto; }
 
   .page-header { margin-bottom: 32px; }
@@ -139,7 +136,6 @@ const styles = `
   .page-header h1 span { color: var(--red); }
   .page-header p { color: var(--muted); font-size: 14px; line-height: 1.6; }
 
-  /* STATS */
   .stats-grid {
     display: grid;
     grid-template-columns: 1fr 2fr;
@@ -182,21 +178,13 @@ const styles = `
 
   .featured-graph { width: 90px; height: 54px; flex-shrink: 0; }
 
-  /* ONLINE PILL */
   .online-pill {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    display: inline-flex;
-    align-items: center;
-    background: #ECFDF5;
-    border: 1px solid #6EE7B7;
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--green);
-    gap: 6px;
+    top: 16px; right: 16px;
+    display: inline-flex; align-items: center;
+    background: #ECFDF5; border: 1px solid #6EE7B7;
+    border-radius: 999px; padding: 4px 10px;
+    font-size: 10px; font-weight: 700; color: var(--green); gap: 6px;
   }
 
   .online-dot {
@@ -212,9 +200,7 @@ const styles = `
     100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
   }
 
-  .online-list {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
-  }
+  .online-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 
   .online-avatar-wrap { position: relative; }
 
@@ -232,14 +218,12 @@ const styles = `
     border: 2px solid var(--white);
   }
 
-  /* CONTENT GRID */
   .content-grid {
     display: grid;
     grid-template-columns: 1fr 320px;
     gap: 24px;
   }
 
-  /* ACTIVITY */
   .section-header {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 14px;
@@ -301,7 +285,6 @@ const styles = `
   }
   .activity-duration { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-  /* TOP STUDENTS WIDGET */
   .widget {
     background: var(--white); border: 1px solid var(--border);
     border-radius: 16px; padding: 22px;
@@ -340,17 +323,13 @@ const styles = `
 
   .student-score { font-size: 12px; font-weight: 700; color: var(--mid); white-space: nowrap; }
 
-  /* ── STUDENTS PAGE ─────────────────────────────────────────────── */
-
+  /* STUDENTS PAGE */
   .students-toolbar {
     display: flex; align-items: center; gap: 12px;
     margin-bottom: 24px;
   }
 
-  .search-input-wrap {
-    flex: 1; max-width: 340px;
-    position: relative;
-  }
+  .search-input-wrap { flex: 1; max-width: 340px; position: relative; }
 
   .search-input {
     width: 100%; padding: 9px 14px 9px 38px;
@@ -363,36 +342,20 @@ const styles = `
   .search-input::placeholder { color: var(--muted); }
 
   .search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); display: flex; align-items: center; justify-content: center;
     pointer-events: none;
   }
 
   .filter-select {
     padding: 9px 36px 9px 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    color: var(--dark);
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.15s;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--white); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--dark); outline: none; cursor: pointer;
+    transition: border-color 0.15s; appearance: none; -webkit-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
+    background-repeat: no-repeat; background-position: right 12px center;
   }
-
   .filter-select:focus { border-color: var(--red); }
 
   .students-table-wrap {
@@ -400,19 +363,13 @@ const styles = `
     border-radius: 16px; overflow: hidden;
   }
 
-  .students-table {
-    width: 100%; border-collapse: collapse;
-  }
+  .students-table { width: 100%; border-collapse: collapse; }
 
-  .students-table thead tr {
-    background: var(--bg); border-bottom: 1px solid var(--border);
-  }
+  .students-table thead tr { background: var(--bg); border-bottom: 1px solid var(--border); }
 
   .students-table th {
-    padding: 12px 20px;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--muted); text-align: left;
+    padding: 12px 20px; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left;
   }
 
   .students-table tbody tr {
@@ -424,9 +381,7 @@ const styles = `
 
   .students-table td { padding: 14px 20px; font-size: 13.5px; }
 
-  .td-student {
-    display: flex; align-items: center; gap: 12px;
-  }
+  .td-student { display: flex; align-items: center; gap: 12px; }
 
   .td-avatar {
     width: 36px; height: 36px; border-radius: 50%;
@@ -464,20 +419,15 @@ const styles = `
   .status-online .status-dot { background: var(--green); }
   .status-offline .status-dot { background: var(--muted); }
 
-  .students-count {
-    font-size: 13px; color: var(--muted); margin-left: auto;
-    font-weight: 500;
-  }
+  .students-count { font-size: 13px; color: var(--muted); margin-left: auto; font-weight: 500; }
 
-  /* ── STUDENT DETAIL PAGE ────────────────────────────────────────── */
-
+  /* STUDENT DETAIL */
   .back-btn {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--white); border: 1px solid var(--border);
     border-radius: 10px; padding: 8px 16px;
     font-size: 13px; font-weight: 600; color: var(--mid);
-    cursor: pointer; transition: all 0.15s;
-    margin-bottom: 28px;
+    cursor: pointer; transition: all 0.15s; margin-bottom: 28px;
   }
   .back-btn:hover { background: var(--bg); color: var(--dark); border-color: var(--dark); }
 
@@ -485,8 +435,7 @@ const styles = `
     background: var(--white); border: 1px solid var(--border);
     border-radius: 20px; padding: 32px;
     display: flex; align-items: center; gap: 28px;
-    margin-bottom: 24px;
-    position: relative; overflow: hidden;
+    margin-bottom: 24px; position: relative; overflow: hidden;
   }
 
   .detail-hero::before {
@@ -511,18 +460,14 @@ const styles = `
     font-size: 26px; font-weight: 800; margin-bottom: 4px;
   }
   .detail-hero-meta {
-    font-size: 13px; color: var(--muted); display: flex; gap: 16px;
-    flex-wrap: wrap;
+    font-size: 13px; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap;
   }
   .detail-hero-meta span { display: flex; align-items: center; gap: 5px; }
 
-  .detail-hero-stats {
-    display: flex; gap: 20px; margin-top: 16px;
-  }
+  .detail-hero-stats { display: flex; gap: 20px; margin-top: 16px; }
 
   .detail-mini-stat {
-    background: var(--bg); border-radius: 12px; padding: 12px 18px;
-    text-align: center;
+    background: var(--bg); border-radius: 12px; padding: 12px 18px; text-align: center;
   }
   .detail-mini-stat-val {
     font-family: 'Syne', sans-serif;
@@ -553,8 +498,7 @@ const styles = `
 
   .detail-card {
     background: var(--white); border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px;
-    margin-bottom: 20px;
+    border-radius: 16px; padding: 24px; margin-bottom: 20px;
   }
   .detail-card:last-child { margin-bottom: 0; }
 
@@ -569,16 +513,60 @@ const styles = `
     justify-content: center; font-size: 14px;
   }
 
-  /* Radar-style topic bars */
-  .topic-row { margin-bottom: 14px; }
-  .topic-row:last-child { margin-bottom: 0; }
-  .topic-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .topic-name { font-size: 13px; font-weight: 600; }
-  .topic-val { font-size: 12px; font-weight: 700; color: var(--mid); }
-  .topic-bar-bg { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; }
-  .topic-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(.25,.8,.25,1); }
+  /* TOPICS GRID — new card layout */
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
 
-  /* Match history */
+  .topic-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: box-shadow 0.15s, transform 0.15s;
+    cursor: default;
+  }
+  .topic-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-2px); }
+
+  .topic-card-name {
+    font-size: 12px; font-weight: 600; color: var(--mid);
+    line-height: 1.3;
+  }
+
+  .topic-card-score-row {
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+
+  .topic-card-score-big {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800; line-height: 1;
+  }
+
+  .topic-card-score-pct {
+    font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 3px;
+  }
+
+  .topic-card-bar-bg {
+    height: 4px; border-radius: 2px; background: var(--border); overflow: hidden;
+  }
+  .topic-card-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s cubic-bezier(.25,.8,.25,1); }
+
+  .topic-card-badge {
+    display: inline-flex; align-items: center;
+    border-radius: 6px; padding: 2px 8px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    align-self: flex-start;
+  }
+  .badge-high { background: #ECFDF5; color: var(--green); }
+  .badge-mid  { background: #FFF7ED; color: #C2410C; }
+  .badge-low  { background: var(--red-light); color: var(--red); }
+
+  /* MATCH HISTORY */
   .match-history-row {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 0; border-bottom: 1px solid var(--border);
@@ -588,8 +576,7 @@ const styles = `
   .match-result-badge {
     width: 28px; height: 28px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 800; flex-shrink: 0;
-    letter-spacing: 0.03em;
+    font-size: 10px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.03em;
   }
   .match-win { background: #ECFDF5; color: var(--green); }
   .match-loss { background: var(--red-light); color: var(--red); }
@@ -600,12 +587,10 @@ const styles = `
 
   .match-hist-pts {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700;
-    text-align: right;
+    font-size: 13px; font-weight: 700; text-align: right;
   }
   .match-hist-duration { font-size: 11px; color: var(--muted); text-align: right; }
 
-  /* Summary stats side */
   .summary-stat-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 0; border-bottom: 1px solid var(--border);
@@ -614,7 +599,6 @@ const styles = `
   .summary-stat-label { font-size: 13px; color: var(--muted); font-weight: 500; }
   .summary-stat-value { font-size: 14px; font-weight: 700; }
 
-  /* Trend chart bars */
   .trend-bars {
     display: flex; align-items: flex-end; gap: 6px;
     height: 80px; margin-top: 8px;
@@ -622,12 +606,10 @@ const styles = `
   .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .trend-bar {
     width: 100%; border-radius: 4px 4px 0 0;
-    transition: height 0.6s ease;
-    min-height: 4px;
+    transition: height 0.6s ease; min-height: 4px;
   }
   .trend-bar-lbl { font-size: 10px; color: var(--muted); font-weight: 600; }
 
-  /* Achievement badges */
   .achievements-grid { display: flex; flex-wrap: wrap; gap: 10px; }
   .achievement-badge {
     display: flex; align-items: center; gap: 8px;
@@ -635,13 +617,157 @@ const styles = `
     border-radius: 10px; padding: 8px 12px;
     font-size: 12px; font-weight: 600; color: var(--mid);
   }
-  .achievement-badge.earned {
-    background: #FFFBEB; border-color: #FCD34D; color: #92400E;
-  }
+  .achievement-badge.earned { background: #FFFBEB; border-color: #FCD34D; color: #92400E; }
   .achievement-icon { font-size: 16px; }
-`;
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+  /* SETTINGS */
+  .settings-layout {
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 28px; align-items: start;
+  }
+
+  .settings-nav {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; position: sticky; top: 24px;
+  }
+
+  .settings-nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--muted);
+    cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
+    border-bottom: 1px solid var(--border); transition: all 0.15s;
+  }
+  .settings-nav-item:last-child { border-bottom: none; }
+  .settings-nav-item:hover { background: var(--bg); color: var(--dark); }
+  .settings-nav-item.active { background: var(--red-light); color: var(--red); font-weight: 600; }
+  .settings-nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+
+  .settings-section {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden; margin-bottom: 20px;
+  }
+  .settings-section:last-child { margin-bottom: 0; }
+
+  .settings-section-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
+
+  .settings-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700; margin-bottom: 3px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .settings-section-desc { font-size: 12px; color: var(--muted); }
+
+  .settings-field {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; border-bottom: 1px solid var(--border); gap: 24px;
+  }
+  .settings-field:last-child { border-bottom: none; }
+
+  .settings-field-info { flex: 1; min-width: 0; }
+  .settings-field-label { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  .settings-field-hint { font-size: 12px; color: var(--muted); }
+
+  .settings-input {
+    width: 260px; flex-shrink: 0;
+    padding: 9px 14px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--dark); outline: none; transition: border-color 0.15s;
+  }
+  .settings-input:focus { border-color: var(--red); background: var(--white); }
+
+  .settings-select {
+    width: 200px; flex-shrink: 0;
+    padding: 9px 36px 9px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--bg); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--dark); outline: none; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    transition: border-color 0.15s;
+  }
+  .settings-select:focus { border-color: var(--red); }
+
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .toggle-label-text { font-size: 12px; color: var(--muted); font-weight: 500; min-width: 28px; text-align: right; }
+
+  .toggle { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; inset: 0; border-radius: 24px;
+    background: var(--border); transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; border-radius: 50%;
+    left: 3px; top: 3px; background: white;
+    transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--red); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  .settings-avatar-row { display: flex; align-items: center; gap: 16px; }
+  .settings-avatar {
+    width: 60px; height: 60px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--red), #FF6B6B);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 22px; color: white; flex-shrink: 0;
+  }
+  .settings-avatar-actions { display: flex; flex-direction: column; gap: 6px; }
+
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--white); font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 600; color: var(--mid);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--dark); color: var(--dark); }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 10px; border: none; background: var(--red);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: white;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+
+  .btn-danger {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 10px;
+    border: 1px solid #FECACA; background: var(--red-light);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--red);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-danger:hover { background: #FECACA; }
+
+  .settings-actions {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-top: 1px solid var(--border); margin-top: 4px;
+  }
+
+  .color-swatches { display: flex; gap: 8px; flex-shrink: 0; }
+  .color-swatch {
+    width: 28px; height: 28px; border-radius: 8px;
+    cursor: pointer; border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .color-swatch:hover { transform: scale(1.1); }
+  .color-swatch.selected { border-color: var(--dark); }
+
+  .danger-zone { border-color: #FECACA !important; }
+  .danger-zone .settings-section-header { background: var(--red-light); border-bottom-color: #FECACA; }
+
+  .save-toast {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #ECFDF5; border: 1px solid #6EE7B7;
+    border-radius: 8px; padding: 6px 12px;
+    font-size: 12px; font-weight: 600; color: var(--green);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .save-toast.visible { opacity: 1; }
+`;
 
 interface NavItemType { icon: string; label: string; badge?: string; }
 interface Student { name: string; initials: string; score: number; color: string; }
@@ -651,8 +777,6 @@ interface FullStudent {
   name: string; initials: string; email: string; ano: string; sala: string;
   score: number; color: string; online: boolean; partidas: number;
 }
-
-// ─── Data ────────────────────────────────────────────────────────────────────
 
 const NAV: NavItemType[] = [
   { icon: "🏠", label: "Dashboard" },
@@ -713,11 +837,15 @@ const ALL_STUDENTS: FullStudent[] = [
 const SALAS = ["Todas as Salas", "Sala 01", "Sala 02", "Sala 03", "Sala 04", "Sala 05"];
 const ANOS = ["Todos os Anos", "1º Ano", "2º Ano", "3º Ano"];
 const MEDALS = ["🥇", "🥈", "🥉"];
+const ACCENT_COLORS = ["#D42B2B", "#2563EB", "#7C3AED", "#059669", "#D97706", "#DB2777"];
 
-// ─── Student detail data generator ───────────────────────────────────────────
+// ─── Settings nav — Turmas removida ──────────────────────────────────────────
+const SETTINGS_NAV = [
+  { icon: "👤", label: "Perfil" },
+  { icon: "🔒", label: "Segurança" },
+];
 
 function getStudentDetail(s: FullStudent) {
-  // Deterministic pseudo-random based on name
   const seed = s.name.charCodeAt(0) + s.name.charCodeAt(1);
   const r = (base: number, range: number) => base + ((seed * 7 + base * 3) % range);
 
@@ -762,8 +890,6 @@ function getStudentDetail(s: FullStudent) {
   return { topics, matchHistory, trendWeeks, trendScores, achievements, wins, losses, tempoMedioPartida, taxaVitoria, pontosTotal };
 }
 
-// ─── Score Ring ───────────────────────────────────────────────────────────────
-
 function ScoreRing({ score, color }: { score: number; color: string }) {
   const r = 38, cx = 45, cy = 45;
   const circ = 2 * Math.PI * r;
@@ -780,23 +906,235 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
   );
 }
 
-// ─── Student Detail View ──────────────────────────────────────────────────────
+function Toggle({ checked, onChange, onLabel = "Sim", offLabel = "Não" }: {
+  checked: boolean; onChange: (v: boolean) => void; onLabel?: string; offLabel?: string;
+}) {
+  return (
+    <div className="toggle-wrap">
+      <span className="toggle-label-text">{checked ? onLabel : offLabel}</span>
+      <label className="toggle">
+        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+        <span className="toggle-slider" />
+      </label>
+    </div>
+  );
+}
 
+// ─── Topic card badge helper ──────────────────────────────────────────────────
+function topicBadge(score: number) {
+  if (score >= 80) return { cls: "badge-high", label: "Forte" };
+  if (score >= 55) return { cls: "badge-mid",  label: "Regular" };
+  return { cls: "badge-low", label: "A melhorar" };
+}
+
+// ─── Settings ────────────────────────────────────────────────────────────────
+function SettingsView() {
+  const [activeSection, setActiveSection] = useState("Perfil");
+  const [savedVisible, setSavedVisible] = useState(false);
+
+  const [nome, setNome] = useState("Prof. Mendes");
+  const [email, setEmail] = useState("mendes@escola.br");
+  const [escola, setEscola] = useState("Escola Estadual Central");
+  const [disciplina, setDisciplina] = useState("Química");
+  const [accentColor, setAccentColor] = useState("#D42B2B");
+
+  const [tempoPadrao, setTempoPadrao] = useState("20");
+  const [pontosVitoria, setPontosVitoria] = useState("100");
+  const [pontosDerrota, setPontosDerrota] = useState("20");
+  const [permitirRevancha, setPermitirRevancha] = useState(true);
+  const [mostrarGabarito, setMostrarGabarito] = useState(true);
+  const [dificuldade, setDificuldade] = useState("Médio");
+
+  const [notifEmail, setNotifEmail] = useState(true);
+  const [notifNovaPartida, setNotifNovaPartida] = useState(true);
+  const [notifRanking, setNotifRanking] = useState(false);
+  const [notifRelatorio, setNotifRelatorio] = useState(true);
+  const [frequenciaRelatorio, setFrequenciaRelatorio] = useState("Semanal");
+
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [senhaNova, setSenhaNova] = useState("");
+  const [senhaConfirm, setSenhaConfirm] = useState("");
+  const [autenticacao2fa, setAutenticacao2fa] = useState(false);
+
+  const handleSave = () => {
+    setSavedVisible(true);
+    setTimeout(() => setSavedVisible(false), 2500);
+  };
+
+  return (
+    <>
+      <div className="page-header">
+        <h1>Confi<span>gurações</span></h1>
+        <p>Gerencie seu perfil, preferências de jogo e notificações.</p>
+      </div>
+
+      <div className="settings-layout">
+        <nav className="settings-nav">
+          {SETTINGS_NAV.map((item) => (
+            <button
+              key={item.label}
+              className={`settings-nav-item ${activeSection === item.label ? "active" : ""}`}
+              onClick={() => setActiveSection(item.label)}
+            >
+              <span className="settings-nav-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div>
+          {activeSection === "Perfil" && (
+            <>
+              <div className="settings-section">
+                <div className="settings-section-header">
+                  <div className="settings-section-title">👤 Informações Pessoais</div>
+                  <div className="settings-section-desc">Dados exibidos para os alunos e relatórios.</div>
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Foto de perfil</div>
+                    <div className="settings-field-hint">JPG ou PNG, até 2 MB.</div>
+                  </div>
+                  <div className="settings-avatar-row">
+                    <div className="settings-avatar" style={{ background: accentColor }}>PM</div>
+                    <div className="settings-avatar-actions">
+                      <button className="btn-secondary">📷 Alterar foto</button>
+                      <button className="btn-secondary" style={{ color: "var(--red)", borderColor: "#FECACA" }}>🗑 Remover</button>
+                    </div>
+                  </div>
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Nome completo</div>
+                    <div className="settings-field-hint">Aparece no cabeçalho e nos relatórios.</div>
+                  </div>
+                  <input className="settings-input" value={nome} onChange={(e) => setNome(e.target.value)} />
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">E-mail</div>
+                    <div className="settings-field-hint">Usado para login e notificações.</div>
+                  </div>
+                  <input className="settings-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Escola</div>
+                    <div className="settings-field-hint">Instituição de ensino.</div>
+                  </div>
+                  <input className="settings-input" value={escola} onChange={(e) => setEscola(e.target.value)} />
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Disciplina</div>
+                    <div className="settings-field-hint">Matéria que você leciona.</div>
+                  </div>
+                  <input className="settings-input" value={disciplina} onChange={(e) => setDisciplina(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-section-header">
+                  <div className="settings-section-title">🎨 Aparência</div>
+                  <div className="settings-section-desc">Personalize a cor de destaque do painel.</div>
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Cor de destaque</div>
+                    <div className="settings-field-hint">Afeta botões, badges e indicadores ativos.</div>
+                  </div>
+                  <div className="color-swatches">
+                    {ACCENT_COLORS.map((c) => (
+                      <div key={c} className={`color-swatch ${accentColor === c ? "selected" : ""}`}
+                        style={{ background: c }} onClick={() => setAccentColor(c)} title={c} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="settings-actions">
+                <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Alterações salvas!</span>
+                <button className="btn-primary" style={{ marginLeft: "auto" }} onClick={handleSave}>Salvar alterações</button>
+              </div>
+            </>
+          )}
+
+
+          {activeSection === "Segurança" && (
+            <>
+              <div className="settings-section">
+                <div className="settings-section-header">
+                  <div className="settings-section-title">🔑 Alterar Senha</div>
+                  <div className="settings-section-desc">Use uma senha forte com letras, números e símbolos.</div>
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info"><div className="settings-field-label">Senha atual</div></div>
+                  <input className="settings-input" type="password" placeholder="••••••••" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} />
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Nova senha</div>
+                    <div className="settings-field-hint">Mínimo de 8 caracteres.</div>
+                  </div>
+                  <input className="settings-input" type="password" placeholder="••••••••" value={senhaNova} onChange={(e) => setSenhaNova(e.target.value)} />
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info"><div className="settings-field-label">Confirmar nova senha</div></div>
+                  <input className="settings-input" type="password" placeholder="••••••••" value={senhaConfirm} onChange={(e) => setSenhaConfirm(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="settings-section">
+                <div className="settings-section-header">
+                  <div className="settings-section-title">🛡 Autenticação em Dois Fatores</div>
+                  <div className="settings-section-desc">Adicione uma camada extra de proteção à sua conta.</div>
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Ativar 2FA</div>
+                    <div className="settings-field-hint">Solicita um código extra ao fazer login.</div>
+                  </div>
+                  <Toggle checked={autenticacao2fa} onChange={setAutenticacao2fa} onLabel="Ativo" offLabel="Inativo" />
+                </div>
+              </div>
+
+              <div className="settings-section danger-zone">
+                <div className="settings-section-header">
+                  <div className="settings-section-title">⚠️ Zona de Perigo</div>
+                  <div className="settings-section-desc">Ações irreversíveis. Proceda com cuidado.</div>
+                </div>
+                <div className="settings-field">
+                  <div className="settings-field-info">
+                    <div className="settings-field-label">Excluir conta</div>
+                    <div className="settings-field-hint">Remove permanentemente todos os dados, turmas e histórico.</div>
+                  </div>
+                  <button className="btn-danger">🗑 Excluir conta</button>
+                </div>
+              </div>
+
+              <div className="settings-actions">
+                <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Alterações salvas!</span>
+                <button className="btn-primary" style={{ marginLeft: "auto" }} onClick={handleSave}>Salvar alterações</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Student Detail ───────────────────────────────────────────────────────────
 function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: () => void }) {
   const detail = getStudentDetail(student);
   const maxTrend = Math.max(...detail.trendScores);
 
   return (
     <>
-      <button className="back-btn" onClick={onBack}>
-        ← Voltar para Alunos
-      </button>
+      <button className="back-btn" onClick={onBack}>← Voltar para Alunos</button>
 
-      {/* Hero */}
       <div className="detail-hero">
-        <div className="detail-hero-avatar" style={{ background: student.color }}>
-          {student.initials}
-        </div>
+        <div className="detail-hero-avatar" style={{ background: student.color }}>{student.initials}</div>
         <div className="detail-hero-info">
           <div className="detail-hero-name">{student.name}</div>
           <div className="detail-hero-meta">
@@ -834,28 +1172,33 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
       </div>
 
       <div className="detail-grid">
-        {/* LEFT COLUMN */}
         <div>
-          {/* Topics */}
+          {/* Topics as card grid instead of side bars */}
           <div className="detail-card">
             <div className="detail-card-title">
               <div className="detail-card-title-icon">📚</div>
               Desempenho por Tema
             </div>
-            {detail.topics.map((t, i) => (
-              <div key={i} className="topic-row">
-                <div className="topic-header">
-                  <div className="topic-name">{t.name}</div>
-                  <div className="topic-val">{t.score}%</div>
-                </div>
-                <div className="topic-bar-bg">
-                  <div className="topic-bar-fill" style={{ width: `${t.score}%`, background: student.color }} />
-                </div>
-              </div>
-            ))}
+            <div className="topics-grid">
+              {detail.topics.map((t, i) => {
+                const badge = topicBadge(t.score);
+                return (
+                  <div key={i} className="topic-card">
+                    <div className="topic-card-name">{t.name}</div>
+                    <div className="topic-card-score-row">
+                      <div className="topic-card-score-big" style={{ color: student.color }}>{t.score}</div>
+                      <div className="topic-card-score-pct">/ 100</div>
+                    </div>
+                    <div className="topic-card-bar-bg">
+                      <div className="topic-card-bar-fill" style={{ width: `${t.score}%`, background: student.color }} />
+                    </div>
+                    <span className={`topic-card-badge ${badge.cls}`}>{badge.label}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Match History */}
           <div className="detail-card">
             <div className="detail-card-title">
               <div className="detail-card-title-icon">🎲</div>
@@ -881,9 +1224,7 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
           </div>
         </div>
 
-        {/* RIGHT COLUMN */}
         <div>
-          {/* Resumo */}
           <div className="detail-card">
             <div className="detail-card-title">
               <div className="detail-card-title-icon">📊</div>
@@ -903,7 +1244,6 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
             ))}
           </div>
 
-          {/* Trend */}
           <div className="detail-card">
             <div className="detail-card-title">
               <div className="detail-card-title-icon">📈</div>
@@ -912,22 +1252,16 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
             <div className="trend-bars">
               {detail.trendScores.map((sc, i) => (
                 <div key={i} className="trend-bar-wrap">
-                  <div
-                    className="trend-bar"
-                    style={{
-                      height: `${(sc / maxTrend) * 64}px`,
-                      background: i === detail.trendScores.length - 1
-                        ? student.color
-                        : `${student.color}55`,
-                    }}
-                  />
+                  <div className="trend-bar" style={{
+                    height: `${(sc / maxTrend) * 64}px`,
+                    background: i === detail.trendScores.length - 1 ? student.color : `${student.color}55`,
+                  }} />
                   <div className="trend-bar-lbl">{detail.trendWeeks[i]}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Achievements */}
           <div className="detail-card">
             <div className="detail-card-title">
               <div className="detail-card-title-icon">🏅</div>
@@ -948,8 +1282,7 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
   );
 }
 
-// ─── Dashboard View ───────────────────────────────────────────────────────────
-
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 function DashboardView() {
   const [activeTab, setActiveTab] = useState<"Hoje" | "Semana" | "Mês">("Hoje");
   const matches = MATCHES_BY_TAB[activeTab];
@@ -1045,8 +1378,7 @@ function DashboardView() {
   );
 }
 
-// ─── Students View ────────────────────────────────────────────────────────────
-
+// ─── Students ─────────────────────────────────────────────────────────────────
 function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) => void }) {
   const [search, setSearch] = useState("");
   const [anoFilter, setAnoFilter] = useState("Todos os Anos");
@@ -1089,12 +1421,7 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
         <table className="students-table">
           <thead>
             <tr>
-              <th>Aluno</th>
-              <th>Ano</th>
-              <th>Sala</th>
-              <th>Desempenho</th>
-              <th>Partidas</th>
-              <th>Status</th>
+              <th>Aluno</th><th>Ano</th><th>Sala</th><th>Desempenho</th><th>Partidas</th><th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -1142,19 +1469,14 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
   );
 }
 
-// ─── Root Component ───────────────────────────────────────────────────────────
-
+// ─── Root ─────────────────────────────────────────────────────────────────────
 export default function ProfessorDashboard() {
   const [activeNav, setActiveNav] = useState<string>("Dashboard");
   const [selectedStudent, setSelectedStudent] = useState<FullStudent | null>(null);
 
-
   const handleSelectStudent = (s: FullStudent) => setSelectedStudent(s);
   const handleBack = () => setSelectedStudent(null);
-  const handleNavChange = (label: string) => {
-    setActiveNav(label);
-    setSelectedStudent(null);
-  };
+  const handleNavChange = (label: string) => { setActiveNav(label); setSelectedStudent(null); };
 
   const breadcrumbMap: Record<string, string> = {
     Dashboard: "Painel de Controle",
@@ -1162,21 +1484,14 @@ export default function ProfessorDashboard() {
     Configurações: "Configurações",
   };
 
-  const breadcrumbCurrent = selectedStudent
-    ? selectedStudent.name
-    : (breadcrumbMap[activeNav] ?? activeNav);
-
   return (
     <>
       <style>{styles}</style>
       <div className="app">
-        {/* SIDEBAR */}
         <aside className="sidebar">
           <div className="sidebar-logo">
             <div className="sidebar-logo-icon">⚗</div>
-            <div>
-              <div className="sidebar-logo-name">Molecular<br />Narrative</div>
-            </div>
+            <div><div className="sidebar-logo-name">Molecular<br />Narrative</div></div>
           </div>
           <div className="sidebar-section">
             <div className="sidebar-section-label">Principal</div>
@@ -1200,7 +1515,6 @@ export default function ProfessorDashboard() {
           </div>
         </aside>
 
-        {/* TOPBAR */}
         <header className="topbar">
           <span className="breadcrumb">
             Molecular Narrative
@@ -1215,25 +1529,13 @@ export default function ProfessorDashboard() {
               <span className="breadcrumb-current">{breadcrumbMap[activeNav] ?? activeNav}</span>
             )}
           </span>
-         
         </header>
 
-        {/* MAIN */}
         <main className="main">
           {activeNav === "Dashboard" && <DashboardView />}
-          {activeNav === "Alunos" && !selectedStudent && (
-            <StudentsView onSelectStudent={handleSelectStudent} />
-          )}
-          {activeNav === "Alunos" && selectedStudent && (
-            <StudentDetailView student={selectedStudent} onBack={handleBack} />
-          )}
-          {activeNav !== "Dashboard" && activeNav !== "Alunos" && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 12 }}>
-              <div style={{ fontSize: 48 }}>🚧</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800 }}>{activeNav}</div>
-              <div style={{ color: "var(--muted)", fontSize: 14 }}>Esta seção ainda está em desenvolvimento.</div>
-            </div>
-          )}
+          {activeNav === "Alunos" && !selectedStudent && <StudentsView onSelectStudent={handleSelectStudent} />}
+          {activeNav === "Alunos" && selectedStudent && <StudentDetailView student={selectedStudent} onBack={handleBack} />}
+          {activeNav === "Configurações" && <SettingsView />}
         </main>
       </div>
     </>
