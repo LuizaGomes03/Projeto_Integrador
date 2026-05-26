@@ -18,17 +18,22 @@ const styles = `
     --white: #FFFFFF;
     --green: #16A34A;
     --border: #E5E1DB;
+    --sidebar-w: 240px;
+    --topbar-h: 64px;
+    --bottom-nav-h: 64px;
   }
 
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--dark); min-height: 100vh; }
 
+  /* ── LAYOUT ── */
   .app {
     display: grid;
-    grid-template-columns: 240px 1fr;
-    grid-template-rows: 64px 1fr;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-rows: var(--topbar-h) 1fr;
     min-height: 100vh;
   }
 
+  /* ── SIDEBAR (desktop) ── */
   .sidebar {
     grid-row: 1 / 3;
     background: var(--dark); color: var(--white);
@@ -113,10 +118,47 @@ const styles = `
   .user-name { font-size: 13px; font-weight: 600; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .user-role { font-size: 11px; color: #666; }
 
+  .user-menu-wrap { position: relative; }
+
+  .user-menu-popover {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0; right: 0;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.4);
+    animation: popover-in 0.15s ease;
+    z-index: 100;
+  }
+
+  @keyframes popover-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .user-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background 0.12s;
+    border: none; background: none; width: 100%; text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    border-bottom: 1px solid #242424;
+    color: #ccc;
+  }
+  .user-menu-item:last-child { border-bottom: none; }
+  .user-menu-item:hover { background: #222; }
+  .user-menu-item.danger { color: #F87171; }
+  .user-menu-item.danger:hover { background: #2a1414; }
+  .user-menu-icon { font-size: 15px; width: 20px; text-align: center; }
+
+  /* ── TOPBAR ── */
   .topbar {
     background: var(--white); border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 36px; height: 64px;
+    padding: 0 36px; height: var(--topbar-h);
     position: sticky; top: 0; z-index: 10;
   }
 
@@ -126,8 +168,10 @@ const styles = `
   .breadcrumb-link { cursor: pointer; transition: color 0.15s; }
   .breadcrumb-link:hover { color: var(--red); }
 
+  /* ── MAIN ── */
   .main { padding: 36px 40px 60px; overflow-y: auto; }
 
+  /* ── PAGE HEADER ── */
   .page-header { margin-bottom: 32px; }
   .page-header h1 {
     font-family: 'Syne', sans-serif;
@@ -136,6 +180,7 @@ const styles = `
   .page-header h1 span { color: var(--red); }
   .page-header p { color: var(--muted); font-size: 14px; line-height: 1.6; }
 
+  /* ── STATS GRID ── */
   .stats-grid {
     display: grid;
     grid-template-columns: 1fr 2fr;
@@ -159,7 +204,6 @@ const styles = `
   }
 
   .stat-value {
-    font-family: 'Inter', sans-serif;
     font-variant-numeric: tabular-nums;
     font-size: 30px;
     font-weight: 800;
@@ -218,6 +262,7 @@ const styles = `
     border: 2px solid var(--white);
   }
 
+  /* ── CONTENT GRID ── */
   .content-grid {
     display: grid;
     grid-template-columns: 1fr 320px;
@@ -226,7 +271,7 @@ const styles = `
 
   .section-header {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
   }
 
   .section-title {
@@ -237,10 +282,10 @@ const styles = `
   .section-link {
     font-size: 11px; font-weight: 700;
     letter-spacing: 0.05em; text-transform: uppercase;
-    color: var(--red); cursor: pointer;
+    color: var(--red); cursor: pointer; white-space: nowrap;
   }
 
-  .tabs { display: flex; gap: 4px; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 
   .tab-btn {
     font-size: 12px; font-weight: 600;
@@ -275,7 +320,7 @@ const styles = `
   }
 
   .activity-info { flex: 1; min-width: 0; }
-  .activity-name { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  .activity-name { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .activity-meta { font-size: 11.5px; color: var(--muted); }
 
   .activity-right { text-align: right; flex-shrink: 0; }
@@ -285,6 +330,7 @@ const styles = `
   }
   .activity-duration { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
+  /* ── WIDGET ── */
   .widget {
     background: var(--white); border: 1px solid var(--border);
     border-radius: 16px; padding: 22px;
@@ -323,13 +369,13 @@ const styles = `
 
   .student-score { font-size: 12px; font-weight: 700; color: var(--mid); white-space: nowrap; }
 
-  /* STUDENTS PAGE */
+  /* ── STUDENTS PAGE ── */
   .students-toolbar {
     display: flex; align-items: center; gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 24px; flex-wrap: wrap;
   }
 
-  .search-input-wrap { flex: 1; max-width: 340px; position: relative; }
+  .search-input-wrap { flex: 1; min-width: 200px; max-width: 340px; position: relative; }
 
   .search-input {
     width: 100%; padding: 9px 14px 9px 38px;
@@ -363,13 +409,17 @@ const styles = `
     border-radius: 16px; overflow: hidden;
   }
 
-  .students-table { width: 100%; border-collapse: collapse; }
+  /* Horizontal scroll for table on small screens */
+  .students-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  .students-table { width: 100%; border-collapse: collapse; min-width: 600px; }
 
   .students-table thead tr { background: var(--bg); border-bottom: 1px solid var(--border); }
 
   .students-table th {
     padding: 12px 20px; font-size: 10px; font-weight: 700;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left;
+    white-space: nowrap;
   }
 
   .students-table tbody tr {
@@ -390,14 +440,15 @@ const styles = `
     color: white; flex-shrink: 0;
   }
 
-  .td-name { font-weight: 600; font-size: 13.5px; }
-  .td-email { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .td-name { font-weight: 600; font-size: 13.5px; white-space: nowrap; }
+  .td-email { font-size: 11.5px; color: var(--muted); margin-top: 1px; white-space: nowrap; }
 
   .td-sala {
     display: inline-flex; align-items: center;
     background: var(--bg); border: 1px solid var(--border);
     border-radius: 6px; padding: 3px 10px;
     font-size: 12px; font-weight: 600; color: var(--mid);
+    white-space: nowrap;
   }
 
   .td-score-wrap { display: flex; align-items: center; gap: 10px; }
@@ -411,17 +462,17 @@ const styles = `
   .status-pill {
     display: inline-flex; align-items: center; gap: 5px;
     border-radius: 20px; padding: 3px 10px;
-    font-size: 11px; font-weight: 700;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
   }
   .status-online { background: #ECFDF5; color: var(--green); }
   .status-offline { background: var(--bg); color: var(--muted); }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
   .status-online .status-dot { background: var(--green); }
   .status-offline .status-dot { background: var(--muted); }
 
-  .students-count { font-size: 13px; color: var(--muted); margin-left: auto; font-weight: 500; }
+  .students-count { font-size: 13px; color: var(--muted); margin-left: auto; font-weight: 500; white-space: nowrap; }
 
-  /* STUDENT DETAIL */
+  /* ── STUDENT DETAIL ── */
   .back-btn {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--white); border: 1px solid var(--border);
@@ -436,6 +487,7 @@ const styles = `
     border-radius: 20px; padding: 32px;
     display: flex; align-items: center; gap: 28px;
     margin-bottom: 24px; position: relative; overflow: hidden;
+    flex-wrap: wrap;
   }
 
   .detail-hero::before {
@@ -454,7 +506,7 @@ const styles = `
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   }
 
-  .detail-hero-info { flex: 1; }
+  .detail-hero-info { flex: 1; min-width: 200px; }
   .detail-hero-name {
     font-family: 'Syne', sans-serif;
     font-size: 26px; font-weight: 800; margin-bottom: 4px;
@@ -464,7 +516,7 @@ const styles = `
   }
   .detail-hero-meta span { display: flex; align-items: center; gap: 5px; }
 
-  .detail-hero-stats { display: flex; gap: 20px; margin-top: 16px; }
+  .detail-hero-stats { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
 
   .detail-mini-stat {
     background: var(--bg); border-radius: 12px; padding: 12px 18px; text-align: center;
@@ -513,7 +565,6 @@ const styles = `
     justify-content: center; font-size: 14px;
   }
 
-  /* TOPICS GRID — new card layout */
   .topics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -566,7 +617,6 @@ const styles = `
   .badge-mid  { background: #FFF7ED; color: #C2410C; }
   .badge-low  { background: var(--red-light); color: var(--red); }
 
-  /* MATCH HISTORY */
   .match-history-row {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 0; border-bottom: 1px solid var(--border);
@@ -581,23 +631,23 @@ const styles = `
   .match-win { background: #ECFDF5; color: var(--green); }
   .match-loss { background: var(--red-light); color: var(--red); }
 
-  .match-hist-info { flex: 1; }
-  .match-hist-tema { font-size: 13px; font-weight: 600; }
+  .match-hist-info { flex: 1; min-width: 0; }
+  .match-hist-tema { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .match-hist-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
 
   .match-hist-pts {
     font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700; text-align: right;
+    font-size: 13px; font-weight: 700; text-align: right; white-space: nowrap;
   }
-  .match-hist-duration { font-size: 11px; color: var(--muted); text-align: right; }
+  .match-hist-duration { font-size: 11px; color: var(--muted); text-align: right; white-space: nowrap; }
 
   .summary-stat-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 0; border-bottom: 1px solid var(--border);
+    padding: 12px 0; border-bottom: 1px solid var(--border); gap: 12px;
   }
   .summary-stat-row:last-child { border-bottom: none; }
   .summary-stat-label { font-size: 13px; color: var(--muted); font-weight: 500; }
-  .summary-stat-value { font-size: 14px; font-weight: 700; }
+  .summary-stat-value { font-size: 14px; font-weight: 700; text-align: right; }
 
   .trend-bars {
     display: flex; align-items: flex-end; gap: 6px;
@@ -620,34 +670,17 @@ const styles = `
   .achievement-badge.earned { background: #FFFBEB; border-color: #FCD34D; color: #92400E; }
   .achievement-icon { font-size: 16px; }
 
-  /* SETTINGS */
-  .settings-layout {
-    display: grid; grid-template-columns: 220px 1fr;
-    gap: 28px; align-items: start;
+  /* ── SETTINGS ── */
+  .settings-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
-
-  .settings-nav {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: 16px; overflow: hidden; position: sticky; top: 24px;
-  }
-
-  .settings-nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--muted);
-    cursor: pointer; border: none; background: none;
-    width: 100%; text-align: left; font-family: 'DM Sans', sans-serif;
-    border-bottom: 1px solid var(--border); transition: all 0.15s;
-  }
-  .settings-nav-item:last-child { border-bottom: none; }
-  .settings-nav-item:hover { background: var(--bg); color: var(--dark); }
-  .settings-nav-item.active { background: var(--red-light); color: var(--red); font-weight: 600; }
-  .settings-nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
 
   .settings-section {
     background: var(--white); border: 1px solid var(--border);
-    border-radius: 16px; overflow: hidden; margin-bottom: 20px;
+    border-radius: 16px; overflow: hidden;
   }
-  .settings-section:last-child { margin-bottom: 0; }
 
   .settings-section-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
 
@@ -662,15 +695,16 @@ const styles = `
   .settings-field {
     display: flex; align-items: center; justify-content: space-between;
     padding: 18px 24px; border-bottom: 1px solid var(--border); gap: 24px;
+    flex-wrap: wrap;
   }
   .settings-field:last-child { border-bottom: none; }
 
-  .settings-field-info { flex: 1; min-width: 0; }
+  .settings-field-info { flex: 1; min-width: 160px; }
   .settings-field-label { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
   .settings-field-hint { font-size: 12px; color: var(--muted); }
 
   .settings-input {
-    width: 260px; flex-shrink: 0;
+    width: 340px; flex-shrink: 0;
     padding: 9px 14px; border: 1px solid var(--border); border-radius: 10px;
     background: var(--bg); font-family: 'DM Sans', sans-serif;
     font-size: 13px; color: var(--dark); outline: none; transition: border-color 0.15s;
@@ -707,7 +741,7 @@ const styles = `
   .toggle input:checked + .toggle-slider { background: var(--red); }
   .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
 
-  .settings-avatar-row { display: flex; align-items: center; gap: 16px; }
+  .settings-avatar-row { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
   .settings-avatar {
     width: 60px; height: 60px; border-radius: 16px;
     background: linear-gradient(135deg, var(--red), #FF6B6B);
@@ -738,16 +772,16 @@ const styles = `
     padding: 10px 20px; border-radius: 10px;
     border: 1px solid #FECACA; background: var(--red-light);
     font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: var(--red);
-    cursor: pointer; transition: all 0.15s;
+    cursor: pointer; transition: all 0.15s; flex-shrink: 0;
   }
   .btn-danger:hover { background: #FECACA; }
 
   .settings-actions {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 24px; border-top: 1px solid var(--border); margin-top: 4px;
+    padding: 20px 0 0; margin-top: 4px; flex-wrap: wrap; gap: 12px;
   }
 
-  .color-swatches { display: flex; gap: 8px; flex-shrink: 0; }
+  .color-swatches { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
   .color-swatch {
     width: 28px; height: 28px; border-radius: 8px;
     cursor: pointer; border: 2px solid transparent;
@@ -767,6 +801,181 @@ const styles = `
     opacity: 0; transition: opacity 0.3s;
   }
   .save-toast.visible { opacity: 1; }
+
+  /* ── BOTTOM NAV (mobile only, hidden on desktop) ── */
+  .bottom-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: var(--bottom-nav-h);
+    background: var(--dark);
+    border-top: 1px solid #222;
+    z-index: 50;
+    padding: 0 8px;
+    align-items: center; justify-content: space-around;
+  }
+
+  .bottom-nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    flex: 1; padding: 8px 4px;
+    cursor: pointer; border: none; background: none;
+    font-family: 'DM Sans', sans-serif;
+    color: #666; transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bottom-nav-item.active { color: var(--red); }
+  .bottom-nav-item-icon { font-size: 20px; line-height: 1; }
+  .bottom-nav-item-label { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; }
+
+  /* ── MOBILE TOPBAR USER BUTTON ── */
+  .topbar-user-btn {
+    display: none;
+    align-items: center; gap: 8px;
+    background: none; border: none; cursor: pointer;
+    padding: 4px;
+  }
+  .topbar-user-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), #FF6B6B);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px; color: white; flex-shrink: 0;
+  }
+
+  /* ─────────────────────────────────────────────
+     RESPONSIVE BREAKPOINTS
+  ───────────────────────────────────────────── */
+
+  /* ── TABLET (≤ 1024px): narrower sidebar ── */
+  @media (max-width: 1024px) {
+    :root { --sidebar-w: 200px; }
+
+    .main { padding: 28px 24px 50px; }
+
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .topics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* ── MOBILE (≤ 768px): bottom nav, no sidebar ── */
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 0px; }
+
+    .app {
+      grid-template-columns: 1fr;
+      grid-template-rows: var(--topbar-h) 1fr;
+    }
+
+    /* Hide desktop sidebar */
+    .sidebar { display: none; }
+
+    /* Show bottom nav */
+    .bottom-nav { display: flex; }
+
+    /* Show mobile user button in topbar */
+    .topbar-user-btn { display: flex; }
+
+    /* Topbar adjustments */
+    .topbar { padding: 0 16px; }
+    .breadcrumb { font-size: 11px; }
+
+    /* Main padding — add bottom padding for bottom nav */
+    .main {
+      padding: 20px 16px calc(var(--bottom-nav-h) + 20px);
+      grid-column: 1;
+    }
+
+    /* Page header */
+    .page-header h1 { font-size: 24px; }
+    .page-header p { font-size: 13px; }
+
+    /* Stats grid → single column */
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stat-card.featured {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .featured-graph { width: 100%; height: 44px; }
+
+    /* Content grid → single column */
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+
+    /* Widget sits below activity list */
+    .widget { margin-top: 0; }
+
+    /* Activity items: hide color bar on mobile */
+    .activity-color-bar { display: none; }
+    .activity-item { padding: 12px 14px; gap: 10px; }
+    .activity-icon { width: 32px; height: 32px; font-size: 14px; }
+    .activity-name { font-size: 13px; }
+    .activity-meta { font-size: 11px; }
+    .activity-pts { font-size: 13px; }
+
+    /* Students toolbar: wrap nicely */
+    .students-toolbar { gap: 8px; }
+    .search-input-wrap { max-width: 100%; width: 100%; }
+    .filter-select { flex: 1; min-width: 120px; }
+    .students-count { width: 100%; margin-left: 0; }
+
+    /* Detail hero: stack */
+    .detail-hero {
+      padding: 20px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .detail-hero-name { font-size: 20px; }
+    .detail-hero::before { display: none; }
+    .detail-hero-score-block { align-self: flex-start; }
+    .detail-mini-stat { padding: 10px 14px; }
+    .detail-mini-stat-val { font-size: 17px; }
+
+    /* Topics grid → 2 cols on mobile */
+    .topics-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Detail grid → single column */
+    .detail-grid { grid-template-columns: 1fr; }
+
+    /* Detail card */
+    .detail-card { padding: 18px; }
+
+    /* Settings: inputs full width */
+    .settings-input { width: 100%; }
+    .settings-select { width: 100%; }
+    .settings-field {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .settings-field-info { min-width: unset; width: 100%; }
+    .settings-avatar-row { width: 100%; }
+    .btn-danger { width: 100%; justify-content: center; }
+  }
+
+  /* ── SMALL MOBILE (≤ 480px) ── */
+  @media (max-width: 480px) {
+    .page-header h1 { font-size: 20px; }
+
+    .detail-hero-stats { gap: 8px; }
+    .detail-mini-stat { padding: 8px 10px; }
+
+    .topics-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .topic-card { padding: 12px; }
+    .topic-card-score-big { font-size: 22px; }
+
+    .stats-grid { gap: 12px; }
+    .stat-card { padding: 18px; }
+    .stat-value { font-size: 26px; }
+  }
 `;
 
 interface NavItemType { icon: string; label: string; badge?: string; }
@@ -838,12 +1047,6 @@ const SALAS = ["Todas as Salas", "Sala 01", "Sala 02", "Sala 03", "Sala 04", "Sa
 const ANOS = ["Todos os Anos", "1º Ano", "2º Ano", "3º Ano"];
 const MEDALS = ["🥇", "🥈", "🥉"];
 const ACCENT_COLORS = ["#D42B2B", "#2563EB", "#7C3AED", "#059669", "#D97706", "#DB2777"];
-
-// ─── Settings nav — Turmas removida ──────────────────────────────────────────
-const SETTINGS_NAV = [
-  { icon: "👤", label: "Perfil" },
-  { icon: "🔒", label: "Segurança" },
-];
 
 function getStudentDetail(s: FullStudent) {
   const seed = s.name.charCodeAt(0) + s.name.charCodeAt(1);
@@ -920,37 +1123,19 @@ function Toggle({ checked, onChange, onLabel = "Sim", offLabel = "Não" }: {
   );
 }
 
-// ─── Topic card badge helper ──────────────────────────────────────────────────
 function topicBadge(score: number) {
   if (score >= 80) return { cls: "badge-high", label: "Forte" };
-  if (score >= 55) return { cls: "badge-mid",  label: "Regular" };
+  if (score >= 55) return { cls: "badge-mid", label: "Regular" };
   return { cls: "badge-low", label: "A melhorar" };
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
 function SettingsView() {
-  const [activeSection, setActiveSection] = useState("Perfil");
   const [savedVisible, setSavedVisible] = useState(false);
-
   const [nome, setNome] = useState("Prof. Mendes");
   const [email, setEmail] = useState("mendes@escola.br");
-  const [escola, setEscola] = useState("Escola Estadual Central");
-  const [disciplina, setDisciplina] = useState("Química");
+
   const [accentColor, setAccentColor] = useState("#D42B2B");
-
-  const [tempoPadrao, setTempoPadrao] = useState("20");
-  const [pontosVitoria, setPontosVitoria] = useState("100");
-  const [pontosDerrota, setPontosDerrota] = useState("20");
-  const [permitirRevancha, setPermitirRevancha] = useState(true);
-  const [mostrarGabarito, setMostrarGabarito] = useState(true);
-  const [dificuldade, setDificuldade] = useState("Médio");
-
-  const [notifEmail, setNotifEmail] = useState(true);
-  const [notifNovaPartida, setNotifNovaPartida] = useState(true);
-  const [notifRanking, setNotifRanking] = useState(false);
-  const [notifRelatorio, setNotifRelatorio] = useState(true);
-  const [frequenciaRelatorio, setFrequenciaRelatorio] = useState("Semanal");
-
   const [senhaAtual, setSenhaAtual] = useState("");
   const [senhaNova, setSenhaNova] = useState("");
   const [senhaConfirm, setSenhaConfirm] = useState("");
@@ -965,159 +1150,117 @@ function SettingsView() {
     <>
       <div className="page-header">
         <h1>Confi<span>gurações</span></h1>
-        <p>Gerencie seu perfil, preferências de jogo e notificações.</p>
+        <p>Gerencie seu perfil, aparência e segurança da conta.</p>
       </div>
 
-      <div className="settings-layout">
-        <nav className="settings-nav">
-          {SETTINGS_NAV.map((item) => (
-            <button
-              key={item.label}
-              className={`settings-nav-item ${activeSection === item.label ? "active" : ""}`}
-              onClick={() => setActiveSection(item.label)}
-            >
-              <span className="settings-nav-icon">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <div>
-          {activeSection === "Perfil" && (
-            <>
-              <div className="settings-section">
-                <div className="settings-section-header">
-                  <div className="settings-section-title">👤 Informações Pessoais</div>
-                  <div className="settings-section-desc">Dados exibidos para os alunos e relatórios.</div>
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Foto de perfil</div>
-                    <div className="settings-field-hint">JPG ou PNG, até 2 MB.</div>
-                  </div>
-                  <div className="settings-avatar-row">
-                    <div className="settings-avatar" style={{ background: accentColor }}>PM</div>
-                    <div className="settings-avatar-actions">
-                      <button className="btn-secondary">📷 Alterar foto</button>
-                      <button className="btn-secondary" style={{ color: "var(--red)", borderColor: "#FECACA" }}>🗑 Remover</button>
-                    </div>
-                  </div>
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Nome completo</div>
-                    <div className="settings-field-hint">Aparece no cabeçalho e nos relatórios.</div>
-                  </div>
-                  <input className="settings-input" value={nome} onChange={(e) => setNome(e.target.value)} />
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">E-mail</div>
-                    <div className="settings-field-hint">Usado para login e notificações.</div>
-                  </div>
-                  <input className="settings-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Escola</div>
-                    <div className="settings-field-hint">Instituição de ensino.</div>
-                  </div>
-                  <input className="settings-input" value={escola} onChange={(e) => setEscola(e.target.value)} />
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Disciplina</div>
-                    <div className="settings-field-hint">Matéria que você leciona.</div>
-                  </div>
-                  <input className="settings-input" value={disciplina} onChange={(e) => setDisciplina(e.target.value)} />
-                </div>
+      <div className="settings-stack">
+        <div className="settings-section">
+          <div className="settings-section-header">
+            <div className="settings-section-title">👤 Informações Pessoais</div>
+            <div className="settings-section-desc">Dados exibidos para os alunos e relatórios.</div>
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info">
+              <div className="settings-field-label">Foto de perfil</div>
+              <div className="settings-field-hint">JPG ou PNG, até 2 MB.</div>
+            </div>
+            <div className="settings-avatar-row">
+              <div className="settings-avatar" style={{ background: accentColor }}>PM</div>
+              <div className="settings-avatar-actions">
+                <button className="btn-secondary">📷 Alterar foto</button>
+                <button className="btn-secondary" style={{ color: "var(--red)", borderColor: "#FECACA" }}>🗑 Remover</button>
               </div>
+            </div>
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info">
+              <div className="settings-field-label">Nome completo</div>
+              <div className="settings-field-hint">Aparece no cabeçalho e nos relatórios.</div>
+            </div>
+            <input className="settings-input" value={nome} onChange={(e) => setNome(e.target.value)} />
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info">
+              <div className="settings-field-label">E-mail</div>
+              <div className="settings-field-hint">Usado para login e notificações.</div>
+            </div>
+            <input className="settings-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
 
-              <div className="settings-section">
-                <div className="settings-section-header">
-                  <div className="settings-section-title">🎨 Aparência</div>
-                  <div className="settings-section-desc">Personalize a cor de destaque do painel.</div>
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Cor de destaque</div>
-                    <div className="settings-field-hint">Afeta botões, badges e indicadores ativos.</div>
-                  </div>
-                  <div className="color-swatches">
-                    {ACCENT_COLORS.map((c) => (
-                      <div key={c} className={`color-swatch ${accentColor === c ? "selected" : ""}`}
-                        style={{ background: c }} onClick={() => setAccentColor(c)} title={c} />
-                    ))}
-                  </div>
-                </div>
-              </div>
+        </div>
 
-              <div className="settings-actions">
-                <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Alterações salvas!</span>
-                <button className="btn-primary" style={{ marginLeft: "auto" }} onClick={handleSave}>Salvar alterações</button>
-              </div>
-            </>
-          )}
+        <div className="settings-section">
+          <div className="settings-section-header">
+            <div className="settings-section-title">🎨 Aparência</div>
+            <div className="settings-section-desc">Personalize a cor de destaque do painel.</div>
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info">
+              <div className="settings-field-label">Cor de destaque</div>
+              <div className="settings-field-hint">Afeta botões, badges e indicadores ativos.</div>
+            </div>
+            <div className="color-swatches">
+              {ACCENT_COLORS.map((c) => (
+                <div key={c} className={`color-swatch ${accentColor === c ? "selected" : ""}`}
+                  style={{ background: c }} onClick={() => setAccentColor(c)} title={c} />
+              ))}
+            </div>
+          </div>
+        </div>
 
+        <div className="settings-section">
+          <div className="settings-section-header">
+            <div className="settings-section-title">🔑 Alterar Senha</div>
+            <div className="settings-section-desc">Use uma senha forte com letras, números e símbolos.</div>
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info"><div className="settings-field-label">Senha atual</div></div>
+            <input className="settings-input" type="password" placeholder="••••••••" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} />
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info">
+              <div className="settings-field-label">Nova senha</div>
+              <div className="settings-field-hint">Mínimo de 8 caracteres.</div>
+            </div>
+            <input className="settings-input" type="password" placeholder="••••••••" value={senhaNova} onChange={(e) => setSenhaNova(e.target.value)} />
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info"><div className="settings-field-label">Confirmar nova senha</div></div>
+            <input className="settings-input" type="password" placeholder="••••••••" value={senhaConfirm} onChange={(e) => setSenhaConfirm(e.target.value)} />
+          </div>
+        </div>
 
-          {activeSection === "Segurança" && (
-            <>
-              <div className="settings-section">
-                <div className="settings-section-header">
-                  <div className="settings-section-title">🔑 Alterar Senha</div>
-                  <div className="settings-section-desc">Use uma senha forte com letras, números e símbolos.</div>
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info"><div className="settings-field-label">Senha atual</div></div>
-                  <input className="settings-input" type="password" placeholder="••••••••" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} />
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Nova senha</div>
-                    <div className="settings-field-hint">Mínimo de 8 caracteres.</div>
-                  </div>
-                  <input className="settings-input" type="password" placeholder="••••••••" value={senhaNova} onChange={(e) => setSenhaNova(e.target.value)} />
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info"><div className="settings-field-label">Confirmar nova senha</div></div>
-                  <input className="settings-input" type="password" placeholder="••••••••" value={senhaConfirm} onChange={(e) => setSenhaConfirm(e.target.value)} />
-                </div>
-              </div>
+        <div className="settings-section">
+          <div className="settings-section-header">
+            <div className="settings-section-title">🛡 Autenticação em Dois Fatores</div>
+            <div className="settings-section-desc">Adicione uma camada extra de proteção à sua conta.</div>
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info">
+              <div className="settings-field-label">Ativar 2FA</div>
+              <div className="settings-field-hint">Solicita um código extra ao fazer login.</div>
+            </div>
+            <Toggle checked={autenticacao2fa} onChange={setAutenticacao2fa} onLabel="Ativo" offLabel="Inativo" />
+          </div>
+        </div>
 
-              <div className="settings-section">
-                <div className="settings-section-header">
-                  <div className="settings-section-title">🛡 Autenticação em Dois Fatores</div>
-                  <div className="settings-section-desc">Adicione uma camada extra de proteção à sua conta.</div>
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Ativar 2FA</div>
-                    <div className="settings-field-hint">Solicita um código extra ao fazer login.</div>
-                  </div>
-                  <Toggle checked={autenticacao2fa} onChange={setAutenticacao2fa} onLabel="Ativo" offLabel="Inativo" />
-                </div>
-              </div>
+        <div className="settings-section danger-zone">
+          <div className="settings-section-header">
+            <div className="settings-section-title">⚠️ Zona de Perigo</div>
+            <div className="settings-section-desc">Ações irreversíveis. Proceda com cuidado.</div>
+          </div>
+          <div className="settings-field">
+            <div className="settings-field-info">
+              <div className="settings-field-label">Excluir conta</div>
+              <div className="settings-field-hint">Remove permanentemente todos os dados, turmas e histórico.</div>
+            </div>
+            <button className="btn-danger">🗑 Excluir conta</button>
+          </div>
+        </div>
 
-              <div className="settings-section danger-zone">
-                <div className="settings-section-header">
-                  <div className="settings-section-title">⚠️ Zona de Perigo</div>
-                  <div className="settings-section-desc">Ações irreversíveis. Proceda com cuidado.</div>
-                </div>
-                <div className="settings-field">
-                  <div className="settings-field-info">
-                    <div className="settings-field-label">Excluir conta</div>
-                    <div className="settings-field-hint">Remove permanentemente todos os dados, turmas e histórico.</div>
-                  </div>
-                  <button className="btn-danger">🗑 Excluir conta</button>
-                </div>
-              </div>
-
-              <div className="settings-actions">
-                <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Alterações salvas!</span>
-                <button className="btn-primary" style={{ marginLeft: "auto" }} onClick={handleSave}>Salvar alterações</button>
-              </div>
-            </>
-          )}
+        <div className="settings-actions">
+          <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Alterações salvas!</span>
+          <button className="btn-primary" style={{ marginLeft: "auto" }} onClick={handleSave}>Salvar alterações</button>
         </div>
       </div>
     </>
@@ -1161,7 +1304,7 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
             </div>
             <div className="detail-mini-stat">
               <div className="detail-mini-stat-val">{detail.pontosTotal.toLocaleString("pt-BR")}</div>
-              <div className="detail-mini-stat-lbl">Pontos totais</div>
+              <div className="detail-mini-stat-lbl">Pts totais</div>
             </div>
           </div>
         </div>
@@ -1173,7 +1316,6 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
 
       <div className="detail-grid">
         <div>
-          {/* Topics as card grid instead of side bars */}
           <div className="detail-card">
             <div className="detail-card-title">
               <div className="detail-card-title-icon">📚</div>
@@ -1326,7 +1468,7 @@ function DashboardView() {
         <div>
           <div className="section-header">
             <div className="section-title">Partidas Recentes</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <div className="tabs">
                 {(["Hoje", "Semana", "Mês"] as const).map((t) => (
                   <button key={t} className={`tab-btn ${activeTab === t ? "active" : ""}`} onClick={() => setActiveTab(t)}>{t}</button>
@@ -1418,52 +1560,55 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
       </div>
 
       <div className="students-table-wrap">
-        <table className="students-table">
-          <thead>
-            <tr>
-              <th>Aluno</th><th>Ano</th><th>Sala</th><th>Desempenho</th><th>Partidas</th><th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((s, i) => (
-              <tr key={i} onClick={() => onSelectStudent(s)} title={`Ver perfil de ${s.name}`}>
-                <td>
-                  <div className="td-student">
-                    <div className="td-avatar" style={{ background: s.color }}>{s.initials}</div>
-                    <div>
-                      <div className="td-name">{s.name}</div>
-                      <div className="td-email">{s.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td><span className="td-sala">{s.ano}</span></td>
-                <td><span className="td-sala">{s.sala}</span></td>
-                <td>
-                  <div className="td-score-wrap">
-                    <div className="td-score-bar-bg">
-                      <div className="td-score-bar-fill" style={{ width: `${s.score}%`, background: s.color }} />
-                    </div>
-                    <span className="td-score-val">{s.score}%</span>
-                  </div>
-                </td>
-                <td style={{ fontWeight: 600, fontSize: 13 }}>{s.partidas}</td>
-                <td>
-                  <span className={`status-pill ${s.online ? "status-online" : "status-offline"}`}>
-                    <span className="status-dot" />
-                    {s.online ? "Online" : "Offline"}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
+        {/* Wrapper for horizontal scroll on small screens */}
+        <div className="students-table-scroll">
+          <table className="students-table">
+            <thead>
               <tr>
-                <td colSpan={6} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>
-                  Nenhum aluno encontrado.
-                </td>
+                <th>Aluno</th><th>Ano</th><th>Sala</th><th>Desempenho</th><th>Partidas</th><th>Status</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((s, i) => (
+                <tr key={i} onClick={() => onSelectStudent(s)} title={`Ver perfil de ${s.name}`}>
+                  <td>
+                    <div className="td-student">
+                      <div className="td-avatar" style={{ background: s.color }}>{s.initials}</div>
+                      <div>
+                        <div className="td-name">{s.name}</div>
+                        <div className="td-email">{s.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span className="td-sala">{s.ano}</span></td>
+                  <td><span className="td-sala">{s.sala}</span></td>
+                  <td>
+                    <div className="td-score-wrap">
+                      <div className="td-score-bar-bg">
+                        <div className="td-score-bar-fill" style={{ width: `${s.score}%`, background: s.color }} />
+                      </div>
+                      <span className="td-score-val">{s.score}%</span>
+                    </div>
+                  </td>
+                  <td style={{ fontWeight: 600, fontSize: 13 }}>{s.partidas}</td>
+                  <td>
+                    <span className={`status-pill ${s.online ? "status-online" : "status-offline"}`}>
+                      <span className="status-dot" />
+                      {s.online ? "Online" : "Offline"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>
+                    Nenhum aluno encontrado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
@@ -1473,10 +1618,17 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
 export default function ProfessorDashboard() {
   const [activeNav, setActiveNav] = useState<string>("Dashboard");
   const [selectedStudent, setSelectedStudent] = useState<FullStudent | null>(null);
+  const [showSidebarMenu, setShowSidebarMenu] = useState(false);
+  const [showTopbarMenu, setShowTopbarMenu] = useState(false);
 
   const handleSelectStudent = (s: FullStudent) => setSelectedStudent(s);
   const handleBack = () => setSelectedStudent(null);
-  const handleNavChange = (label: string) => { setActiveNav(label); setSelectedStudent(null); };
+  const handleNavChange = (label: string) => {
+    setActiveNav(label);
+    setSelectedStudent(null);
+    setShowSidebarMenu(false);
+    setShowTopbarMenu(false);
+  };
 
   const breadcrumbMap: Record<string, string> = {
     Dashboard: "Painel de Controle",
@@ -1488,6 +1640,8 @@ export default function ProfessorDashboard() {
     <>
       <style>{styles}</style>
       <div className="app">
+
+        {/* ── Desktop Sidebar ── */}
         <aside className="sidebar">
           <div className="sidebar-logo">
             <div className="sidebar-logo-icon">⚗</div>
@@ -1504,21 +1658,34 @@ export default function ProfessorDashboard() {
             ))}
           </div>
           <div className="sidebar-bottom">
-            <div className="sidebar-user">
-              <div className="user-avatar">PM</div>
-              <div className="user-info">
-                <div className="user-name">Prof. Mendes</div>
-                <div className="user-role">Administrador</div>
+            <div className="user-menu-wrap">
+              {showSidebarMenu && (
+                <div className="user-menu-popover">
+                  <button className="user-menu-item" onClick={() => handleNavChange("Configurações")}>
+                    <span className="user-menu-icon">⚙️</span> Configurações
+                  </button>
+                  <button className="user-menu-item danger" onClick={() => setShowSidebarMenu(false)}>
+                    <span className="user-menu-icon">🚪</span> Sair da conta
+                  </button>
+                </div>
+              )}
+              <div className="sidebar-user" onClick={() => setShowSidebarMenu(v => !v)}>
+                <div className="user-avatar">PM</div>
+                <div className="user-info">
+                  <div className="user-name">Prof. Mendes</div>
+                  <div className="user-role">Administrador</div>
+                </div>
+                <span style={{ color: "#555", fontSize: 14, transition: "transform 0.15s", transform: showSidebarMenu ? "rotate(180deg)" : "none" }}>↗</span>
               </div>
-              <span style={{ color: "#555", fontSize: 14 }}>↗</span>
             </div>
           </div>
         </aside>
 
+        {/* ── Topbar ── */}
         <header className="topbar">
           <span className="breadcrumb">
-            Molecular Narrative
-            <span className="breadcrumb-sep"> / </span>
+            <span style={{ display: "none" }} className="breadcrumb-desktop-brand">Molecular Narrative</span>
+            <span className="breadcrumb-sep" style={{ display: "none" }}> / </span>
             {selectedStudent ? (
               <>
                 <span className="breadcrumb-link" onClick={handleBack}>{breadcrumbMap[activeNav]}</span>
@@ -1529,14 +1696,52 @@ export default function ProfessorDashboard() {
               <span className="breadcrumb-current">{breadcrumbMap[activeNav] ?? activeNav}</span>
             )}
           </span>
+          {/* Mobile user button */}
+          <button className="topbar-user-btn" onClick={() => setShowTopbarMenu(v => !v)}>
+            <div className="topbar-user-avatar">PM</div>
+          </button>
+          {/* Mobile user menu popover — render outside sidebar on mobile */}
+          {showTopbarMenu && (
+            <div style={{
+              position: "fixed", top: 64, right: 12,
+              background: "#1a1a1a", border: "1px solid #2a2a2a",
+              borderRadius: 12, overflow: "hidden",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+              zIndex: 200, minWidth: 180,
+              animation: "popover-in 0.15s ease",
+            }}>
+              <button className="user-menu-item" onClick={() => handleNavChange("Configurações")}>
+                <span className="user-menu-icon">⚙️</span> Configurações
+              </button>
+              <button className="user-menu-item danger" onClick={() => setShowTopbarMenu(false)}>
+                <span className="user-menu-icon">🚪</span> Sair da conta
+              </button>
+            </div>
+          )}
         </header>
 
+        {/* ── Main Content ── */}
         <main className="main">
           {activeNav === "Dashboard" && <DashboardView />}
           {activeNav === "Alunos" && !selectedStudent && <StudentsView onSelectStudent={handleSelectStudent} />}
           {activeNav === "Alunos" && selectedStudent && <StudentDetailView student={selectedStudent} onBack={handleBack} />}
           {activeNav === "Configurações" && <SettingsView />}
         </main>
+
+        {/* ── Mobile Bottom Nav ── */}
+        <nav className="bottom-nav">
+          {NAV.map((n) => (
+            <button
+              key={n.label}
+              className={`bottom-nav-item ${activeNav === n.label ? "active" : ""}`}
+              onClick={() => handleNavChange(n.label)}
+            >
+              <span className="bottom-nav-item-icon">{n.icon}</span>
+              <span className="bottom-nav-item-label">{n.label}</span>
+            </button>
+          ))}
+        </nav>
+
       </div>
     </>
   );
