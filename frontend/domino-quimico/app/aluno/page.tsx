@@ -18,43 +18,17 @@ import {
 } from "lucide-react"
 
 const XP_STORAGE_KEY = "dominoQuimicoXp"
-const ROOMS_STORAGE_KEY = "dominoQuimicoRooms"
 const HOST_ROOM_CODE_KEY = "dominoQuimicoHostRoomCode"
 const XP_POR_NIVEL = 1000
 const NIVEL_BASE = 42
-const PLAYER_NAME = typeof window !== "undefined" 
-  ? (localStorage.getItem("dominoUsuario") 
-      ? JSON.parse(localStorage.getItem("dominoUsuario")!).nome 
-      : "Cientista")
-  : "Cientista"
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 
 type Room = {
   code: string
-  hostName: string
+  hostId: number
   createdAt: string
-  players: string[]
+  players: { id: number; nome: string }[]
   status: string
-}
-
-function generateRoomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-  let code = ""
-  for (let i = 0; i < 6; i += 1) code += chars[Math.floor(Math.random() * chars.length)]
-  return code
-}
-
-function loadRooms(): Record<string, Room> {
-  try {
-    const raw = window.localStorage.getItem(ROOMS_STORAGE_KEY)
-    if (!raw) return {}
-    return JSON.parse(raw) as Record<string, Room>
-  } catch {
-    return {}
-  }
-}
-
-function saveRooms(rooms: Record<string, Room>) {
-  window.localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(rooms))
 }
 
 export default function AlunoHome() {
@@ -68,44 +42,60 @@ export default function AlunoHome() {
   const [copiado, setCopiado] = useState(false)
   const [codigoSala, setCodigoSala] = useState("")
 
+  const [playerName, setPlayerName] = useState("Cientista")
+  const [playerId,   setPlayerId]   = useState<number>(-99)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("dominoUsuario")
+      if (raw) {
+        const user = JSON.parse(raw) as { id?: number; nome?: string }
+        if (user.nome) setPlayerName(user.nome)
+        if (user.id)   setPlayerId(user.id)
+      }
+    } catch { /* localStorage indisponível ou JSON inválido */ }
+  }, [])
+
   const criarSala = async () => {
+    if (playerId === -99) { alert("Aguarde — carregando dados do usuário."); return }
     try {
       setCriandoSala(true)
-      const rooms = loadRooms()
-      let code = generateRoomCode()
-      while (rooms[code]) code = generateRoomCode()
-      const room: Room = {
-        code,
-        hostName: PLAYER_NAME,
-        createdAt: new Date().toISOString(),
-        players: [PLAYER_NAME],
-        status: "waiting",
+      const res = await fetch(`${API_URL}/api/salas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hostId: playerId }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        alert(data.erro ?? "Não foi possível criar a sala agora.")
+        return
       }
-      rooms[code] = room
-      saveRooms(rooms)
-      window.sessionStorage.setItem(HOST_ROOM_CODE_KEY, code)
-      setCodigoCriado(code)
+      const sala = await res.json() as { code: string }
+      window.sessionStorage.setItem(HOST_ROOM_CODE_KEY, sala.code)
+      setCodigoCriado(sala.code)
       setMostrarModalCriada(true)
     } catch {
-      alert("Não foi possível criar a sala agora.")
+      alert("Sem conexão com o servidor.")
     } finally {
       setCriandoSala(false)
     }
   }
 
   useEffect(() => {
+    if (playerId === -99) return   // aguarda o useEffect de auth carregar o id
     try {
       const shouldCreate = searchParams?.get("createRoom") === "1"
       if (shouldCreate && !mostrarModalCriada && !criandoSala) criarSala()
     } catch { /* silencioso */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams])
+  }, [searchParams, playerId])
 
   const entrarNaSalaCriada = () => {
     setMostrarModalCriada(false)
-    sessionStorage.setItem("dominoNome", PLAYER_NAME)
+    sessionStorage.setItem("dominoNome", playerName)
+    sessionStorage.setItem("dominoUserId", String(playerId))
     sessionStorage.setItem("dominoSala", codigoCriado)
-    router.push(`/sala/${codigoCriado}?jogador=${encodeURIComponent(PLAYER_NAME)}&sala=${codigoCriado}`)
+    router.push(`/sala/${codigoCriado}?jogador=${encodeURIComponent(playerName)}&sala=${codigoCriado}`)
   }
 
   const copiarCodigo = async () => {
@@ -122,9 +112,12 @@ export default function AlunoHome() {
     setMostrarModalEntrada(false)
     setCodigoSala("")
     window.sessionStorage.removeItem(HOST_ROOM_CODE_KEY)
-    sessionStorage.setItem("dominoNome", PLAYER_NAME)
+    // Bug fix: dominoUserId nunca era gravado no sessionStorage, então a página
+    // da sala recebia playerId=-99 e o POST /entrar falhava com 404/500.
+    sessionStorage.setItem("dominoNome", playerName)
+    sessionStorage.setItem("dominoUserId", String(playerId))
     sessionStorage.setItem("dominoSala", code)
-    router.push(`/sala/${code}?jogador=${encodeURIComponent(PLAYER_NAME)}&sala=${code}`)
+    router.push(`/sala/${code}?jogador=${encodeURIComponent(playerName)}&sala=${code}`)
   }
 
   useEffect(() => {
@@ -155,7 +148,6 @@ export default function AlunoHome() {
 
   const handleLogout = () => {
     localStorage.removeItem("dominoQuimicoXp")
-    localStorage.removeItem("dominoQuimicoRooms")
     localStorage.removeItem("dominoQuimicoHostRoomCode")
     router.push("/login")
   }

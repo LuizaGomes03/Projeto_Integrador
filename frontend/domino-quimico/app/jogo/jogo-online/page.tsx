@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect, useMemo } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Trophy, RefreshCw, RotateCcw, AlertCircle, X } from "lucide-react"
 import { apiFetch } from "@/lib/api"
@@ -241,19 +241,24 @@ const POLL_INTERVAL = 2000
 export default function JogoOnlinePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const nomeParm = searchParams.get("jogador")
+  const salaParm = searchParams.get("sala")
+  const [meuNome, setMeuNome]       = useState(nomeParm || "Jogador")
+  const [meuId, setMeuId]           = useState(-99)
+  const [codigoSala, setCodigoSala] = useState((salaParm || "").toUpperCase())
 
-  const { meuNome, meuId, codigoSala } = useMemo(() => {
-    const nomeParm = searchParams.get("jogador")
-    const salaParm = searchParams.get("sala")
-    const nomeSession = typeof window !== "undefined" ? sessionStorage.getItem("dominoNome") : null
-    const idSession   = typeof window !== "undefined" ? sessionStorage.getItem("dominoUserId") : null
-    const salaSession = typeof window !== "undefined" ? sessionStorage.getItem("dominoSala") : null
-    return {
-      meuNome:    nomeParm  || nomeSession  || "Jogador",
-      meuId:      idSession ? Number(idSession) : -99,
-      codigoSala: (salaParm || salaSession || "DEMO").toUpperCase(),
-    }
-  }, [searchParams])
+  useEffect(() => {
+    const nomeSession = sessionStorage.getItem("dominoNome")
+    const idSession   = sessionStorage.getItem("dominoUserId")
+    const salaSession = sessionStorage.getItem("dominoSala")
+    if (!nomeParm && nomeSession) setMeuNome(nomeSession)
+    if (idSession)                setMeuId(Number(idSession))
+    if (!salaParm && salaSession) setCodigoSala(salaSession.toUpperCase())
+  }, [nomeParm, salaParm])
+
+  useEffect(() => {
+    if (codigoSala === "") router.replace("/aluno")
+  }, [codigoSala, router])
 
   const [partida, setPartida]       = useState<EstadoPartida | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -272,9 +277,12 @@ export default function JogoOnlinePage() {
   const meuIdRef    = useRef(meuId)
   const meuNomeRef  = useRef(meuNome)
   const salaRef     = useRef(codigoSala)
-  useEffect(() => { meuIdRef.current   = meuId },    [meuId])
-  useEffect(() => { meuNomeRef.current = meuNome },  [meuNome])
-  useEffect(() => { salaRef.current    = codigoSala }, [codigoSala])
+  meuIdRef.current   = meuId
+  meuNomeRef.current = meuNome
+  salaRef.current    = codigoSala
+
+  const [clientReady, setClientReady] = useState(false)
+  useEffect(() => { setClientReady(true) }, [])
 
   const ehMeuTurno = partida?.turnoAtual === meuNome
 
@@ -282,7 +290,8 @@ export default function JogoOnlinePage() {
   const buscarEstado = useCallback(async () => {
     const id   = meuIdRef.current
     const sala = salaRef.current
-    if (!sala) return
+ 
+    if (!sala || id === -99) return
     try {
       const res = await apiFetch(`/api/partidas/${sala}?jogador=${encodeURIComponent(id)}`)
       if (res.status === 404) {
@@ -303,10 +312,11 @@ export default function JogoOnlinePage() {
   }, [showVencedor])
 
   useEffect(() => {
+    if (!clientReady) return
     buscarEstado()
     const id = setInterval(buscarEstado, POLL_INTERVAL)
     return () => clearInterval(id)
-  }, [buscarEstado])
+  }, [buscarEstado, clientReady])
 
   // ─── JOGAR PEDRA ──────────────────────────────────────────────────────────────
   const jogarPedra = useCallback(async (pedraId: string) => {
@@ -511,8 +521,8 @@ export default function JogoOnlinePage() {
                   const isOnly  = snakeRows.length === 1
                   const justif  = row.reversed ? "flex-end" : "flex-start"
                   const dropEsqVisible   = ehMeuTurno && (isFirst || isOnly) && !row.reversed
-                  const dropDirVisible   = ehMeuTurno && (isLast  || isOnly) && !row.reversed
-                  const dropDirReversed  = ehMeuTurno && isLast && !isOnly && row.reversed
+                  const dropDirVisible   = ehMeuTurno && (isLast || isOnly) && !row.reversed
+                  const dropDirReversed  = ehMeuTurno && isLast && !isOnly && row.reversed && !dropDirVisible
 
                   return (
                     <div key={rowIdx} style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: justif, flexWrap: "nowrap" }}>

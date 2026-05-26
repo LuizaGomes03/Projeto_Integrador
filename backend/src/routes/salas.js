@@ -26,10 +26,6 @@ async function createUniqueCode(client) {
   return code
 }
 
-/**
- * Monta o objeto de sala no formato esperado pelo frontend,
- * buscando os jogadores da tabela sala_jogadores + usuarios.
- */
 async function buildRoomPayload(client, salaRow) {
   const { rows: jogadores } = await client.query(
     `SELECT u.id, u.nome
@@ -120,8 +116,8 @@ router.post('/:code/entrar', async (req, res) => {
   const code = String(req.params.code ?? '').toUpperCase()
   const { usuarioId } = req.body ?? {}
 
-  if (!usuarioId) {
-    return res.status(400).json({ erro: 'usuarioId é obrigatório.' })
+  if (!usuarioId || Number(usuarioId) <= 0) {
+    return res.status(400).json({ erro: 'usuarioId inválido.' })
   }
 
   const client = await pool.connect()

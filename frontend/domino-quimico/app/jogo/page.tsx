@@ -343,30 +343,15 @@ function ErrorToast({ message, onClose }: { message: string; onClose: () => void
 
 const POLL_INTERVAL = 2000
 
-// ─── LAYOUT SERPENTINA ──────────────────────────────────────────────────────
-// Linha par:  [dropEsq] [h][h][h][h][h][h] [V] ← ultima peca vertical (canto)
-// Linha impar:                         [V] [h][h][h][h][h][h] [dropDir]
-//                                      ^ primeira peca vertical (entrada)
-// Linha par seguinte: [dropEsq] [h]...[V]  etc.
-// As pecas verticais nos cantos sinalizama dobra da cadeia.
-
-const COLS = 6  // pecas horizontais por linha (sem contar as verticais de canto)
 
 type TileLayout = {
   pedra: Pedra
-  // "h" = horizontal normal
-  // "v-exit"  = vertical de saida (ultima da linha, canto direito linha par / canto esquerdo linha impar)
-  // "v-enter" = vertical de entrada (primeira da linha impar, repete a mesma posicao do v-exit da linha anterior)
   kind: "h" | "v-exit" | "v-enter"
 }
 type SnakeRow = { tiles: TileLayout[]; reversed: boolean }
 
 function buildSnakeRows(mesa: Pedra[]): SnakeRow[] {
   if (mesa.length === 0) return []
-  // Distribui as pecas em grupos de COLS, com a ultima de cada grupo (exceto o ultimo)
-  // marcada como "v-exit". A proxima linha comeca com a mesma peca como "v-enter"
-  // para mostrar o canto — mas na verdade e so visual, nao duplica a peca.
-  // Mais simples: cada linha tem ate COLS pecas. A ultima linha incompleta nao tem canto.
   const rows: SnakeRow[] = []
   let i = 0
   let rowIdx = 0
@@ -400,12 +385,28 @@ export default function GameBoard() {
   const [enviando, setEnviando] = useState(false)
   const [showVencedor, setShowVencedor] = useState(false)
 
-  const meuNome = typeof window !== "undefined"
-    ? (sessionStorage.getItem("dominoNome") ?? "Jogador")
-    : "Jogador"
-  const codigoSala = typeof window !== "undefined"
-    ? (sessionStorage.getItem("dominoSala") ?? "DEMO")
-    : "DEMO"
+  // ─── SESSÃO ──────────────────────────────────────────────────────────────────
+  const [meuNome,    setMeuNome]    = useState("Jogador")
+  const [meuId,      setMeuId]      = useState<number>(-99)
+  const [codigoSala, setCodigoSala] = useState("")
+  const [clientReady, setClientReady] = useState(false)
+
+  useEffect(() => {
+    const storedNome = sessionStorage.getItem("dominoNome")
+    const storedId   = sessionStorage.getItem("dominoUserId")
+
+    if (storedNome) setMeuNome(storedNome)
+    if (storedId)   setMeuId(Number(storedId))
+
+    const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    let sala = sessionStorage.getItem("dominoSoloCodigo")
+    if (!sala) {
+      sala = Array.from({ length: 6 }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join("")
+      sessionStorage.setItem("dominoSoloCodigo", sala)
+    }
+    setCodigoSala(sala)
+    setClientReady(true)
+  }, [])
 
   const showError = useCallback((msg: string) => setErrorMsg(msg), [])
 
@@ -423,10 +424,10 @@ export default function GameBoard() {
   const ehMeuTurno = partida?.turnoAtual === meuNome
 
   const buscarEstado = useCallback(async () => {
-    if (!codigoSala || !meuNome) return
+    if (!codigoSala || !meuNome || meuId === -99) return
     try {
       const res = await apiFetch(
-        `/api/partidas/${codigoSala}?jogador=${encodeURIComponent(typeof window !== "undefined" ? Number(sessionStorage.getItem("dominoUserId") ?? -99) : -99)}`
+        `/api/partidas/${codigoSala}?jogador=${encodeURIComponent(meuId)}`
       )
       if (res.status === 404) {
         const r2 = await apiFetch(`/api/partidas/iniciar`, {
@@ -435,34 +436,38 @@ export default function GameBoard() {
           body: JSON.stringify({
             codigoSala,
             jogadores: [
-              { id: typeof window !== "undefined" ? Number(sessionStorage.getItem("dominoUserId") ?? -99) : -99, nome: meuNome },
-              { id: -1, nome: "IA Química" }
+              { id: meuId, nome: meuNome },
+              { id: -1, nome: "IA Química" },
             ],
           }),
         })
-        if (!r2.ok) throw new Error("Falha ao iniciar")
+        if (!r2.ok) {
+          const errData = await r2.json().catch(() => ({}))
+          throw new Error(errData.erro ?? "Falha ao iniciar partida solo.")
+        }
         const data: EstadoPartida = await r2.json()
         setPartida(data)
         setErroBusca("")
         return
       }
-      if (!res.ok) throw new Error("Erro ao buscar")
+      if (!res.ok) throw new Error("Erro ao buscar estado da partida.")
       const data: EstadoPartida = await res.json()
       setPartida(data)
       setErroBusca("")
       if (data.encerrado && !showVencedor) setShowVencedor(true)
-    } catch {
-      setErroBusca("Sem conexão com o servidor.")
+    } catch (err) {
+      setErroBusca(err instanceof Error ? err.message : "Sem conexão com o servidor.")
     } finally {
       setCarregando(false)
     }
-  }, [codigoSala, meuNome, showVencedor])
+  }, [codigoSala, meuNome, meuId, showVencedor])
 
   useEffect(() => {
+    if (!clientReady) return
     buscarEstado()
     const id = setInterval(buscarEstado, POLL_INTERVAL)
     return () => clearInterval(id)
-  }, [buscarEstado])
+  }, [buscarEstado, clientReady])
 
   const jogarPedra = useCallback(
     async (pedraId: string) => {
@@ -475,7 +480,7 @@ export default function GameBoard() {
       try {
         const res = await apiFetch(`/api/partidas/${codigoSala}/jogar`, {
           method: "POST",
-          body: JSON.stringify({ jogador: meuNome, pedraId }),
+          body: JSON.stringify({ usuarioId: meuId, pedraId }),
         })
         const data = await res.json()
         if (!res.ok) {
@@ -498,7 +503,7 @@ export default function GameBoard() {
         setEnviando(false)
       }
     },
-    [partida, enviando, meuNome, codigoSala, showError]
+    [partida, enviando, meuNome, meuId, codigoSala, showError, clientReady]
   )
 
   const passarVez = useCallback(async () => {
@@ -511,7 +516,7 @@ export default function GameBoard() {
     try {
       const res = await apiFetch(`/api/partidas/${codigoSala}/passar`, {
         method: "POST",
-        body: JSON.stringify({ jogador: meuNome }),
+        body: JSON.stringify({ usuarioId: meuId }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -526,7 +531,7 @@ export default function GameBoard() {
     } finally {
       setEnviando(false)
     }
-  }, [partida, enviando, meuNome, codigoSala, showError])
+  }, [partida, enviando, meuNome, meuId, codigoSala, showError, clientReady])
 
   const handleDragStart = (e: React.DragEvent, pedraId: string) => {
     e.dataTransfer.setData("pedraId", pedraId)
