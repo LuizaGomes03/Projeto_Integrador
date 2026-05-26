@@ -344,6 +344,8 @@ function ErrorToast({ message, onClose }: { message: string; onClose: () => void
 const POLL_INTERVAL = 2000
 
 
+const COLS = 6 
+
 type TileLayout = {
   pedra: Pedra
   kind: "h" | "v-exit" | "v-enter"
