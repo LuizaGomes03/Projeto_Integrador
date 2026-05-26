@@ -115,9 +115,8 @@ function InputField({
         {label}
       </label>
       <div
-        className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${
-          error ? "border-red-300 bg-red-50/40" : "border-[#EEEEEE]"
-        }`}
+        className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${error ? "border-red-300 bg-red-50/40" : "border-[#EEEEEE]"
+          }`}
       >
         {icon}
         {children}
@@ -187,6 +186,8 @@ export default function SignupPage() {
       // Sucesso: salvar token e redirecionar
       localStorage.setItem("dominoToken", data.token)
       localStorage.setItem("dominoUsuario", JSON.stringify(data.usuario))
+      sessionStorage.setItem("dominoUserId", String(data.usuario.id))
+      sessionStorage.setItem("dominoNome", data.usuario.nome)
 
       setSucesso(true)
 
