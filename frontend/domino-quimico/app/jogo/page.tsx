@@ -426,7 +426,7 @@ export default function GameBoard() {
     if (!codigoSala || !meuNome) return
     try {
       const res = await apiFetch(
-        `/api/partidas/${codigoSala}?jogador=${encodeURIComponent(meuNome)}`
+        `/api/partidas/${codigoSala}?jogador=${encodeURIComponent(typeof window !== "undefined" ? Number(sessionStorage.getItem("dominoUserId") ?? -99) : -99)}`
       )
       if (res.status === 404) {
         const r2 = await apiFetch(`/api/partidas/iniciar`, {
@@ -434,7 +434,10 @@ export default function GameBoard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             codigoSala,
-            jogadores: [meuNome, "IA Química"],
+            jogadores: [
+              { id: typeof window !== "undefined" ? Number(sessionStorage.getItem("dominoUserId") ?? -99) : -99, nome: meuNome },
+              { id: -1, nome: "IA Química" }
+            ],
           }),
         })
         if (!r2.ok) throw new Error("Falha ao iniciar")

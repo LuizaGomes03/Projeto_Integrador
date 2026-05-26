@@ -22,7 +22,11 @@ const ROOMS_STORAGE_KEY = "dominoQuimicoRooms"
 const HOST_ROOM_CODE_KEY = "dominoQuimicoHostRoomCode"
 const XP_POR_NIVEL = 1000
 const NIVEL_BASE = 42
-const PLAYER_NAME = "Cientista"
+const PLAYER_NAME = typeof window !== "undefined" 
+  ? (localStorage.getItem("dominoUsuario") 
+      ? JSON.parse(localStorage.getItem("dominoUsuario")!).nome 
+      : "Cientista")
+  : "Cientista"
 
 type Room = {
   code: string
