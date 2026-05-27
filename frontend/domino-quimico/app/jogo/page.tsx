@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Trophy, RefreshCw, RotateCcw, AlertCircle, X } from "lucide-react"
 import { apiFetch } from "@/lib/api"
+import { useRouter } from "next/navigation"
 
 // ─── TIPOS ─────────────────────────────────────────────────────────────────────
 
@@ -344,7 +345,7 @@ function ErrorToast({ message, onClose }: { message: string; onClose: () => void
 const POLL_INTERVAL = 2000
 
 
-const COLS = 6 
+const COLS = 6
 
 type TileLayout = {
   pedra: Pedra
@@ -375,6 +376,7 @@ function buildSnakeRows(mesa: Pedra[]): SnakeRow[] {
 
 
 export default function GameBoard() {
+  const router = useRouter()
   const [partida, setPartida] = useState<EstadoPartida | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erroBusca, setErroBusca] = useState("")
@@ -388,17 +390,17 @@ export default function GameBoard() {
   const [showVencedor, setShowVencedor] = useState(false)
 
   // ─── SESSÃO ──────────────────────────────────────────────────────────────────
-  const [meuNome,    setMeuNome]    = useState("Jogador")
-  const [meuId,      setMeuId]      = useState<number>(-99)
+  const [meuNome, setMeuNome] = useState("Jogador")
+  const [meuId, setMeuId] = useState<number>(-99)
   const [codigoSala, setCodigoSala] = useState("")
   const [clientReady, setClientReady] = useState(false)
 
   useEffect(() => {
     const storedNome = sessionStorage.getItem("dominoNome")
-    const storedId   = sessionStorage.getItem("dominoUserId")
+    const storedId = sessionStorage.getItem("dominoUserId")
 
     if (storedNome) setMeuNome(storedNome)
-    if (storedId)   setMeuId(Number(storedId))
+    if (storedId) setMeuId(Number(storedId))
 
     const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     let sala = sessionStorage.getItem("dominoSoloCodigo")
@@ -728,7 +730,11 @@ export default function GameBoard() {
                 : "O jogo travou — ninguém conseguia jogar."}
             </p>
             <button
-              onClick={() => setShowVencedor(false)}
+              onClick={() => {
+                setShowVencedor(false)
+                sessionStorage.removeItem("dominoSoloCodigo")
+                router.push('/aluno')
+              }}
               style={{
                 width: "100%",
                 background: "#C62828",
@@ -779,6 +785,25 @@ export default function GameBoard() {
           <Chip label="Turno" value={partida?.turnoAtual ?? "—"} accent={ehMeuTurno ? "#16A34A" : undefined} />
           <Chip label="Monte" value={`${partida?.monte ?? 0}`} />
         </div>
+        <button
+          onClick={() => {
+            sessionStorage.removeItem("dominoSoloCodigo")
+            router.push('/aluno')
+          }}
+          style={{
+            background: "transparent",
+            border: "1px solid #475569",
+            borderRadius: 8,
+            padding: "6px 14px",
+            color: "#94A3B8",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            marginLeft: "auto",
+          }}
+        >
+          Sair
+        </button>
       </header>
 
       {/* ── MESA + MÃO ── */}
