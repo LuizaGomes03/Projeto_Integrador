@@ -183,7 +183,13 @@ export default function SalaPage() {
       const res = await fetch(`${API_URL}/api/partidas/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigoSala: roomCode }),
+        body: JSON.stringify({ 
+          codigoSala: roomCode,
+          // Bug fix: backend precisa saber quais jogadores estão na sala
+          // pra distribuir as pedras corretamente. Sem a lista, a terceira
+          // pessoa e além ficam sem pedras porque a distribuição fica errada.
+          jogadores: players.map(p => ({ id: p.id, nome: p.nome }))
+        }),
       })
 
       if (!res.ok) {

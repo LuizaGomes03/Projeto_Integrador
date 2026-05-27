@@ -38,11 +38,14 @@ type DropZone = "esquerda" | "direita"
 // ─── COR POR FUNÇÃO ────────────────────────────────────────────────────────────
 
 const FUNCAO_COR: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  Ácido:   { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
-  Base:    { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
-  Óxido:   { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
-  Sal:     { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
+  Ácido: { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
+  Base: { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
+  Óxido: { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
+  Sal: { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
   Hidreto: { bg: "#F9F0FF", border: "#722ED1", text: "#22075E", dot: "#722ED1" },
+  Amida: { bg: "#FCE4EC", border: "#E91E63", text: "#880E4F", dot: "#E91E63" },
+  Éter: { bg: "#E0F2F1", border: "#009688", text: "#004D40", dot: "#009688" },
+  Éster: { bg: "#FFF3E0", border: "#FF9800", text: "#E65100", dot: "#FF9800" },
 }
 
 const getCor = (funcao: string) =>

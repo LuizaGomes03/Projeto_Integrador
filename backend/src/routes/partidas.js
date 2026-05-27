@@ -5,7 +5,7 @@ const router = Router()
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
-const FUNCOES = ['Ácido', 'Base', 'Óxido', 'Sal', 'Hidreto']
+const FUNCOES = ['Ácido', 'Base', 'Óxido', 'Sal', 'Hidreto', 'Amida', 'Éter', 'Éster']
 const PEDRA_INICIAL = { left: 'Ácido', right: 'Hidreto' }
 const PEDRAS_POR_JOGADOR = 7
 const IA_NOME = 'IA Química'
@@ -28,7 +28,7 @@ function embaralhar(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
+      ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
 }
@@ -39,10 +39,27 @@ function distribuirPedras(jogadores) {
     (p) => p.left === PEDRA_INICIAL.left && p.right === PEDRA_INICIAL.right
   )
   const pedraInicial = todas.splice(idxInicial, 1)[0]
+  
+  // Bug fix: antes, distribui sequencialmente — jogador 1 pega 7, jogador 2 pega 7,
+  // jogador 3 tenta pegar 7 mas o array tá vazio. Agora distribui em rodadas,
+  // como um baralho real: cada jogador pega 1, depois outro pega 1, etc.
   const maos = {}
+  const jogadoresHumanos = jogadores.filter(j => j.id !== IA_ID)
+  
+  // Inicializa as mãos
   for (const j of jogadores) {
-    maos[j.id] = todas.splice(0, PEDRAS_POR_JOGADOR)
+    maos[j.id] = []
   }
+  
+  // Distribui em rodadas
+  for (let i = 0; i < PEDRAS_POR_JOGADOR; i++) {
+    for (const j of jogadoresHumanos) {
+      if (todas.length > 0) {
+        maos[j.id].push(todas.shift())  // pega a primeira pedra
+      }
+    }
+  }
+  
   return { maos, monte: todas, pedraInicial }
 }
 
@@ -56,10 +73,10 @@ function obterPontas(mesa) {
 function validarJogada(pedra, mesa) {
   const { esquerda, direita } = obterPontas(mesa)
   if (esquerda === null) return { valido: true, lado: 'direita', virar: false }
-  if (pedra.left === direita)   return { valido: true, lado: 'direita',   virar: false }
-  if (pedra.right === direita)  return { valido: true, lado: 'direita',   virar: true  }
-  if (pedra.right === esquerda) return { valido: true, lado: 'esquerda',  virar: false }
-  if (pedra.left === esquerda)  return { valido: true, lado: 'esquerda',  virar: true  }
+  if (pedra.left === direita) return { valido: true, lado: 'direita', virar: false }
+  if (pedra.right === direita) return { valido: true, lado: 'direita', virar: true }
+  if (pedra.right === esquerda) return { valido: true, lado: 'esquerda', virar: false }
+  if (pedra.left === esquerda) return { valido: true, lado: 'esquerda', virar: true }
   return { valido: false, lado: null, virar: false }
 }
 
@@ -249,6 +266,11 @@ router.post('/iniciar', async (req, res) => {
   const { codigoSala, jogadores: jogadoresDireto } = req.body ?? {}
   const salaCode = String(codigoSala ?? '').toUpperCase()
 
+  console.log('📋 POST /iniciar recebido')
+  console.log('codigoSala:', salaCode)
+  console.log('jogadores:', jogadoresDireto)
+  console.log('quantidade:', jogadoresDireto?.length ?? 0)
+
   // Rejeita cedo se vier jogadores com id sentinela (-99 = nao carregado ainda)
   if (Array.isArray(jogadoresDireto)) {
     const invalido = jogadoresDireto.find(
@@ -343,6 +365,10 @@ router.post('/iniciar', async (req, res) => {
 
     // ── Distribui pedras e monta estado inicial ───────────────────────────
     const { maos, monte, pedraInicial } = distribuirPedras(jogadores)
+
+    console.log('📊 Distribuição final:')
+    console.log('maos:', maos)
+    console.log('monte:', monte.length)
 
     const estado = {
       salaCode: salaCode || jogadores[0]?.nome,
