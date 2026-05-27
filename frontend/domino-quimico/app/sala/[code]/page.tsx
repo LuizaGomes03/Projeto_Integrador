@@ -55,6 +55,14 @@ export default function SalaPage() {
   const [roomCode, setRoomCode] = useState((salaParm ?? "").toUpperCase())
   const [clientReady, setClientReady] = useState(false)
 
+  const [room, setRoom] = useState<Room | null>(null)
+  const [isHost, setIsHost] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+  const [iniciando, setIniciando] = useState(false)
+  const [erro, setErro] = useState("")
+  const [entrando, setEntrando] = useState(true)
+  const [entradaFeita, setEntradaFeita] = useState(false)
+
   useEffect(() => {
     const storedName = sessionStorage.getItem("dominoNome")
     const storedId = sessionStorage.getItem("dominoUserId")
@@ -65,18 +73,20 @@ export default function SalaPage() {
     setClientReady(true)
   }, [nomeParm, salaParm])
 
-  const [room, setRoom] = useState<Room | null>(null)
-  const [isHost, setIsHost] = useState(false)
-  const [copiado, setCopiado] = useState(false)
-  const [iniciando, setIniciando] = useState(false)
-  const [erro, setErro] = useState("")
-  const [entrando, setEntrando] = useState(true)
-
-  // Bug fix: entradaFeita was a ref, but refs don't trigger re-renders or
-  // re-run useEffect. The polling effect checked entradaFeita.current on mount
-  // (always false at that point) and never re-ran, so polling never started.
-  // Using a state variable makes React re-run the polling effect when entry completes.
-  const [entradaFeita, setEntradaFeita] = useState(false)
+  // Bug fix: quando o jogador fecha a aba ou navega pra outro lugar,
+  // remove ele da sala no banco pra não ficar como "espectro".
+  // Isso roda quando o component desmonta.
+  useEffect(() => {
+    return () => {
+      if (entradaFeita && playerId !== -99 && roomCode) {
+        fetch(`${API_URL}/api/salas/${roomCode}/sair`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuarioId: playerId }),
+        }).catch(() => {})  // silencioso — a aba tá fechando
+      }
+    }
+  }, [entradaFeita, playerId, roomCode])
 
   // ─── ENTRAR NA SALA VIA BACKEND ──────────────────────────────────────────
 

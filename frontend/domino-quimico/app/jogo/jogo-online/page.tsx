@@ -246,16 +246,16 @@ export default function JogoOnlinePage() {
   const searchParams = useSearchParams()
   const nomeParm = searchParams.get("jogador")
   const salaParm = searchParams.get("sala")
-  const [meuNome, setMeuNome]       = useState(nomeParm || "Jogador")
-  const [meuId, setMeuId]           = useState(-99)
+  const [meuNome, setMeuNome] = useState(nomeParm || "Jogador")
+  const [meuId, setMeuId] = useState(-99)
   const [codigoSala, setCodigoSala] = useState((salaParm || "").toUpperCase())
 
   useEffect(() => {
     const nomeSession = sessionStorage.getItem("dominoNome")
-    const idSession   = sessionStorage.getItem("dominoUserId")
+    const idSession = sessionStorage.getItem("dominoUserId")
     const salaSession = sessionStorage.getItem("dominoSala")
     if (!nomeParm && nomeSession) setMeuNome(nomeSession)
-    if (idSession)                setMeuId(Number(idSession))
+    if (idSession) setMeuId(Number(idSession))
     if (!salaParm && salaSession) setCodigoSala(salaSession.toUpperCase())
   }, [nomeParm, salaParm])
 
@@ -263,37 +263,52 @@ export default function JogoOnlinePage() {
     if (codigoSala === "") router.replace("/aluno")
   }, [codigoSala, router])
 
-  const [partida, setPartida]       = useState<EstadoPartida | null>(null)
+  const [partida, setPartida] = useState<EstadoPartida | null>(null)
   const [carregando, setCarregando] = useState(true)
-  const [erroBusca, setErroBusca]   = useState("")
-  const [errorMsg, setErrorMsg]     = useState("")
+  const [erroBusca, setErroBusca] = useState("")
+  const [errorMsg, setErrorMsg] = useState("")
 
-  const [selectedPedra, setSelectedPedra]   = useState<string | null>(null)
-  const [draggingId, setDraggingId]         = useState<string | null>(null)
-  const [dropOverLeft, setDropOverLeft]     = useState(false)
-  const [dropOverRight, setDropOverRight]   = useState(false)
-  const [enviando, setEnviando]             = useState(false)
-  const [showVencedor, setShowVencedor]     = useState(false)
+  const [selectedPedra, setSelectedPedra] = useState<string | null>(null)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dropOverLeft, setDropOverLeft] = useState(false)
+  const [dropOverRight, setDropOverRight] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const [showVencedor, setShowVencedor] = useState(false)
 
   const showError = useCallback((msg: string) => setErrorMsg(msg), [])
 
-  const meuIdRef    = useRef(meuId)
-  const meuNomeRef  = useRef(meuNome)
-  const salaRef     = useRef(codigoSala)
-  meuIdRef.current   = meuId
+  const meuIdRef = useRef(meuId)
+  const meuNomeRef = useRef(meuNome)
+  const salaRef = useRef(codigoSala)
+  meuIdRef.current = meuId
   meuNomeRef.current = meuNome
-  salaRef.current    = codigoSala
+  salaRef.current = codigoSala
 
   const [clientReady, setClientReady] = useState(false)
   useEffect(() => { setClientReady(true) }, [])
+
+  // Bug fix: quando o jogador fecha a aba ou sai durante o jogo,
+  // remove ele da sala no banco. Isso previne que ele apareça como "espectro"
+  // pra os outros jogadores.
+  useEffect(() => {
+    return () => {
+      if (meuId !== -99 && codigoSala) {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/api/salas/${codigoSala}/sair`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuarioId: meuId }),
+        }).catch(() => { })
+      }
+    }
+  }, [meuId, codigoSala])
 
   const ehMeuTurno = partida?.turnoAtual === meuNome
 
   // ─── POLLING — só busca, não cria partida ────────────────────────────────────
   const buscarEstado = useCallback(async () => {
-    const id   = meuIdRef.current
+    const id = meuIdRef.current
     const sala = salaRef.current
- 
+
     if (!sala || id === -99) return
     try {
       const res = await apiFetch(`/api/partidas/${sala}?jogador=${encodeURIComponent(id)}`)
@@ -325,7 +340,7 @@ export default function JogoOnlinePage() {
   const jogarPedra = useCallback(async (pedraId: string) => {
     if (!partida || enviando) return
     const nome = meuNomeRef.current
-    const id   = meuIdRef.current
+    const id = meuIdRef.current
     const sala = salaRef.current
     if (partida.turnoAtual !== nome) { showError("Aguarde o seu turno para jogar!"); return }
     setEnviando(true)
@@ -350,7 +365,7 @@ export default function JogoOnlinePage() {
   const passarVez = useCallback(async () => {
     if (!partida || enviando) return
     const nome = meuNomeRef.current
-    const id   = meuIdRef.current
+    const id = meuIdRef.current
     const sala = salaRef.current
     if (partida.turnoAtual !== nome) { showError("Não é o seu turno!"); return }
     setEnviando(true)
@@ -399,7 +414,7 @@ export default function JogoOnlinePage() {
 
   // ─── HELPERS ──────────────────────────────────────────────────────────────────
   const minhaMao = partida?.minha_mao ?? []
-  const mesa     = partida?.mesa ?? []
+  const mesa = partida?.mesa ?? []
   const snakeRows = buildSnakeRows(mesa)
 
   const quantidadePedras = (nome: string): number => {
@@ -474,10 +489,10 @@ export default function JogoOnlinePage() {
           </span>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Chip label="Sala"    value={codigoSala}                        accent="#2563EB" />
+          <Chip label="Sala" value={codigoSala} accent="#2563EB" />
           <Chip label="Jogador" value={meuNome} />
-          <Chip label="Turno"   value={partida?.turnoAtual ?? "—"}        accent={ehMeuTurno ? "#16A34A" : undefined} />
-          <Chip label="Monte"   value={`${partida?.monte ?? 0}`} />
+          <Chip label="Turno" value={partida?.turnoAtual ?? "—"} accent={ehMeuTurno ? "#16A34A" : undefined} />
+          <Chip label="Monte" value={`${partida?.monte ?? 0}`} />
         </div>
         <button
           onClick={() => router.push("/aluno")}
@@ -520,12 +535,12 @@ export default function JogoOnlinePage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "stretch" }}>
                 {snakeRows.map((row, rowIdx) => {
                   const isFirst = rowIdx === 0
-                  const isLast  = rowIdx === snakeRows.length - 1
-                  const isOnly  = snakeRows.length === 1
-                  const justif  = row.reversed ? "flex-end" : "flex-start"
-                  const dropEsqVisible   = ehMeuTurno && (isFirst || isOnly) && !row.reversed
-                  const dropDirVisible   = ehMeuTurno && (isLast || isOnly) && !row.reversed
-                  const dropDirReversed  = ehMeuTurno && isLast && !isOnly && row.reversed && !dropDirVisible
+                  const isLast = rowIdx === snakeRows.length - 1
+                  const isOnly = snakeRows.length === 1
+                  const justif = row.reversed ? "flex-end" : "flex-start"
+                  const dropEsqVisible = ehMeuTurno && (isFirst || isOnly) && !row.reversed
+                  const dropDirVisible = ehMeuTurno && (isLast || isOnly) && !row.reversed
+                  const dropDirReversed = ehMeuTurno && isLast && !isOnly && row.reversed && !dropDirVisible
 
                   return (
                     <div key={rowIdx} style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: justif, flexWrap: "nowrap" }}>
