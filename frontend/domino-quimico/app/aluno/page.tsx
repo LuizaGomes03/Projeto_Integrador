@@ -20,7 +20,7 @@ import {
 const XP_STORAGE_KEY = "dominoQuimicoXp"
 const HOST_ROOM_CODE_KEY = "dominoQuimicoHostRoomCode"
 const XP_POR_NIVEL = 1000
-const NIVEL_BASE = 42
+const NIVEL_BASE = 1
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 
 type Room = {

@@ -18,6 +18,8 @@ import {
   Star,
   TrendingUp,
   Users,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 
 // ── Constantes ────────────────────────────────────────────────────────────────
@@ -42,16 +44,36 @@ const FRASES_MOTIVACIONAIS = [
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 interface HistoricoItem {
-  id: string | number
+  id: number
   nomeModo: string
-  data: string | Date
+  data: string
   xpGanho: number
+  acertos: number
+  erros: number
+  venceu: boolean
+  tempoSegundos: number
 }
 
 interface Medalha {
-  icon: React.ElementType
-  label: string
-  unlocked: boolean
+  titulo: string
+  descricao: string
+  desbloqueado: boolean
+  emoji: string
+}
+
+interface Desempenho {
+  xpTotal: number
+  xpHoje: number
+  totalPartidas: number
+  totalVitorias: number
+  totalAcertos: number
+  totalErros: number
+  diasSeguidos: number
+  vitoriasSeguidas: number
+  reacoesDescobertas: number
+  proximoDesbloqueio: number
+  medalhas: Medalha[]
+  historico: HistoricoItem[]
 }
 
 // ── Barra de XP animada ───────────────────────────────────────────────────────
@@ -80,50 +102,68 @@ function HistoricoRow({ item, index }: { item: HistoricoItem; index: number }) {
     "text-emerald-700 bg-emerald-50 border-emerald-200",
     "text-teal-700 bg-teal-50 border-teal-200",
   ]
+
+  const minutos = item.tempoSegundos > 0
+    ? `${Math.floor(item.tempoSegundos / 60)}m ${item.tempoSegundos % 60}s`
+    : null
+
   return (
     <div className="flex items-center justify-between px-5 py-4 border-b border-white/40 last:border-none hover:bg-white/20 transition-colors group">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors flex-shrink-0">
-          <FlaskConical size={14} className="text-[#D62828]" />
+        {/* ícone vitória/derrota */}
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${item.venceu ? "bg-green-100" : "bg-red-100"
+          }`}>
+          {item.venceu
+            ? <CheckCircle size={16} className="text-green-600" />
+            : <XCircle size={16} className="text-red-400" />}
         </div>
         <div>
           <p className="text-sm font-bold text-[#2F2F2F]">{item.nomeModo}</p>
-          <p className="text-[11px] text-[#A0A0A0] mt-0.5">{dataFormatada}</p>
+          <p className="text-[11px] text-[#A0A0A0] mt-0.5">
+            {dataFormatada}
+            {item.acertos > 0 && ` · ${item.acertos} acertos`}
+            {item.erros > 0 && ` · ${item.erros} erros`}
+            {minutos && ` · ${minutos}`}
+          </p>
         </div>
       </div>
-      <span className={`text-xs font-black border px-3 py-1 rounded-full ${xpColors[index % xpColors.length]}`}>
-        +{item.xpGanho} XP
-      </span>
+      <div className="text-right flex-shrink-0 ml-3">
+        <span className={`text-xs font-black border px-3 py-1 rounded-full ${xpColors[index % xpColors.length]}`}>
+          +{item.xpGanho} XP
+        </span>
+        {item.venceu && (
+          <p className="text-[10px] text-green-600 font-bold mt-1">Vitória</p>
+        )}
+      </div>
     </div>
   )
 }
 
 // ── Medalha ───────────────────────────────────────────────────────────────────
-function MedalhaItem({ icon: Icon, label, unlocked }: Medalha) {
+function MedalhaItem({ titulo, descricao, desbloqueado, emoji }: Medalha) {
   return (
     <div className="flex flex-col items-center gap-2 text-center group">
       <div
-        className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] flex items-center justify-center transition-transform duration-200 ${
-          unlocked
+        className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-[14px] flex items-center justify-center transition-transform duration-200 ${desbloqueado
             ? "bg-[#FEF2F2] ring-1 ring-[#fca5a5] group-hover:scale-110"
             : "bg-white/30 opacity-50 ring-1 ring-white/40"
-        }`}
-        aria-label={`${unlocked ? "Medalha desbloqueada" : "Medalha bloqueada"}: ${label}`}
+          }`}
+        title={descricao}
       >
-        <Icon size={22} className={unlocked ? "text-[#D62828]" : "text-[#A0A0A0]"} aria-hidden />
-        {!unlocked && (
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white border border-white/60 rounded-full flex items-center justify-center shadow-sm" aria-hidden>
+        <span className="text-2xl">{emoji}</span>
+        {!desbloqueado && (
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white border border-white/60 rounded-full flex items-center justify-center shadow-sm">
             <Lock size={7} className="text-[#A0A0A0]" />
           </div>
         )}
-        {unlocked && (
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#D62828] rounded-full flex items-center justify-center" aria-hidden>
+        {desbloqueado && (
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#D62828] rounded-full flex items-center justify-center">
             <Star size={7} className="text-white fill-white" />
           </div>
         )}
       </div>
       <span className="text-[10px] font-bold uppercase tracking-[.08em] text-[#8B8B8B] leading-tight">
-        {label}
+        {titulo}
       </span>
     </div>
   )
@@ -131,10 +171,7 @@ function MedalhaItem({ icon: Icon, label, unlocked }: Medalha) {
 
 // ── Mini card de stat ─────────────────────────────────────────────────────────
 function StatCard({ icon, value, label, sublabel }: {
-  icon: React.ReactNode
-  value: number
-  label: string
-  sublabel?: string
+  icon: React.ReactNode; value: number; label: string; sublabel?: string
 }) {
   return (
     <div
@@ -153,114 +190,143 @@ function StatCard({ icon, value, label, sublabel }: {
   )
 }
 
+// ── Skeleton de carregamento ──────────────────────────────────────────────────
+function Skeleton({ className }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded-xl bg-white/40 ${className ?? ""}`} />
+  )
+}
+
 // ── Página principal ──────────────────────────────────────────────────────────
 export default function DesempenhoPage() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState("")
+  const [dados, setDados] = useState<Desempenho | null>(null)
+
   const [curioIdx, setCurioIdx] = useState(() => Math.floor(Math.random() * CURIOSIDADES.length))
   const [curioVisible, setCurioVisible] = useState(true)
   const [fraseIdx] = useState(() => Math.floor(Math.random() * FRASES_MOTIVACIONAIS.length))
   const [xpAnimado, setXpAnimado] = useState(0)
 
-  // 🛠️ NOTA PARA O ARTHUR: substitua pelos dados da sua API/banco
-  const [xpAtual, setXpAtual] = useState(0)
-  const [diasOfensiva, setDiasOfensiva] = useState(0)
-  const [reacoesDescobertas, setReacoesDescobertas] = useState(0)
-  const [proximoDesbloqueio, setProximoDesbloqueio] = useState(0)
-
-  // 🛠️ NOTA PARA O ARTHUR: preencha com HistoricoItem[] via API
-  const [historico, setHistorico] = useState<HistoricoItem[]>([])
-
-  // 🛠️ NOTA PARA O ARTHUR: `unlocked` deve vir do banco
-  const [medalhas] = useState<Medalha[]>([
-    { icon: Trophy, label: "Mestre do Lab", unlocked: false },
-    { icon: Flame, label: "Persistente", unlocked: false },
-    { icon: Award, label: "Nobel em Potencial", unlocked: false },
-  ])
-
+  // ── Busca dados da API ────────────────────────────────────────────────────
   useEffect(() => {
     setMounted(true)
-    // 🛠️ NOTA PARA O ARTHUR: substitua pelo fetch real
-    const valorXp = window.localStorage.getItem("dominoQuimicoXp")
-    if (valorXp) {
-      const parsed = parseInt(valorXp, 10)
-      if (!isNaN(parsed)) {
-        setXpAtual(parsed)
+    const token = localStorage.getItem("dominoToken")
+    if (!token) { router.push("/login"); return }
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
+
+    fetch(`${API_URL}/api/aluno/desempenho`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text())
+        return res.json() as Promise<Desempenho>
+      })
+      .then((data) => {
+        setDados(data)
+        setCarregando(false)
+
+        // Anima o contador de XP
+        const target = data.xpTotal
         let start = 0
-        const step = Math.ceil(parsed / 40)
+        const step = Math.max(1, Math.ceil(target / 40))
         const timer = setInterval(() => {
           start += step
-          if (start >= parsed) { setXpAnimado(parsed); clearInterval(timer) }
+          if (start >= target) { setXpAnimado(target); clearInterval(timer) }
           else setXpAnimado(start)
         }, 30)
-      }
-    }
-  }, [])
+      })
+      .catch((err) => {
+        console.error(err)
+        setErro("Não foi possível carregar seus dados. Tente novamente.")
+        setCarregando(false)
+      })
+  }, [router])
 
+  // ── Rotação de curiosidades ───────────────────────────────────────────────
   useEffect(() => {
     const rot = setInterval(() => {
       setCurioVisible(false)
-      setTimeout(() => {
-        setCurioIdx((i) => (i + 1) % CURIOSIDADES.length)
-        setCurioVisible(true)
-      }, 300)
+      setTimeout(() => { setCurioIdx((i) => (i + 1) % CURIOSIDADES.length); setCurioVisible(true) }, 300)
     }, 8000)
     return () => clearInterval(rot)
   }, [])
 
+  // ── Cálculos de nível ─────────────────────────────────────────────────────
+  const xpTotal = dados?.xpTotal ?? 0
+
   const { nivelAtual, porcentagemNivel, xpRestante, xpParaProximo } = useMemo(() => {
-    const nivelGanho = Math.floor(xpAtual / XP_POR_NIVEL)
-    const xpRestante = xpAtual % XP_POR_NIVEL
-    const porcentagem = xpAtual === 0 ? 0 : Math.round((xpRestante / XP_POR_NIVEL) * 100)
+    const nivelGanho = Math.floor(xpTotal / XP_POR_NIVEL)
+    const xpRestante = xpTotal % XP_POR_NIVEL
+    const porcentagem = xpTotal === 0 ? 0 : Math.round((xpRestante / XP_POR_NIVEL) * 100)
     return {
       nivelAtual: NIVEL_BASE + nivelGanho,
       porcentagemNivel: porcentagem,
       xpRestante,
       xpParaProximo: XP_POR_NIVEL - xpRestante,
     }
-  }, [xpAtual])
+  }, [xpTotal])
 
   const patenteAtual = useMemo(() => {
-    if (xpAtual === 0) return "Cientista Iniciante"
-    if (xpAtual < 2000) return "Alquimista em Evolução"
-    if (xpAtual < 5000) return "Técnico de Soluções"
-    if (xpAtual < 10000) return "Engenheiro Molecular"
+    if (xpTotal === 0) return "Cientista Iniciante"
+    if (xpTotal < 2000) return "Alquimista em Evolução"
+    if (xpTotal < 5000) return "Técnico de Soluções"
+    if (xpTotal < 10000) return "Engenheiro Molecular"
     return "Mestre dos Elementos"
-  }, [xpAtual])
+  }, [xpTotal])
 
   const mensagemXp = useMemo(() => {
-    if (xpAtual === 0) return "Complete sua primeira partida para ganhar XP!"
+    if (xpTotal === 0) return "Complete sua primeira partida para ganhar XP!"
     if (porcentagemNivel >= 80) return `Quase lá! Faltam só ${xpParaProximo} XP para o próximo nível`
-    if (porcentagemNivel >= 50) return `Você já passou da metade deste nível. Continue!`
+    if (porcentagemNivel >= 50) return "Você já passou da metade deste nível. Continue!"
     return `${xpParaProximo} XP para chegar ao nível ${nivelAtual + 1}`
-  }, [xpAtual, porcentagemNivel, xpParaProximo, nivelAtual])
+  }, [xpTotal, porcentagemNivel, xpParaProximo, nivelAtual])
 
   const handleLogout = useCallback(() => {
-    // 🛠️ NOTA PARA O ARTHUR: limpeza de sessão (NextAuth, Supabase, etc.)
-    localStorage.removeItem("dominoQuimicoXp")
-    localStorage.removeItem("dominoQuimicoRooms")
-    localStorage.removeItem("dominoQuimicoHostRoomCode")
+    localStorage.removeItem("dominoToken")
+    localStorage.removeItem("dominoUsuario")
     router.push("/login")
   }, [router])
 
+  // ── Estados de carregamento / erro ────────────────────────────────────────
+  const bg = {
+    backgroundImage: "url('/ChatGPT Image 15 de mai. de 2026, 10_31_00.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundAttachment: "fixed",
+    backgroundRepeat: "no-repeat",
+    fontFamily: '"Poppins", sans-serif',
+  }
+
+  if (erro) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center px-4" style={bg}>
+        <div className="rounded-[28px] border border-white/60 bg-white/88 backdrop-blur-xl p-10 text-center shadow-xl max-w-sm">
+          <p className="text-[#D62828] font-black text-lg mb-4">Erro ao carregar</p>
+          <p className="text-[#666] text-sm mb-6">{erro}</p>
+          <button
+            onClick={() => router.push("/aluno")}
+            className="rounded-full bg-[#D62828] px-6 py-3 text-white font-black text-sm"
+          >
+            Voltar ao menu
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div
-      className="min-h-screen w-full"
-      style={{
-        backgroundImage: "url('/ChatGPT Image 15 de mai. de 2026, 10_31_00.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        backgroundRepeat: "no-repeat",
-        fontFamily: '"Poppins", sans-serif',
-      }}
-    >
+    <div className="min-h-screen w-full" style={bg}>
 
-      {/* ══ HEADER — mesmo padrão do menu ══════════════════════════════════════ */}
-      <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/70 backdrop-blur-2xl"
-        style={{ boxShadow: "0 1px 20px rgba(0,0,0,0.06)" }}>
+      {/* ══ HEADER ══════════════════════════════════════════════════════════ */}
+      <header
+        className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/70 backdrop-blur-2xl"
+        style={{ boxShadow: "0 1px 20px rgba(0,0,0,0.06)" }}
+      >
         <div className="w-full px-4 sm:px-6 lg:px-12">
-
           {/* Mobile */}
           <div className="py-3 sm:py-4 lg:hidden">
             <div className="flex items-center justify-between gap-3">
@@ -280,7 +346,6 @@ export default function DesempenhoPage() {
               </h1>
             </div>
           </div>
-
           {/* Desktop */}
           <div className="hidden items-center py-4 sm:py-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-4 lg:py-5">
             <div className="flex items-center justify-start">
@@ -302,11 +367,10 @@ export default function DesempenhoPage() {
               </button>
             </div>
           </div>
-
         </div>
       </header>
 
-      {/* ══ MAIN ══════════════════════════════════════════════════════════════ */}
+      {/* ══ MAIN ══════════════════════════════════════════════════════════ */}
       <main className="flex-1 w-full mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
 
         {/* Intro */}
@@ -331,7 +395,7 @@ export default function DesempenhoPage() {
           {/* Banner motivacional */}
           <div className="w-full max-w-2xl rounded-[28px] border border-white/60 bg-white/88 backdrop-blur-xl px-6 py-4 shadow-[0_25px_80px_rgba(0,0,0,0.08)] flex items-center justify-center">
             <p className="text-sm font-semibold text-[#555] leading-relaxed italic text-center">
-              "{FRASES_MOTIVACIONAIS[fraseIdx]}"
+              &quot;{FRASES_MOTIVACIONAIS[fraseIdx]}&quot;
             </p>
           </div>
         </div>
@@ -361,46 +425,98 @@ export default function DesempenhoPage() {
               </div>
 
               <div className="relative mt-4">
-                <h3 className="text-5xl font-black tracking-tight sm:text-6xl">
-                  {xpAnimado.toLocaleString("pt-BR")}
-                  <span className="text-base font-normal text-rose-200 ml-2 sm:text-lg">XP Total</span>
-                </h3>
-                <div className="mt-1 flex items-center gap-2">
-                  <TrendingUp size={12} className="text-rose-300" />
-                  <p className="text-[10px] font-bold text-rose-100 uppercase tracking-wide sm:text-xs">
-                    {patenteAtual}
-                  </p>
-                </div>
+                {carregando ? (
+                  <Skeleton className="h-12 w-48 bg-white/20" />
+                ) : (
+                  <>
+                    <h3 className="text-5xl font-black tracking-tight sm:text-6xl">
+                      {xpAnimado.toLocaleString("pt-BR")}
+                      <span className="text-base font-normal text-rose-200 ml-2 sm:text-lg">XP Total</span>
+                    </h3>
+                    <div className="mt-1 flex items-center gap-2">
+                      <TrendingUp size={12} className="text-rose-300" />
+                      <p className="text-[10px] font-bold text-rose-100 uppercase tracking-wide sm:text-xs">
+                        {patenteAtual}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
-              <div className="relative mt-6">
-                <XpProgressBar pct={porcentagemNivel} mounted={mounted} />
-                <div className="mt-2 flex items-center justify-between text-[11px] text-rose-200">
-                  <span>{porcentagemNivel}% para o próximo nível</span>
-                  <span>{xpRestante} / {XP_POR_NIVEL} XP</span>
-                </div>
-              </div>
-
-              <div className="relative mt-4 rounded-[14px] bg-white/10 px-4 py-2.5">
-                <p className="text-[11px] font-semibold text-rose-100">{mensagemXp}</p>
-              </div>
+              {!carregando && (
+                <>
+                  <div className="relative mt-6">
+                    <XpProgressBar pct={porcentagemNivel} mounted={mounted} />
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-rose-200">
+                      <span>{porcentagemNivel}% para o próximo nível</span>
+                      <span>{xpRestante} / {XP_POR_NIVEL} XP</span>
+                    </div>
+                  </div>
+                  <div className="relative mt-4 rounded-[14px] bg-white/10 px-4 py-2.5">
+                    <p className="text-[11px] font-semibold text-rose-100">{mensagemXp}</p>
+                  </div>
+                  {(dados?.xpHoje ?? 0) > 0 && (
+                    <div className="relative mt-2 rounded-[14px] bg-white/10 px-4 py-2.5">
+                      <p className="text-[11px] font-semibold text-yellow-200">
+                        ⚡ Hoje você ganhou {dados!.xpHoje} XP
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Mini cards */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <StatCard
-                icon={<Flame size={22} className="text-[#D62828]" />}
-                value={diasOfensiva}
-                label="Dias de Ofensiva"
-                sublabel={diasOfensiva > 0 ? "Continue! Não quebre a sequência" : "Jogue hoje para começar sua ofensiva!"}
-              />
-              <StatCard
-                icon={<Activity size={22} className="text-[#8B8B8B]" />}
-                value={reacoesDescobertas}
-                label="Reações Descobertas"
-                sublabel={reacoesDescobertas > 0 ? `${reacoesDescobertas} reações já são suas!` : "Descubra sua primeira reação"}
-              />
+              {carregando ? (
+                <>
+                  <Skeleton className="h-28" />
+                  <Skeleton className="h-28" />
+                </>
+              ) : (
+                <>
+                  <StatCard
+                    icon={<Flame size={22} className="text-[#D62828]" />}
+                    value={dados?.diasSeguidos ?? 0}
+                    label="Dias de Ofensiva"
+                    sublabel={
+                      (dados?.diasSeguidos ?? 0) > 0
+                        ? "Continue! Não quebre a sequência"
+                        : "Jogue hoje para começar sua ofensiva!"
+                    }
+                  />
+                  <StatCard
+                    icon={<Activity size={22} className="text-[#8B8B8B]" />}
+                    value={dados?.reacoesDescobertas ?? 0}
+                    label="Reações Descobertas"
+                    sublabel={
+                      (dados?.reacoesDescobertas ?? 0) > 0
+                        ? `${dados!.reacoesDescobertas} conexões químicas já são suas!`
+                        : "Descubra sua primeira reação"
+                    }
+                  />
+                </>
+              )}
             </div>
+
+            {/* Estatísticas extras */}
+            {!carregando && dados && (
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Partidas", value: dados.totalPartidas },
+                  { label: "Vitórias", value: dados.totalVitorias },
+                  { label: "Acertos", value: dados.totalAcertos },
+                ].map((s) => (
+                  <div
+                    key={s.label}
+                    className="rounded-[20px] border border-white/60 bg-white/88 backdrop-blur-xl p-4 text-center shadow-sm"
+                  >
+                    <p className="text-2xl font-black text-[#2F2F2F]">{s.value}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#A0A0A0] mt-0.5">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Histórico */}
             <div className="overflow-hidden rounded-[28px] border border-white/60 bg-white/88 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl">
@@ -415,9 +531,14 @@ export default function DesempenhoPage() {
                 <span className="text-[10px] text-red-200">Últimas partidas</span>
               </div>
 
-              {/* 🛠️ NOTA PARA O ARTHUR: .map() no array `historico` vindo do banco */}
-              {historico.length > 0 ? (
-                historico.map((item, i) => <HistoricoRow key={item.id ?? i} item={item} index={i} />)
+              {carregando ? (
+                <div className="p-5 space-y-3">
+                  {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14" />)}
+                </div>
+              ) : (dados?.historico ?? []).length > 0 ? (
+                dados!.historico.map((item, i) => (
+                  <HistoricoRow key={item.id} item={item} index={i} />
+                ))
               ) : (
                 <div className="p-8 text-center">
                   <div className="mx-auto w-full max-w-md rounded-[18px] border border-dashed border-[#f5b8b8] bg-[#FEF2F2]/50 p-7 sm:p-8">
@@ -457,29 +578,38 @@ export default function DesempenhoPage() {
                 </h4>
               </div>
               <div className="p-7">
-                <div className="grid grid-cols-3 gap-4">
-                  {medalhas.map(({ icon: Icon, label, unlocked }) => (
-                    <MedalhaItem key={label} icon={Icon} label={label} unlocked={unlocked} />
-                  ))}
-                </div>
+                {carregando ? (
+                  <div className="grid grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-[14px]" />)}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-4">
+                    {(dados?.medalhas ?? []).map((m) => (
+                      <MedalhaItem key={m.titulo} {...m} />
+                    ))}
+                  </div>
+                )}
+
                 <div className="mt-5 rounded-[14px] bg-[#FAFAFA] p-3.5 ring-1 ring-[#EEEEEE]">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold text-[#666]">Próximo Desbloqueio</span>
-                    <span className="text-[13px] font-black text-[#D62828]">{proximoDesbloqueio}/10</span>
+                    <span className="text-[13px] font-black text-[#D62828]">
+                      {carregando ? "…" : `${dados?.proximoDesbloqueio ?? 0}/3`}
+                    </span>
                   </div>
                   <div className="h-2 w-full rounded-full bg-[#EEEEEE] overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        width: `${proximoDesbloqueio * 10}%`,
+                        width: `${(dados?.proximoDesbloqueio ?? 0) * 10}%`,
                         background: "linear-gradient(90deg, #DC2626, #f87171)",
                       }}
                     />
                   </div>
                   <p className="mt-2 text-[10px] text-[#A0A0A0]">
-                    {proximoDesbloqueio === 0
+                    {(dados?.proximoDesbloqueio ?? 0) === 0
                       ? "Complete partidas para desbloquear conquistas!"
-                      : `${10 - proximoDesbloqueio} partidas para a próxima medalha`}
+                      : `${3 - (dados?.proximoDesbloqueio ?? 0)} vitórias para a próxima medalha`}
                   </p>
                 </div>
               </div>
@@ -502,7 +632,7 @@ export default function DesempenhoPage() {
                     <Users size={18} className="text-[#D62828]" />
                   </div>
                   <p className="text-sm font-semibold text-[#555] leading-relaxed">
-                    Jogue uma partida cooperativa e ganhe XP bônus com seus colegas!
+                    Jogue uma partida e ganhe XP bônus!
                   </p>
                 </div>
                 <button

@@ -185,10 +185,6 @@ router.delete('/:code/sair', async (req, res) => {
   const code = String(req.params.code ?? '').toUpperCase()
   const { usuarioId } = req.body ?? {}
 
-  console.log('🚪 DELETE /sair recebido')
-  console.log('code:', code)
-  console.log('usuarioId:', usuarioId)
-
   if (!usuarioId || Number(usuarioId) <= 0) {
     return res.status(400).json({ erro: 'usuarioId inválido.' })
   }
@@ -201,14 +197,13 @@ router.delete('/:code/sair', async (req, res) => {
       'SELECT id FROM salas WHERE code = $1',
       [code]
     )
-    console.log('🚪 Sala encontrada:', salaRows)
+    
     if (salaRows.length === 0) {
       await client.query('ROLLBACK')
       return res.status(404).json({ erro: 'Sala não encontrada.' })
     }
 
     const salaId = salaRows[0].id
-    console.log('🚪 Removendo jogador', usuarioId, 'da sala', salaId)
 
     // Remove o jogador da sala
     await client.query(
