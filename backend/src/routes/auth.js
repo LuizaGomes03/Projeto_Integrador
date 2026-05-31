@@ -12,6 +12,8 @@ const router = Router()
 const TIPOS_VALIDOS = ['aluno', 'professor']
 const EMAIL_ACADEMICO = /^[^\s@]+@aluno\.cps\.sp\.gov\.br$/i
 const SALT_ROUNDS = 12
+const ANOS_VALIDOS = [1, 2, 3]
+const SALAS_VALIDAS = ['A', 'B', 'C', 'D']
 
 function gerarToken(usuario) {
   return jwt.sign(
@@ -32,19 +34,9 @@ function sanitizarUsuario(usuario) {
 }
 
 // ─── POST /api/auth/register ───────────────────────────────────────────────────
-// Cria um novo usuário (aluno ou professor)
-//
-// Body: { nome, email, senha, tipo? }
-// tipo padrão: 'aluno'
-//
-// Validações:
-//   - todos os campos obrigatórios
-//   - email único
-//   - alunos: email deve terminar em @aluno.cps.sp.gov.br
-//   - senha: mínimo 6 caracteres
 
 router.post('/register', async (req, res) => {
-  const { nome, email, senha, tipo = 'aluno' } = req.body ?? {}
+  const { nome, email, senha, tipo = 'aluno', ano, sala } = req.body ?? {}
 
   // Validações básicas
   if (!nome?.trim()) {
@@ -69,10 +61,13 @@ router.post('/register', async (req, res) => {
 
   const emailNormalizado = email.trim().toLowerCase()
 
-  if (tipo === 'aluno' && !EMAIL_ACADEMICO.test(emailNormalizado)) {
-    return res.status(400).json({
-      erro: 'Alunos devem usar email institucional (@aluno.cps.sp.gov.br).',
-    })
+  if (tipo === 'aluno') {
+    if (!ano || !ANOS_VALIDOS.includes(Number(ano))) {
+      return res.status(400).json({ erro: 'Ano inválido. Use 1, 2 ou 3.' })
+    }
+    if (!sala || !SALAS_VALIDAS.includes(String(sala).toUpperCase())) {
+      return res.status(400).json({ erro: 'Sala inválida. Use A, B, C ou D.' })
+    }
   }
 
   try {
@@ -91,10 +86,17 @@ router.post('/register', async (req, res) => {
 
     // Inserir usuário
     const { rows } = await pool.query(
-      `INSERT INTO usuarios (nome, email, senha_hash, tipo)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [nome.trim(), emailNormalizado, senha_hash, tipo]
+      `INSERT INTO usuarios (nome, email, senha_hash, tipo, ano, sala)
+   VALUES ($1, $2, $3, $4, $5, $6)
+   RETURNING *`,
+      [
+        nome.trim(),
+        emailNormalizado,
+        senha_hash,
+        tipo,
+        tipo === 'aluno' ? Number(ano) : null,
+        tipo === 'aluno' ? String(sala).toUpperCase() : null,
+      ]
     )
 
     const usuario = rows[0]

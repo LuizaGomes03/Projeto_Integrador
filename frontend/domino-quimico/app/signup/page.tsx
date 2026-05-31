@@ -59,7 +59,17 @@ function EmailIcon() {
   )
 }
 
-// ─── VALIDAÇÕES ───────────────────────────────────────────────────────────────
+function SchoolIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5">
+      <path d="M12 3 2 8l10 5 10-5-10-5Z" stroke="#C7C7C7" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M6 10.5v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" />
+      <path d="M22 8v5" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// ─── TIPOS ────────────────────────────────────────────────────────────────────
 
 type FieldErrors = {
   nome?: string
@@ -67,9 +77,21 @@ type FieldErrors = {
   email?: string
   senha?: string
   confirmar?: string
+  ano?: string
+  sala?: string
 }
 
-function validar(nome: string, sobrenome: string, email: string, senha: string, confirmar: string): FieldErrors {
+// ─── VALIDAÇÃO ────────────────────────────────────────────────────────────────
+
+function validar(
+  nome: string,
+  sobrenome: string,
+  email: string,
+  senha: string,
+  confirmar: string,
+  ano: string,
+  sala: string
+): FieldErrors {
   const erros: FieldErrors = {}
 
   if (!nome.trim()) erros.nome = "Informe o nome."
@@ -93,6 +115,9 @@ function validar(nome: string, sobrenome: string, email: string, senha: string, 
     erros.confirmar = "As senhas não conferem."
   }
 
+  if (!ano) erros.ano = "Selecione o ano."
+  if (!sala) erros.sala = "Selecione a sala."
+
   return erros
 }
 
@@ -115,8 +140,42 @@ function InputField({
         {label}
       </label>
       <div
-        className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${error ? "border-red-300 bg-red-50/40" : "border-[#EEEEEE]"
-          }`}
+        className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${
+          error ? "border-red-300 bg-red-50/40" : "border-[#EEEEEE]"
+        }`}
+      >
+        {icon}
+        {children}
+      </div>
+      {error && (
+        <p className="mt-1.5 text-[11px] font-semibold text-red-500">{error}</p>
+      )}
+    </div>
+  )
+}
+
+// ─── COMPONENTE DE SELECT ─────────────────────────────────────────────────────
+
+function SelectField({
+  label,
+  icon,
+  error,
+  children,
+}: {
+  label: string
+  icon?: React.ReactNode
+  error?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">
+        {label}
+      </label>
+      <div
+        className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${
+          error ? "border-red-300 bg-red-50/40" : "border-[#EEEEEE]"
+        }`}
       >
         {icon}
         {children}
@@ -138,6 +197,8 @@ export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [confirmar, setConfirmar] = useState("")
+  const [ano, setAno] = useState("")
+  const [sala, setSala] = useState("")
   const [showSenha, setShowSenha] = useState(false)
   const [showConfirmar, setShowConfirmar] = useState(false)
 
@@ -151,7 +212,7 @@ export default function SignupPage() {
   const handleCadastro = async () => {
     setErroGeral("")
 
-    const erros = validar(nome, sobrenome, email, senha, confirmar)
+    const erros = validar(nome, sobrenome, email, senha, confirmar, ano, sala)
     setErrosField(erros)
     if (Object.keys(erros).length > 0) return
 
@@ -168,13 +229,14 @@ export default function SignupPage() {
           email: email.trim().toLowerCase(),
           senha,
           tipo: "aluno",
+          ano: Number(ano),
+          sala,
         }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        // Erro específico do backend (ex: email já cadastrado)
         if (data.erro?.toLowerCase().includes("email")) {
           setErrosField({ email: data.erro })
         } else {
@@ -183,15 +245,12 @@ export default function SignupPage() {
         return
       }
 
-      // Sucesso: salvar token e redirecionar
       localStorage.setItem("dominoToken", data.token)
       localStorage.setItem("dominoUsuario", JSON.stringify(data.usuario))
       sessionStorage.setItem("dominoUserId", String(data.usuario.id))
       sessionStorage.setItem("dominoNome", data.usuario.nome)
 
       setSucesso(true)
-
-      // Pequena pausa para mostrar feedback de sucesso antes de redirecionar
       setTimeout(() => router.push("/aluno"), 1200)
     } catch {
       setErroGeral("Não foi possível conectar ao servidor. Tente novamente.")
@@ -277,14 +336,12 @@ export default function SignupPage() {
           {/* FORMULÁRIO */}
           <div className="mt-8 space-y-4" onKeyDown={handleKeyDown}>
 
-            {/* Mensagem de erro geral */}
             {erroGeral && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-[13px] font-semibold text-red-600">
                 {erroGeral}
               </div>
             )}
 
-            {/* Mensagem de sucesso */}
             {sucesso && (
               <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-center text-[13px] font-semibold text-green-700">
                 ✓ Conta criada! Redirecionando...
@@ -326,6 +383,42 @@ export default function SignupPage() {
                 className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7] disabled:opacity-50"
               />
             </InputField>
+
+            {/* ANO E SALA — lado a lado */}
+            <div className="grid grid-cols-2 gap-3">
+
+              {/* ANO */}
+              <SelectField label="Ano" icon={<SchoolIcon />} error={errosField.ano}>
+                <select
+                  value={ano}
+                  onChange={(e) => { setAno(e.target.value); limparErro("ano") }}
+                  disabled={carregando || sucesso}
+                  className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none disabled:opacity-50 cursor-pointer"
+                >
+                  <option value="">Selecione</option>
+                  <option value="1">1º Ano</option>
+                  <option value="2">2º Ano</option>
+                  <option value="3">3º Ano</option>
+                </select>
+              </SelectField>
+
+              {/* SALA */}
+              <SelectField label="Sala" icon={<SchoolIcon />} error={errosField.sala}>
+                <select
+                  value={sala}
+                  onChange={(e) => { setSala(e.target.value); limparErro("sala") }}
+                  disabled={carregando || sucesso}
+                  className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none disabled:opacity-50 cursor-pointer"
+                >
+                  <option value="">Selecione</option>
+                  <option value="A">Sala A</option>
+                  <option value="B">Sala B</option>
+                  <option value="C">Sala C</option>
+                  <option value="D">Sala D</option>
+                </select>
+              </SelectField>
+
+            </div>
 
             {/* SENHA */}
             <InputField label="Senha" icon={<LockIcon />} error={errosField.senha}>
