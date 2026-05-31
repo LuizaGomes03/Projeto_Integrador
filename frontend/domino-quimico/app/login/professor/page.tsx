@@ -6,16 +6,12 @@ import { useState } from "react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 
-// ─── ÍCONE OLHO ───────────────────────────────────────────────────────────────
-
 function EyeIcon({ open }: { open: boolean }) {
   if (!open) {
     return (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5">
-        <path
-          d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z"
-          stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
-        />
+        <path d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z"
+          stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
         <circle cx="12" cy="12" r="2.5" stroke="#C7C7C7" strokeWidth="1.7" />
         <path d="m4 20 16-16" stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" />
       </svg>
@@ -23,51 +19,31 @@ function EyeIcon({ open }: { open: boolean }) {
   }
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5">
-      <path
-        d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z"
-        stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
-      />
+      <path d="M3.5 12s3.2-6 8.5-6 8.5 6 8.5 6-3.2 6-8.5 6-8.5-6-8.5-6Z"
+        stroke="#C7C7C7" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="12" cy="12" r="2.5" stroke="#C7C7C7" strokeWidth="1.7" />
     </svg>
   )
 }
 
-// ─── PÁGINA ───────────────────────────────────────────────────────────────────
-
-export default function LoginPage() {
+export default function LoginProfessorPage() {
   const router = useRouter()
 
-  // Campos
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-
-  // Estado da requisição
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState("")
-
-  // Modal recuperação de senha
-  const [showRecoveryModal, setShowRecoveryModal] = useState(false)
-  const [emailRecovery, setEmailRecovery] = useState("")
-
-  // ─── SUBMIT LOGIN ──────────────────────────────────────────────────────────
 
   const handleLogin = async () => {
     setErro("")
 
-    if (!email.trim()) {
-      setErro("Informe seu email.")
-      return
-    }
-    if (!senha) {
-      setErro("Informe sua senha.")
-      return
-    }
+    if (!email.trim()) { setErro("Informe seu email."); return }
+    if (!senha)        { setErro("Informe sua senha."); return }
 
     setCarregando(true)
-
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${API_URL}/api/auth/professor/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), senha }),
@@ -80,19 +56,13 @@ export default function LoginPage() {
         return
       }
 
-      // Salvar token e dados do usuário
+      // Salva token e dados do professor
       localStorage.setItem("dominoToken", data.token)
       localStorage.setItem("dominoUsuario", JSON.stringify(data.usuario))
-
       sessionStorage.setItem("dominoUserId", String(data.usuario.id))
       sessionStorage.setItem("dominoNome", data.usuario.nome)
 
-      // Redirecionar conforme o tipo do usuário
-      if (data.usuario.tipo === "professor") {
-        router.push("/professor")
-      } else {
-        router.push("/aluno")
-      }
+      router.push("/professor")
     } catch {
       setErro("Não foi possível conectar ao servidor. Tente novamente.")
     } finally {
@@ -103,8 +73,6 @@ export default function LoginPage() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !carregando) handleLogin()
   }
-
-  // ─── RENDER ────────────────────────────────────────────────────────────────
 
   return (
     <main
@@ -163,11 +131,15 @@ export default function LoginPage() {
             </p>
 
             <div className="mt-9">
-              <h3 className="text-[32px] font-black tracking-[-0.06em] text-[#343434] sm:text-[42px]">
+              {/* Badge de professor */}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f5b8b8] bg-[#FEF2F2] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#D62828]">
+                🎓 Área do Professor
+              </span>
+              <h3 className="mt-3 text-[32px] font-black tracking-[-0.06em] text-[#343434] sm:text-[42px]">
                 Bem-vindo
               </h3>
               <p className="mt-2 text-[15px] text-[#8B8B8B] sm:text-[17px]">
-                Entre para continuar sua jornada.
+                Entre para acessar o painel do professor.
               </p>
             </div>
           </div>
@@ -175,7 +147,6 @@ export default function LoginPage() {
           {/* FORMULÁRIO */}
           <div className="mt-8 space-y-5">
 
-            {/* MENSAGEM DE ERRO */}
             {erro && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-[13px] font-semibold text-red-600">
                 {erro}
@@ -188,14 +159,13 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
               >
-                Email Acadêmico
+                Email
               </label>
-
               <div className={`flex h-[58px] items-center rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !email ? "border-red-300" : "border-[#EEEEEE]"}`}>
                 <input
                   id="email"
                   type="email"
-                  placeholder="seu.nome@aluno.cps.sp.gov.br"
+                  placeholder="seu.email@professor.cps.sp.gov'.br"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setErro("") }}
                   disabled={carregando}
@@ -207,22 +177,12 @@ export default function LoginPage() {
 
             {/* SENHA */}
             <div>
-              <div className="mb-3 flex items-center justify-between">
-                <label
-                  htmlFor="senha"
-                  className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
-                >
-                  Senha de acesso
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowRecoveryModal(true)}
-                  className="text-[10px] font-black uppercase tracking-[0.18em] text-[#E12727] transition hover:opacity-70"
-                >
-                  Esqueci a senha
-                </button>
-              </div>
-
+              <label
+                htmlFor="senha"
+                className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
+              >
+                Senha
+              </label>
               <div className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !senha ? "border-red-300" : "border-[#EEEEEE]"}`}>
                 <input
                   id="senha"
@@ -269,23 +229,12 @@ export default function LoginPage() {
           {/* DIVISOR */}
           <div className="my-7 border-t border-[#EFEFEF]" />
 
-          {/* CRIAR CONTA */}
+          {/* LINK PARA LOGIN DO ALUNO */}
           <p className="text-center text-[14px] text-[#8D8D8D]">
-            Não tem conta?{" "}
+            É aluno?{" "}
             <button
               type="button"
-              onClick={() => router.push("/signup")}
-              className="font-black text-[#D62828] transition hover:opacity-70"
-            >
-              Criar
-            </button>
-          </p>
-
-          <p className="text-center text-[14px] text-[#8D8D8D]">
-            É professor?{" "}
-            <button
-              type="button"
-              onClick={() => router.push("/login/professor")}
+              onClick={() => router.push("/login")}
               className="font-black text-[#D62828] transition hover:opacity-70"
             >
               Entrar aqui
@@ -293,60 +242,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-
-      {/* MODAL RECUPERAÇÃO DE SENHA */}
-      {showRecoveryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-[6px]">
-          <div className="w-full max-w-md rounded-[32px] bg-white p-6 shadow-[0_25px_80px_rgba(0,0,0,0.25)] sm:p-8">
-
-            <h2 className="text-[28px] font-black tracking-[-0.04em] text-[#2F2F2F]">
-              Recuperar senha
-            </h2>
-
-            <p className="mt-3 text-[15px] leading-relaxed text-[#8B8B8B]">
-              Digite seu email acadêmico para receber as instruções de recuperação.
-            </p>
-
-            <div className="mt-6">
-              <label
-                htmlFor="emailRecovery"
-                className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
-              >
-                Email acadêmico
-              </label>
-
-              <div className="flex h-[58px] items-center rounded-[18px] border border-[#EEEEEE] bg-[#FAFAFA] px-4 focus-within:border-[#D62828] transition-colors">
-                <input
-                  id="emailRecovery"
-                  type="email"
-                  placeholder="seu.nome@aluno.cps.sp.gov.br"
-                  value={emailRecovery}
-                  onChange={(e) => setEmailRecovery(e.target.value)}
-                  className="w-full bg-transparent text-[14px] font-medium text-[#666] outline-none placeholder:text-[#C7C7C7]"
-                />
-              </div>
-            </div>
-
-            {/* TODO (Arthur): chamar POST /api/auth/reset-request com { email: emailRecovery } */}
-
-            <div className="mt-7 flex gap-3">
-              <button
-                onClick={() => { setShowRecoveryModal(false); setEmailRecovery("") }}
-                className="flex-1 rounded-full border border-[#E5E5E5] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-[#666] transition hover:bg-[#F8F8F8]"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={() => { setShowRecoveryModal(false); setEmailRecovery("") }}
-                className="flex-1 rounded-full bg-[#D62828] py-3 text-[12px] font-black uppercase tracking-[0.18em] text-white shadow-[0_10px_25px_rgba(214,40,40,0.25)] transition hover:brightness-105"
-              >
-                Enviar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   )
 }
