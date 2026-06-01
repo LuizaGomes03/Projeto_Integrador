@@ -207,7 +207,7 @@ const styles = `
   .main {
     padding: 36px 40px 60px;
     overflow-y: auto;
-    min-width: 0; /* prevent grid blowout */
+    min-width: 0;
   }
 
   /* ── PAGE HEADER ── */
@@ -223,7 +223,7 @@ const styles = `
   /* ── STATS GRID ── */
   .stats-grid {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr;
     gap: 16px; margin-bottom: 28px;
   }
 
@@ -260,49 +260,10 @@ const styles = `
 
   .featured-graph { width: 90px; height: 54px; flex-shrink: 0; }
 
-  .online-pill {
-    position: absolute; top: 16px; right: 16px;
-    display: inline-flex; align-items: center;
-    background: #ECFDF5; border: 1px solid #6EE7B7;
-    border-radius: 999px; padding: 4px 10px;
-    font-size: 10px; font-weight: 700; color: var(--green); gap: 6px;
-  }
-
-  .online-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--green);
-    box-shadow: 0 0 0 0 rgba(22,163,74,0.4);
-    animation: pulse-green 1.8s infinite;
-  }
-
-  @keyframes pulse-green {
-    0%   { box-shadow: 0 0 0 0 rgba(22,163,74,0.45); }
-    70%  { box-shadow: 0 0 0 6px rgba(22,163,74,0); }
-    100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
-  }
-
-  .online-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-
-  .online-avatar-wrap { position: relative; }
-
-  .online-student-avatar {
-    width: 30px; height: 30px; border-radius: 50%;
-    font-size: 11px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    color: white; border: 2px solid var(--white);
-  }
-
-  .online-indicator {
-    position: absolute; bottom: 0; right: 0;
-    width: 9px; height: 9px;
-    background: var(--green); border-radius: 50%;
-    border: 2px solid var(--white);
-  }
-
   /* ── CONTENT GRID ── */
   .content-grid {
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 1fr;
     gap: 20px;
   }
 
@@ -365,45 +326,6 @@ const styles = `
   .activity-pts { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--green); }
   .activity-duration { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-  /* ── WIDGET ── */
-  .widget {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: var(--radius-lg); padding: 22px;
-  }
-
-  .widget-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700; margin-bottom: 16px;
-  }
-
-  .student-list { display: flex; flex-direction: column; gap: 12px; }
-  .student-row { display: flex; align-items: center; gap: 10px; }
-
-  .student-medal { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
-  .student-rank-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 12px; font-weight: 700; width: 22px;
-    text-align: center; flex-shrink: 0; color: var(--muted);
-  }
-
-  .student-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    font-size: 12px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; color: white;
-  }
-
-  .student-details { flex: 1; min-width: 0; }
-  .student-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  .progress-bar-bg {
-    height: 5px; border-radius: 3px;
-    background: var(--bg); margin-top: 4px; overflow: hidden;
-  }
-  .progress-bar-fill { height: 100%; border-radius: 3px; }
-
-  .student-score { font-size: 12px; font-weight: 700; color: var(--mid); white-space: nowrap; }
-
   /* ── STUDENTS PAGE ── */
   .students-toolbar {
     display: flex; align-items: center; gap: 10px;
@@ -447,7 +369,6 @@ const styles = `
   .students-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    /* subtle scrollbar */
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
@@ -455,7 +376,7 @@ const styles = `
   .students-table-scroll::-webkit-scrollbar-track { background: transparent; }
   .students-table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-  .students-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  .students-table { width: 100%; border-collapse: collapse; min-width: 400px; }
 
   .students-table thead tr { background: var(--bg); border-bottom: 1px solid var(--border); }
 
@@ -502,17 +423,6 @@ const styles = `
   }
   .td-score-bar-fill { height: 100%; border-radius: 3px; }
   .td-score-val { font-size: 12px; font-weight: 700; color: var(--mid); }
-
-  .status-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    border-radius: 20px; padding: 3px 9px;
-    font-size: 11px; font-weight: 700; white-space: nowrap;
-  }
-  .status-online { background: #ECFDF5; color: var(--green); }
-  .status-offline { background: var(--bg); color: var(--muted); }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .status-online .status-dot { background: var(--green); }
-  .status-offline .status-dot { background: var(--muted); }
 
   .students-count {
     font-size: 12px; color: var(--muted); font-weight: 500;
@@ -564,36 +474,9 @@ const styles = `
   }
   .detail-hero-meta span { display: flex; align-items: center; gap: 5px; }
 
-  .detail-hero-stats { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
-
-  .detail-mini-stat {
-    background: var(--bg); border-radius: 10px; padding: 10px 14px; text-align: center;
-    min-width: 70px;
-  }
-  .detail-mini-stat-val {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px; font-weight: 800; line-height: 1;
-  }
-  .detail-mini-stat-lbl {
-    font-size: 10px; font-weight: 600; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px;
-  }
-
-  .detail-hero-score-block { text-align: center; flex-shrink: 0; }
-  .detail-score-ring {
-    width: 90px; height: 90px; position: relative;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .detail-score-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
-  .detail-score-val {
-    font-family: 'Syne', sans-serif;
-    font-size: 22px; font-weight: 800; position: relative; z-index: 1;
-  }
-  .detail-score-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 600; }
-
   .detail-grid {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr;
     gap: 20px;
   }
 
@@ -656,59 +539,6 @@ const styles = `
   .badge-high { background: #ECFDF5; color: var(--green); }
   .badge-mid  { background: #FFF7ED; color: #C2410C; }
   .badge-low  { background: var(--red-light); color: var(--red); }
-
-  .match-history-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 11px 0; border-bottom: 1px solid var(--border);
-  }
-  .match-history-row:last-child { border-bottom: none; }
-
-  .match-result-badge {
-    width: 28px; height: 28px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 800; flex-shrink: 0; letter-spacing: 0.03em;
-  }
-  .match-win { background: #ECFDF5; color: var(--green); }
-  .match-loss { background: var(--red-light); color: var(--red); }
-
-  .match-hist-info { flex: 1; min-width: 0; }
-  .match-hist-tema { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .match-hist-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
-
-  .match-hist-pts {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700; text-align: right; white-space: nowrap;
-  }
-  .match-hist-duration { font-size: 11px; color: var(--muted); text-align: right; white-space: nowrap; }
-
-  .summary-stat-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 11px 0; border-bottom: 1px solid var(--border); gap: 10px;
-  }
-  .summary-stat-row:last-child { border-bottom: none; }
-  .summary-stat-label { font-size: 13px; color: var(--muted); font-weight: 500; }
-  .summary-stat-value { font-size: 13px; font-weight: 700; text-align: right; }
-
-  .trend-bars {
-    display: flex; align-items: flex-end; gap: 6px;
-    height: 80px; margin-top: 8px;
-  }
-  .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .trend-bar {
-    width: 100%; border-radius: 4px 4px 0 0;
-    transition: height 0.6s ease; min-height: 4px;
-  }
-  .trend-bar-lbl { font-size: 10px; color: var(--muted); font-weight: 600; }
-
-  .achievements-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-  .achievement-badge {
-    display: flex; align-items: center; gap: 7px;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 10px; padding: 7px 10px;
-    font-size: 11px; font-weight: 600; color: var(--mid);
-  }
-  .achievement-badge.earned { background: #FFFBEB; border-color: #FCD34D; color: #92400E; }
-  .achievement-icon { font-size: 15px; }
 
   /* ── SETTINGS ── */
   .settings-stack { display: flex; flex-direction: column; gap: 18px; }
@@ -884,9 +714,8 @@ const styles = `
      RESPONSIVE BREAKPOINTS
   ═══════════════════════════════════════ */
 
-  /* ── LARGE TABLET (≤ 1100px) ── */
   @media (max-width: 1100px) {
-     :root { --sidebar-w: 64px; }
+    :root { --sidebar-w: 64px; }
 
     .sidebar-logo { padding: 0 14px 24px; justify-content: center; }
     .sidebar-logo-name { display: none; }
@@ -906,30 +735,16 @@ const styles = `
     .sidebar-user > span { display: none; }
 
     .topbar { padding: 0 20px; }
-
     .main { padding: 24px 22px 50px; }
-
-    .detail-grid { grid-template-columns: 1fr; }
-
-    .content-grid { grid-template-columns: 1fr; gap: 16px; }
-
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-
-    .stat-card.featured { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .featured-graph { width: 100%; height: 40px; }
 
     .topics-grid { grid-template-columns: repeat(2, 1fr); }
 
-    .settings-field {
-      flex-direction: column; align-items: flex-start; gap: 10px;
-    }
-    .settings-input,
-    .settings-select { width: 100%; }
+    .settings-field { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .settings-input, .settings-select { width: 100%; }
     .settings-avatar-row { width: 100%; }
     .btn-danger { width: 100%; justify-content: center; }
   }
-    
-  /* ── SMALL TABLET (≤ 900px) ── */
+
   @media (max-width: 900px) {
     :root { --sidebar-w: 64px; }
 
@@ -951,30 +766,16 @@ const styles = `
     .sidebar-user > span { display: none; }
 
     .topbar { padding: 0 20px; }
-
     .main { padding: 24px 22px 50px; }
-
-    .detail-grid { grid-template-columns: 1fr; }
-
-    .content-grid { grid-template-columns: 1fr; gap: 16px; }
-
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-
-    .stat-card.featured { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .featured-graph { width: 100%; height: 40px; }
 
     .topics-grid { grid-template-columns: repeat(2, 1fr); }
 
-    .settings-field {
-      flex-direction: column; align-items: flex-start; gap: 10px;
-    }
-    .settings-input,
-    .settings-select { width: 100%; }
+    .settings-field { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .settings-input, .settings-select { width: 100%; }
     .settings-avatar-row { width: 100%; }
     .btn-danger { width: 100%; justify-content: center; }
   }
 
-  /* ── MOBILE (≤ 768px): hide sidebar, show bottom nav ── */
   @media (max-width: 768px) {
     :root { --sidebar-w: 0px; }
 
@@ -994,121 +795,67 @@ const styles = `
       grid-column: 1;
     }
 
-    /* Stats */
-    .stats-grid { grid-template-columns: 1fr; gap: 12px; }
-
-    .stat-card.featured {
-      flex-direction: row; align-items: center;
-    }
-    .stat-value { font-size: 28px; }
-    .featured-graph { width: 80px; height: 44px; }
-
-    /* Content */
-    .content-grid { grid-template-columns: 1fr; gap: 16px; }
-
-    /* Activity */
     .activity-color-bar { display: none; }
     .activity-item { padding: 12px 14px; gap: 10px; }
     .activity-icon { width: 32px; height: 32px; font-size: 14px; }
 
-    /* Students toolbar */
     .students-toolbar { gap: 8px; }
     .search-input-wrap { max-width: 100%; width: 100%; flex: none; }
     .filter-select { flex: 1; min-width: 110px; }
     .students-count { width: 100%; margin-left: 0; }
 
-    /* Detail hero */
     .detail-hero { padding: 18px; gap: 14px; }
     .detail-hero::before { display: none; }
-    .detail-hero-info { min-width: 100%; order: 3; }
-    .detail-hero-score-block { margin-left: auto; }
 
-    /* Detail grid */
-    .detail-grid { grid-template-columns: 1fr; }
-
-    /* Topics */
     .topics-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .topic-card { padding: 12px; }
     .topic-card-score-big { font-size: 22px; }
 
-    /* Settings */
-    .settings-field {
-      flex-direction: column; align-items: flex-start; gap: 10px;
-    }
-    .settings-input,
-    .settings-select { width: 100%; }
+    .settings-field { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .settings-input, .settings-select { width: 100%; }
     .settings-avatar-row { width: 100%; }
     .btn-danger { width: 100%; justify-content: center; }
     .settings-actions { flex-direction: column-reverse; align-items: stretch; }
     .btn-primary { width: 100%; justify-content: center; }
     .save-toast { text-align: center; justify-content: center; }
 
-    /* Detail cards */
     .detail-card { padding: 16px; }
-    .detail-mini-stat { padding: 9px 12px; min-width: 60px; }
-    .detail-mini-stat-val { font-size: 16px; }
   }
 
-  /* ── SMALL MOBILE (≤ 480px) ── */
   @media (max-width: 480px) {
     .topbar { padding: 0 12px; }
     .breadcrumb { font-size: 11px; }
-
     .main { padding: 16px 12px calc(var(--bottom-nav-h) + 20px); }
-
     .page-header { margin-bottom: 20px; }
     .page-header h1 { font-size: 20px; }
 
-    /* Stats */
     .stat-card { padding: 16px; }
     .stat-value { font-size: 24px; }
     .stat-card.featured { flex-direction: column; align-items: flex-start; gap: 10px; }
     .featured-graph { width: 100%; height: 36px; }
 
-    /* Activity */
     .activity-name { font-size: 12.5px; }
     .activity-pts { font-size: 12px; }
 
-    /* Topics: 1 column on very small screens */
     .topics-grid { grid-template-columns: repeat(2, 1fr); }
     .topic-card { padding: 10px; }
 
-    /* Detail hero: fully stacked */
-    .detail-hero { flex-direction: column; }
-    .detail-hero-score-block { margin-left: 0; }
-    .detail-hero-stats { gap: 8px; }
-
-    /* Students table: even more compact */
     .students-table th,
     .students-table td { padding: 10px 12px; }
     .td-avatar { width: 30px; height: 30px; font-size: 11px; }
     .td-name { font-size: 12px; }
     .td-email { font-size: 10px; }
 
-    /* Settings */
     .settings-section-header { padding: 14px 16px 12px; }
     .settings-field { padding: 14px 16px; }
-    .settings-input { font-size: 14px; } /* prevent iOS zoom */
-
-    /* Achievement badges */
-    .achievement-badge { font-size: 11px; padding: 6px 9px; }
-
-    /* Match history */
-    .match-hist-meta { display: none; }
-
-    /* Widget */
-    .widget { padding: 16px; }
+    .settings-input { font-size: 14px; }
   }
 
-  /* ── VERY SMALL (≤ 360px) ── */
   @media (max-width: 360px) {
     .topics-grid { grid-template-columns: 1fr; }
-    .detail-hero-stats { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
-    .detail-mini-stat { flex-shrink: 0; }
     .bottom-nav-item-label { font-size: 9px; }
   }
 
-  /* ── TOUCH DEVICE: remove hover effects that cause sticky states ── */
   @media (hover: none) {
     .activity-item:hover,
     .students-table tbody tr:hover,
@@ -1125,8 +872,6 @@ const styles = `
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface NavItemType { icon: string; label: string; badge?: string; }
-interface Student { name: string; initials: string; score: number; color: string; }
-interface OnlineStudent { initials: string; color: string; name: string; }
 interface Match { sala: string; tema: string; vencedor: string; tempoAtras: string; duracao: string; pontos: number; color: string; }
 interface FullStudent {
   name: string; initials: string; email: string; ano: string; sala: string;
@@ -1138,20 +883,6 @@ const NAV: NavItemType[] = [
   { icon: "🏠", label: "Dashboard" },
   { icon: "👥", label: "Alunos" },
   { icon: "⚙️", label: "Configurações" },
-];
-
-const TOP_STUDENTS: Student[] = [
-  { name: "Diana Ramos", initials: "DR", score: 95, color: "#9B59B6" },
-  { name: "Ana Luiza", initials: "AL", score: 92, color: "#E74C3C" },
-  { name: "Bruno Santos", initials: "BS", score: 87, color: "#3498DB" },
-  { name: "Caio Martins", initials: "CM", score: 78, color: "#27AE60" },
-  { name: "Eduardo Lima", initials: "EL", score: 64, color: "#F39C12" },
-];
-
-const ONLINE_STUDENTS: OnlineStudent[] = [
-  { initials: "DR", color: "#9B59B6", name: "Diana Ramos" },
-  { initials: "BS", color: "#3498DB", name: "Bruno Santos" },
-  { initials: "CM", color: "#27AE60", name: "Caio Martins" },
 ];
 
 const MATCHES_HOJE: Match[] = [
@@ -1192,15 +923,14 @@ const ALL_STUDENTS: FullStudent[] = [
 
 const SALAS = ["Todas as Salas", "Sala 01", "Sala 02", "Sala 03", "Sala 04", "Sala 05"];
 const ANOS = ["Todos os Anos", "1º Ano", "2º Ano", "3º Ano"];
-const MEDALS = ["🥇", "🥈", "🥉"];
 const ACCENT_COLORS = ["#D42B2B", "#2563EB", "#7C3AED", "#059669", "#D97706", "#DB2777"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function getStudentDetail(s: FullStudent) {
+function getStudentTopics(s: FullStudent) {
   const seed = s.name.charCodeAt(0) + s.name.charCodeAt(1);
   const r = (base: number, range: number) => base + ((seed * 7 + base * 3) % range);
 
-  const topics = [
+  return [
     { name: "Reações Químicas", score: Math.min(100, Math.max(30, s.score + r(-10, 20))) },
     { name: "Química Orgânica", score: Math.min(100, Math.max(30, s.score + r(-15, 25))) },
     { name: "Tabela Periódica", score: Math.min(100, Math.max(30, s.score + r(-5, 18))) },
@@ -1208,37 +938,6 @@ function getStudentDetail(s: FullStudent) {
     { name: "Termoquímica", score: Math.min(100, Math.max(30, s.score + r(-8, 16))) },
     { name: "Eletrólise", score: Math.min(100, Math.max(30, s.score + r(-12, 24))) },
   ];
-
-  const temas = ["Reações Químicas", "Tabela Periódica", "Química Orgânica", "Ligações Químicas", "Eletrólise", "Soluções", "Termoquímica", "Gases Nobres"];
-  const wins = Math.round(s.partidas * (s.score / 100));
-  const losses = s.partidas - wins;
-
-  const matchHistory = Array.from({ length: Math.min(s.partidas, 8) }, (_, i) => {
-    const won = i < wins;
-    const tema = temas[i % temas.length];
-    const pts = won ? 80 + r(i * 3, 60) : 20 + r(i * 2, 30);
-    const days = [0, 0, 1, 2, 3, 5, 7, 10];
-    const dateStr = days[i] === 0 ? "Hoje" : days[i] === 1 ? "Ontem" : `${days[i]} dias atrás`;
-    return { won, tema, pts: Math.min(150, pts), duracao: `${14 + r(i, 12)} min`, data: dateStr };
-  });
-
-  const trendWeeks = ["S1", "S2", "S3", "S4", "S5", "S6"];
-  const trendScores = trendWeeks.map((_, i) => Math.min(100, Math.max(20, s.score - 20 + r(i * 5, 30))));
-
-  const achievements = [
-    { icon: "🏆", label: "Primeiro lugar", earned: s.score >= 90 },
-    { icon: "🔥", label: "5 vitórias seguidas", earned: wins >= 5 },
-    { icon: "⚡", label: "Partida rápida", earned: s.partidas >= 10 },
-    { icon: "📚", label: "Estudante dedicado", earned: s.partidas >= 15 },
-    { icon: "🧪", label: "Mestre químico", earned: s.score >= 80 },
-    { icon: "🌟", label: "Top 3 turma", earned: s.score >= 85 },
-  ];
-
-  const tempoMedioPartida = `${15 + r(0, 8)} min`;
-  const taxaVitoria = Math.round((wins / Math.max(s.partidas, 1)) * 100);
-  const pontosTotal = matchHistory.reduce((acc, m) => acc + m.pts, 0) * 2 + r(0, 200);
-
-  return { topics, matchHistory, trendWeeks, trendScores, achievements, wins, losses, tempoMedioPartida, taxaVitoria, pontosTotal };
 }
 
 function topicBadge(score: number) {
@@ -1247,23 +946,7 @@ function topicBadge(score: number) {
   return { cls: "badge-low", label: "A melhorar" };
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-function ScoreRing({ score, color }: { score: number; color: string }) {
-  const rad = 38, cx = 45, cy = 45;
-  const circ = 2 * Math.PI * rad;
-  const filled = (score / 100) * circ;
-  return (
-    <div className="detail-score-ring">
-      <svg width="90" height="90" viewBox="0 0 90 90">
-        <circle cx={cx} cy={cy} r={rad} fill="none" stroke="var(--bg)" strokeWidth="7" />
-        <circle cx={cx} cy={cy} r={rad} fill="none" stroke={color} strokeWidth="7"
-          strokeDasharray={`${filled} ${circ - filled}`} strokeLinecap="round" />
-      </svg>
-      <div className="detail-score-val">{score}%</div>
-    </div>
-  );
-}
-
+// ─── Toggle ───────────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange, onLabel = "Sim", offLabel = "Não" }: {
   checked: boolean; onChange: (v: boolean) => void; onLabel?: string; offLabel?: string;
 }) {
@@ -1416,8 +1099,7 @@ function SettingsView() {
 
 // ─── Student Detail ───────────────────────────────────────────────────────────
 function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: () => void }) {
-  const detail = getStudentDetail(student);
-  const maxTrend = Math.max(...detail.trendScores);
+  const topics = getStudentTopics(student);
 
   return (
     <>
@@ -1431,139 +1113,33 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
             <span>🎓 {student.ano}</span>
             <span>🏫 {student.sala}</span>
             <span>✉️ {student.email}</span>
-            <span className={`status-pill ${student.online ? "status-online" : "status-offline"}`} style={{ fontSize: 11 }}>
-              <span className="status-dot" />
-              {student.online ? "Online agora" : "Offline"}
-            </span>
           </div>
-          <div className="detail-hero-stats">
-            <div className="detail-mini-stat">
-              <div className="detail-mini-stat-val">{student.partidas}</div>
-              <div className="detail-mini-stat-lbl">Partidas</div>
-            </div>
-            <div className="detail-mini-stat">
-              <div className="detail-mini-stat-val" style={{ color: "var(--green)" }}>{detail.wins}</div>
-              <div className="detail-mini-stat-lbl">Vitórias</div>
-            </div>
-            <div className="detail-mini-stat">
-              <div className="detail-mini-stat-val" style={{ color: "var(--red)" }}>{detail.losses}</div>
-              <div className="detail-mini-stat-lbl">Derrotas</div>
-            </div>
-            <div className="detail-mini-stat">
-              <div className="detail-mini-stat-val">{detail.pontosTotal.toLocaleString("pt-BR")}</div>
-              <div className="detail-mini-stat-lbl">Pts totais</div>
-            </div>
-          </div>
-        </div>
-        <div className="detail-hero-score-block">
-          <ScoreRing score={student.score} color={student.color} />
-          <div className="detail-score-lbl">Desempenho</div>
         </div>
       </div>
 
       <div className="detail-grid">
-        <div>
-          <div className="detail-card">
-            <div className="detail-card-title">
-              <div className="detail-card-title-icon">📚</div>
-              Desempenho por Tema
-            </div>
-            <div className="topics-grid">
-              {detail.topics.map((t, i) => {
-                const badge = topicBadge(t.score);
-                return (
-                  <div key={i} className="topic-card">
-                    <div className="topic-card-name">{t.name}</div>
-                    <div className="topic-card-score-row">
-                      <div className="topic-card-score-big" style={{ color: student.color }}>{t.score}</div>
-                      <div className="topic-card-score-pct">/ 100</div>
-                    </div>
-                    <div className="topic-card-bar-bg">
-                      <div className="topic-card-bar-fill" style={{ width: `${t.score}%`, background: student.color }} />
-                    </div>
-                    <span className={`topic-card-badge ${badge.cls}`}>{badge.label}</span>
+        <div className="detail-card">
+          <div className="detail-card-title">
+            <div className="detail-card-title-icon">📚</div>
+            Desempenho por Tema
+          </div>
+          <div className="topics-grid">
+            {topics.map((t, i) => {
+              const badge = topicBadge(t.score);
+              return (
+                <div key={i} className="topic-card">
+                  <div className="topic-card-name">{t.name}</div>
+                  <div className="topic-card-score-row">
+                    <div className="topic-card-score-big" style={{ color: student.color }}>{t.score}</div>
+                    <div className="topic-card-score-pct">/ 100</div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="detail-card">
-            <div className="detail-card-title">
-              <div className="detail-card-title-icon">🎲</div>
-              Histórico de Partidas
-            </div>
-            {detail.matchHistory.map((m, i) => (
-              <div key={i} className="match-history-row">
-                <div className={`match-result-badge ${m.won ? "match-win" : "match-loss"}`}>
-                  {m.won ? "WIN" : "DEF"}
-                </div>
-                <div className="match-hist-info">
-                  <div className="match-hist-tema">{m.tema}</div>
-                  <div className="match-hist-meta">{student.sala} · {m.data}</div>
-                </div>
-                <div>
-                  <div className="match-hist-pts" style={{ color: m.won ? "var(--green)" : "var(--red)" }}>
-                    {m.won ? "+" : ""}{m.pts} pts
+                  <div className="topic-card-bar-bg">
+                    <div className="topic-card-bar-fill" style={{ width: `${t.score}%`, background: student.color }} />
                   </div>
-                  <div className="match-hist-duration">⏱ {m.duracao}</div>
+                  <span className={`topic-card-badge ${badge.cls}`}>{badge.label}</span>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <div className="detail-card">
-            <div className="detail-card-title">
-              <div className="detail-card-title-icon">📊</div>
-              Resumo
-            </div>
-            {[
-              { label: "Taxa de vitória", value: `${detail.taxaVitoria}%` },
-              { label: "Tempo médio", value: detail.tempoMedioPartida },
-              { label: "Melhor tema", value: detail.topics.reduce((a, b) => a.score > b.score ? a : b).name },
-              { label: "A melhorar", value: detail.topics.reduce((a, b) => a.score < b.score ? a : b).name },
-              { label: "Total de pontos", value: detail.pontosTotal.toLocaleString("pt-BR") },
-            ].map((row, i) => (
-              <div key={i} className="summary-stat-row">
-                <div className="summary-stat-label">{row.label}</div>
-                <div className="summary-stat-value">{row.value}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="detail-card">
-            <div className="detail-card-title">
-              <div className="detail-card-title-icon">📈</div>
-              Evolução (6 semanas)
-            </div>
-            <div className="trend-bars">
-              {detail.trendScores.map((sc, i) => (
-                <div key={i} className="trend-bar-wrap">
-                  <div className="trend-bar" style={{
-                    height: `${(sc / maxTrend) * 64}px`,
-                    background: i === detail.trendScores.length - 1 ? student.color : `${student.color}55`,
-                  }} />
-                  <div className="trend-bar-lbl">{detail.trendWeeks[i]}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="detail-card">
-            <div className="detail-card-title">
-              <div className="detail-card-title-icon">🏅</div>
-              Conquistas
-            </div>
-            <div className="achievements-grid">
-              {detail.achievements.map((a, i) => (
-                <div key={i} className={`achievement-badge ${a.earned ? "earned" : ""}`}>
-                  <span className="achievement-icon">{a.icon}</span>
-                  {a.label}
-                </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -1575,7 +1151,7 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
 function DashboardView() {
   const [activeTab, setActiveTab] = useState<"Hoje" | "Semana" | "Mês">("Hoje");
   const matches = MATCHES_BY_TAB[activeTab];
-  const desempMedio = Math.round(TOP_STUDENTS.reduce((acc, s) => acc + s.score, 0) / TOP_STUDENTS.length);
+  const desempMedio = Math.round(ALL_STUDENTS.reduce((acc, s) => acc + s.score, 0) / ALL_STUDENTS.length);
 
   return (
     <>
@@ -1585,19 +1161,6 @@ function DashboardView() {
       </div>
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-value">{ONLINE_STUDENTS.length}</div>
-          <div className="stat-label">Alunos Online Agora</div>
-          <div className="online-pill"><span className="online-dot" />Ao vivo</div>
-          <div className="online-list">
-            {ONLINE_STUDENTS.map((s, i) => (
-              <div key={i} className="online-avatar-wrap" title={s.name}>
-                <div className="online-student-avatar" style={{ background: s.color }}>{s.initials}</div>
-                <div className="online-indicator" />
-              </div>
-            ))}
-          </div>
-        </div>
         <div className="stat-card featured">
           <div>
             <div className="stat-label" style={{ marginBottom: 8 }}>Desempenho Médio</div>
@@ -1637,30 +1200,6 @@ function DashboardView() {
                   <div className="activity-pts">+{m.pontos} pts</div>
                   <div className="activity-duration">⏱ {m.duracao}</div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="widget">
-          <div className="section-header">
-            <div className="widget-title">Top Alunos</div>
-            <div className="section-link">Ver todos</div>
-          </div>
-          <div className="student-list">
-            {TOP_STUDENTS.map((s, i) => (
-              <div key={i} className="student-row">
-                {i < 3
-                  ? <div className="student-medal">{MEDALS[i]}</div>
-                  : <div className="student-rank-num">{i + 1}º</div>}
-                <div className="student-avatar" style={{ background: s.color }}>{s.initials}</div>
-                <div className="student-details">
-                  <div className="student-name">{s.name}</div>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: `${s.score}%`, background: s.color }} />
-                  </div>
-                </div>
-                <div className="student-score">{s.score}%</div>
               </div>
             ))}
           </div>
@@ -1718,9 +1257,7 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
                 <th>Aluno</th>
                 <th>Ano</th>
                 <th>Sala</th>
-                <th>Desempenho</th>
-                <th>Partidas</th>
-                <th>Status</th>
+                <th>Nível</th>
               </tr>
             </thead>
             <tbody>
@@ -1745,18 +1282,11 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
                       <span className="td-score-val">{s.score}%</span>
                     </div>
                   </td>
-                  <td style={{ fontWeight: 600, fontSize: 13 }}>{s.partidas}</td>
-                  <td>
-                    <span className={`status-pill ${s.online ? "status-online" : "status-offline"}`}>
-                      <span className="status-dot" />
-                      {s.online ? "Online" : "Offline"}
-                    </span>
-                  </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>
                     Nenhum aluno encontrado.
                   </td>
                 </tr>
@@ -1796,7 +1326,6 @@ export default function ProfessorDashboard() {
       <style>{styles}</style>
       <div className="app">
 
-        {/* ── Desktop / Large Tablet Sidebar ── */}
         <aside className="sidebar">
           <div className="sidebar-logo">
             <div className="sidebar-logo-icon">⚗</div>
@@ -1837,7 +1366,6 @@ export default function ProfessorDashboard() {
           </div>
         </aside>
 
-        {/* ── Topbar ── */}
         <header className="topbar">
           <span className="breadcrumb">
             {selectedStudent ? (
@@ -1872,7 +1400,6 @@ export default function ProfessorDashboard() {
           )}
         </header>
 
-        {/* ── Main Content ── */}
         <main className="main">
           {activeNav === "Dashboard" && <DashboardView />}
           {activeNav === "Alunos" && !selectedStudent && <StudentsView onSelectStudent={handleSelectStudent} />}
@@ -1880,7 +1407,6 @@ export default function ProfessorDashboard() {
           {activeNav === "Configurações" && <SettingsView />}
         </main>
 
-        {/* ── Mobile Bottom Nav ── */}
         <nav className="bottom-nav">
           {NAV.map((n) => (
             <button key={n.label}
