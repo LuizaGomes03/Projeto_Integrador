@@ -1,87 +1,95 @@
 import { Router } from 'express'
 import pool from '../db.js'
+import {
+  gerarTodasAsPedrasParaNivel,
+  getPedraInicialParaNivel,
+  NIVEIS,
+} from '../domino/levels.js'
 
 const router = Router()
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
 
-const FUNCOES = ['Ácido', 'Base', 'Óxido', 'Sal', 'Hidreto', 'Amida', 'Éter', 'Éster']
-const PEDRA_INICIAL = { left: 'Ácido', right: 'Hidreto' }
 const PEDRAS_POR_JOGADOR = 7
 const IA_NOME = 'IA Química'
-const IA_ID = -1 // ID fictício para a IA no mapa de maos
+const IA_ID = -1
 
-// ─── GERAÇÃO DE PEÇAS ─────────────────────────────────────────────────────────
+// ─── UTILITÁRIOS DE PEDRA ─────────────────────────────────────────────────────
 
-function gerarTodasAsPedras() {
-  const pedras = []
-  let id = 1
-  for (let i = 0; i < FUNCOES.length; i++) {
-    for (let j = i; j < FUNCOES.length; j++) {
-      pedras.push({ id: String(id++), left: FUNCOES[i], right: FUNCOES[j] })
-    }
-  }
-  return pedras
+/** Retorna o token de encaixe de uma face (suporta string simples ou objeto rico) */
+function encaixeDe(face) {
+  if (!face) return null
+  return typeof face === 'string' ? face : face.encaixe
 }
+
+// ─── EMBARALHAMENTO ───────────────────────────────────────────────────────────
 
 function embaralhar(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-      ;[a[i], a[j]] = [a[j], a[i]]
+    ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
 }
 
-function distribuirPedras(jogadores) {
-  const todas = embaralhar(gerarTodasAsPedras())
-  const idxInicial = todas.findIndex(
-    (p) => p.left === PEDRA_INICIAL.left && p.right === PEDRA_INICIAL.right
+function distribuirPedras(jogadores, nivel = 1) {
+  const todas = embaralhar(gerarTodasAsPedrasParaNivel(nivel))
+  const pedraInicial = getPedraInicialParaNivel(nivel)
+
+  // Remove a pedra inicial da lista se ela aparecer (por id ou por encaixe idêntico)
+  const semInicial = todas.filter(
+    (p) =>
+      encaixeDe(p.left) !== encaixeDe(pedraInicial.left) ||
+      encaixeDe(p.right) !== encaixeDe(pedraInicial.right)
   )
-  const pedraInicial = todas.splice(idxInicial, 1)[0]
-  
-  // Bug fix: antes, distribui sequencialmente — jogador 1 pega 7, jogador 2 pega 7,
-  // jogador 3 tenta pegar 7 mas o array tá vazio. Agora distribui em rodadas,
-  // como um baralho real: cada jogador pega 1, depois outro pega 1, etc.
+
   const maos = {}
-  const jogadoresHumanos = jogadores.filter(j => j.id !== IA_ID)
-  
-  // Inicializa as mãos
+  const jogadoresHumanos = jogadores.filter((j) => j.id !== IA_ID)
+
   for (const j of jogadores) {
     maos[j.id] = []
   }
-  
-  // Distribui em rodadas
+
+  // Distribuição em rodadas (como baralho real)
   for (let i = 0; i < PEDRAS_POR_JOGADOR; i++) {
     for (const j of jogadoresHumanos) {
-      if (todas.length > 0) {
-        maos[j.id].push(todas.shift())  // pega a primeira pedra
+      if (semInicial.length > 0) {
+        maos[j.id].push(semInicial.shift())
       }
     }
   }
-  
-  return { maos, monte: todas, pedraInicial }
+
+  return { maos, monte: semInicial, pedraInicial }
 }
 
 // ─── VALIDAÇÃO ────────────────────────────────────────────────────────────────
 
 function obterPontas(mesa) {
   if (mesa.length === 0) return { esquerda: null, direita: null }
-  return { esquerda: mesa[0].left, direita: mesa[mesa.length - 1].right }
+  return {
+    esquerda: encaixeDe(mesa[0].left),
+    direita: encaixeDe(mesa[mesa.length - 1].right),
+  }
 }
 
 function validarJogada(pedra, mesa) {
   const { esquerda, direita } = obterPontas(mesa)
+  const pl = encaixeDe(pedra.left)
+  const pr = encaixeDe(pedra.right)
+
   if (esquerda === null) return { valido: true, lado: 'direita', virar: false }
-  if (pedra.left === direita) return { valido: true, lado: 'direita', virar: false }
-  if (pedra.right === direita) return { valido: true, lado: 'direita', virar: true }
-  if (pedra.right === esquerda) return { valido: true, lado: 'esquerda', virar: false }
-  if (pedra.left === esquerda) return { valido: true, lado: 'esquerda', virar: true }
+  if (pl === direita)   return { valido: true, lado: 'direita',   virar: false }
+  if (pr === direita)   return { valido: true, lado: 'direita',   virar: true  }
+  if (pr === esquerda)  return { valido: true, lado: 'esquerda',  virar: false }
+  if (pl === esquerda)  return { valido: true, lado: 'esquerda',  virar: true  }
   return { valido: false, lado: null, virar: false }
 }
 
 function aplicarJogada(pedra, mesa, lado, virar) {
-  const pedraFinal = virar ? { ...pedra, left: pedra.right, right: pedra.left } : { ...pedra }
+  const pedraFinal = virar
+    ? { ...pedra, left: pedra.right, right: pedra.left }
+    : { ...pedra }
   return lado === 'esquerda' ? [pedraFinal, ...mesa] : [...mesa, pedraFinal]
 }
 
@@ -135,11 +143,23 @@ function jogadaIA(estado) {
     if (valido) {
       estado.mesa = aplicarJogada(pedra, estado.mesa, lado, virar)
       estado.maos[IA_ID] = mao.filter((p) => p.id !== pedra.id)
-      estado.historico.push({ jogadorId: IA_ID, nome: IA_NOME, pedra, lado, virar, timestamp: new Date().toISOString() })
+      estado.historico.push({
+        jogadorId: IA_ID,
+        nome: IA_NOME,
+        pedra,
+        lado,
+        virar,
+        timestamp: new Date().toISOString(),
+      })
       return
     }
   }
-  estado.historico.push({ jogadorId: IA_ID, nome: IA_NOME, acao: 'passou', timestamp: new Date().toISOString() })
+  estado.historico.push({
+    jogadorId: IA_ID,
+    nome: IA_NOME,
+    acao: 'passou',
+    timestamp: new Date().toISOString(),
+  })
 }
 
 function processarTurnosIA(estado) {
@@ -160,9 +180,7 @@ function processarTurnosIA(estado) {
   }
 }
 
-// ─── SERIALIZAÇÃO PARA O FRONTEND ─────────────────────────────────────────────
-// O frontend espera { minha_mao, maos, mesa, turnoAtual (nome), pontas, ... }
-// Mantemos compatibilidade convertendo IDs → nomes onde necessário.
+// ─── SERIALIZAÇÃO ─────────────────────────────────────────────────────────────
 
 function sanitizarEstado(estado, usuarioId) {
   const maosPublicas = {}
@@ -175,16 +193,17 @@ function sanitizarEstado(estado, usuarioId) {
 
   return {
     sala: estado.salaCode,
+    nivel: estado.nivel ?? 1,
+    nivelInfo: NIVEIS[estado.nivel ?? 1] ?? NIVEIS[1],
     jogadores: estado.jogadores.map((j) => j.nome),
     turnoAtual: jogadorAtual?.nome ?? '',
     mesa: estado.mesa,
-    minha_mao: usuarioId != null
-      ? (estado.maos[usuarioId] ?? [])
-      : undefined,
+    minha_mao: usuarioId != null ? (estado.maos[usuarioId] ?? []) : undefined,
     maos: maosPublicas,
     monte: estado.monte?.length ?? 0,
     encerrado: estado.encerrado,
-    vencedor: estado.vencedores?.find((j) => j.id === estado.vencedorId)?.nome ?? null,
+    vencedor:
+      estado.vencedores?.find((j) => j.id === estado.vencedorId)?.nome ?? null,
     vencedores: estado.vencedores?.map((j) => j.nome) ?? null,
     motivo: estado.motivo ?? null,
     historico: estado.historico,
@@ -204,7 +223,6 @@ async function getEstado(client, salaId) {
 }
 
 async function saveEstado(client, partidaId, salaId, estado) {
-  // Remove metadado interno antes de salvar
   const { _partidaId, ...estadoLimpo } = estado
   await client.query(
     `INSERT INTO partida_estado (partida_id, sala_id, estado, updated_at)
@@ -216,14 +234,9 @@ async function saveEstado(client, partidaId, salaId, estado) {
   )
 }
 
-/**
- * Quando a partida encerra: grava resultados em `partidas` e `desempenho_jogadores`.
- * Ignora a IA (usuarioId = IA_ID = -1).
- */
 async function finalizarPartida(client, estadoFinal) {
-  const { _partidaId, vencedorId, motivo, maos, jogadores } = estadoFinal
+  const { _partidaId, vencedorId, motivo, jogadores } = estadoFinal
 
-  // Atualiza partida principal
   const vencedorReal = vencedorId !== IA_ID ? vencedorId : null
   await client.query(
     `UPDATE partidas
@@ -235,12 +248,10 @@ async function finalizarPartida(client, estadoFinal) {
     [vencedorReal, motivo, _partidaId]
   )
 
-  // Grava desempenho por jogador (ignora IA)
   for (const j of jogadores) {
     if (j.id === IA_ID) continue
 
     const venceu = vencedorId === j.id
-    // Conta acertos pelo histórico: jogadas bem-sucedidas deste jogador
     const acertos = estadoFinal.historico.filter(
       (h) => h.jogadorId === j.id && h.pedra
     ).length
@@ -260,25 +271,21 @@ async function finalizarPartida(client, estadoFinal) {
 // ─── ROTAS ────────────────────────────────────────────────────────────────────
 
 // POST /api/partidas/iniciar
-// Body: { codigoSala, jogadores?: [{ id, nome }] }
-// jogadores[] só é usado no modo solo (sem sala no banco)
+// Body: { codigoSala, jogadores?: [{ id, nome }], nivel?: 1|2|3 }
 router.post('/iniciar', async (req, res) => {
-  const { codigoSala, jogadores: jogadoresDireto } = req.body ?? {}
+  const { codigoSala, jogadores: jogadoresDireto, nivel: nivelReq } = req.body ?? {}
   const salaCode = String(codigoSala ?? '').toUpperCase()
+  const nivel = Number(nivelReq) in NIVEIS ? Number(nivelReq) : 1
 
-  console.log('📋 POST /iniciar recebido')
-  console.log('codigoSala:', salaCode)
-  console.log('jogadores:', jogadoresDireto)
-  console.log('quantidade:', jogadoresDireto?.length ?? 0)
+  console.log('📋 POST /iniciar — sala:', salaCode, '| nível:', nivel)
 
-  // Rejeita cedo se vier jogadores com id sentinela (-99 = nao carregado ainda)
   if (Array.isArray(jogadoresDireto)) {
     const invalido = jogadoresDireto.find(
       (j) => j.id !== -1 && (typeof j.id !== 'number' || j.id <= 0)
     )
     if (invalido) {
       return res.status(400).json({
-        erro: 'Jogador com id invalido (' + invalido.id + '). O cliente ainda nao carregou o usuario da sessao.',
+        erro: `Jogador com id inválido (${invalido.id}). Sessão ainda não carregada.`,
       })
     }
   }
@@ -287,24 +294,24 @@ router.post('/iniciar', async (req, res) => {
   try {
     await client.query('BEGIN')
 
-    // ── Busca sala no banco ──────────────────────────────────────────────────
     const { rows: salaRows } = await client.query(
       'SELECT * FROM salas WHERE code = $1',
       [salaCode]
     )
 
     let salaId
-    let jogadores // [{ id, nome }]
+    let jogadores
 
     if (salaRows.length > 0) {
       const sala = salaRows[0]
 
       if (sala.status === 'playing') {
         await client.query('ROLLBACK')
-        return res.status(400).json({ erro: 'Esta sala já tem uma partida em andamento.' })
+        return res
+          .status(400)
+          .json({ erro: 'Esta sala já tem uma partida em andamento.' })
       }
 
-      // Busca jogadores cadastrados na sala
       const { rows: jogadoresRows } = await client.query(
         `SELECT u.id, u.nome
            FROM sala_jogadores sj
@@ -316,26 +323,32 @@ router.post('/iniciar', async (req, res) => {
 
       if (jogadoresRows.length < 2) {
         await client.query('ROLLBACK')
-        return res.status(400).json({ erro: 'Mínimo de 2 jogadores necessário.' })
+        return res
+          .status(400)
+          .json({ erro: 'Mínimo de 2 jogadores necessário.' })
       }
 
       salaId = sala.id
       jogadores = jogadoresRows
 
-      await client.query("UPDATE salas SET status = 'playing' WHERE id = $1", [salaId])
+      await client.query(
+        "UPDATE salas SET status = 'playing' WHERE id = $1",
+        [salaId]
+      )
     } else {
-      // ── Modo solo / demo: sala não existe no banco ───────────────────────
       if (!Array.isArray(jogadoresDireto) || jogadoresDireto.length < 2) {
         await client.query('ROLLBACK')
-        return res.status(400).json({ erro: 'Mínimo de 2 jogadores necessário.' })
+        return res
+          .status(400)
+          .json({ erro: 'Mínimo de 2 jogadores necessário.' })
       }
 
-      // Cria sala temporária
-      const code = salaCode || Math.random().toString(36).slice(2, 8).toUpperCase()
-      // Usa o id do primeiro jogador como host (se for numérico), senão usa NULL
-      const hostId = typeof jogadoresDireto[0].id === 'number' && jogadoresDireto[0].id > 0
-        ? jogadoresDireto[0].id
-        : null
+      const code =
+        salaCode || Math.random().toString(36).slice(2, 8).toUpperCase()
+      const hostId =
+        typeof jogadoresDireto[0].id === 'number' && jogadoresDireto[0].id > 0
+          ? jogadoresDireto[0].id
+          : null
 
       const { rows: novaSala } = await client.query(
         `INSERT INTO salas (code, host_id, status)
@@ -346,14 +359,11 @@ router.post('/iniciar', async (req, res) => {
       )
       salaId = novaSala[0].id
 
-      // Normaliza: garante que IA tenha id = IA_ID
       jogadores = jogadoresDireto.map((j) =>
         j.nome === IA_NOME ? { id: IA_ID, nome: IA_NOME } : j
       )
     }
 
-    // ── Cria registro principal em partidas ──────────────────────────────
-    // usuario_id = host (primeiro jogador humano)
     const primeiroHumano = jogadores.find((j) => j.id !== IA_ID)
     const { rows: partidaRows } = await client.query(
       `INSERT INTO partidas (sala_id, usuario_id, encerrado)
@@ -363,16 +373,12 @@ router.post('/iniciar', async (req, res) => {
     )
     const partidaId = partidaRows[0].id
 
-    // ── Distribui pedras e monta estado inicial ───────────────────────────
-    const { maos, monte, pedraInicial } = distribuirPedras(jogadores)
-
-    console.log('📊 Distribuição final:')
-    console.log('maos:', maos)
-    console.log('monte:', monte.length)
+    const { maos, monte, pedraInicial } = distribuirPedras(jogadores, nivel)
 
     const estado = {
       salaCode: salaCode || jogadores[0]?.nome,
       salaId,
+      nivel,
       jogadores,
       turnoAtualId: jogadores[0].id,
       mesa: [pedraInicial],
@@ -388,8 +394,6 @@ router.post('/iniciar', async (req, res) => {
     processarTurnosIA(estado)
 
     await saveEstado(client, partidaId, salaId, estado)
-
-    // Anexa _partidaId para uso interno
     estado._partidaId = partidaId
 
     await client.query('COMMIT')
@@ -432,7 +436,6 @@ router.get('/:sala', async (req, res) => {
 })
 
 // POST /api/partidas/:sala/jogar
-// Body: { usuarioId, pedraId }
 router.post('/:sala/jogar', async (req, res) => {
   const salaCode = req.params.sala.toUpperCase()
   const { usuarioId, pedraId } = req.body ?? {}
@@ -485,7 +488,13 @@ router.post('/:sala/jogar', async (req, res) => {
 
     estado.mesa = aplicarJogada(pedra, estado.mesa, lado, virar)
     estado.maos[uid] = mao.filter((p) => p.id !== pedraId)
-    estado.historico.push({ jogadorId: uid, pedra, lado, virar, timestamp: new Date().toISOString() })
+    estado.historico.push({
+      jogadorId: uid,
+      pedra,
+      lado,
+      virar,
+      timestamp: new Date().toISOString(),
+    })
 
     const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
     if (fim.encerrado) {
@@ -513,7 +522,6 @@ router.post('/:sala/jogar', async (req, res) => {
 })
 
 // POST /api/partidas/:sala/passar
-// Body: { usuarioId }
 router.post('/:sala/passar', async (req, res) => {
   const salaCode = req.params.sala.toUpperCase()
   const { usuarioId } = req.body ?? {}
@@ -552,10 +560,16 @@ router.post('/:sala/passar', async (req, res) => {
     const temJogada = mao.some((p) => validarJogada(p, estado.mesa).valido)
     if (temJogada) {
       await client.query('ROLLBACK')
-      return res.status(400).json({ erro: 'Você ainda possui jogadas válidas. Não é possível passar.' })
+      return res.status(400).json({
+        erro: 'Você ainda possui jogadas válidas. Não é possível passar.',
+      })
     }
 
-    estado.historico.push({ jogadorId: uid, acao: 'passou', timestamp: new Date().toISOString() })
+    estado.historico.push({
+      jogadorId: uid,
+      acao: 'passou',
+      timestamp: new Date().toISOString(),
+    })
     estado.turnoAtualId = proximoJogador(estado.jogadores, uid).id
 
     const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
@@ -571,7 +585,8 @@ router.post('/:sala/passar', async (req, res) => {
       await saveEstado(client, estado._partidaId, salaRows[0].id, estado)
     }
 
-    const jogadorNome = estado.jogadores.find((j) => j.id === uid)?.nome ?? uid
+    const jogadorNome =
+      estado.jogadores.find((j) => j.id === uid)?.nome ?? uid
 
     await client.query('COMMIT')
     return res.json({
