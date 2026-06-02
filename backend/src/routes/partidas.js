@@ -164,7 +164,7 @@ function jogadaIA(estado) {
 
 function processarTurnosIA(estado) {
   let iteracoes = 0
-  const MAX = estado.jogadores.length * 2
+  const MAX = 1
   while (!estado.encerrado && estado.turnoAtualId === IA_ID && iteracoes < MAX) {
     jogadaIA(estado)
     const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
@@ -398,7 +398,7 @@ router.post('/iniciar', async (req, res) => {
 
     await client.query('COMMIT')
 
-    return res.status(201).json(sanitizarEstado(estado, null))
+    return res.status(201).json(sanitizarEstado(estado, primeiroHumano?.id ?? null))
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[partidas POST /iniciar]', err)
