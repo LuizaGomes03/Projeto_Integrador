@@ -268,7 +268,12 @@ async function saveEstado(client, partidaId, salaId, estado) {
 }
 
 async function finalizarPartida(client, estadoFinal) {
-  const { _partidaId, vencedorId, motivo, jogadores } = estadoFinal
+  const { _partidaId, vencedorId, motivo, jogadores, iniciadoEm } = estadoFinal
+
+  // Calcula duração total da partida em segundos
+  const tempoSegundos = iniciadoEm
+    ? Math.round((Date.now() - new Date(iniciadoEm).getTime()) / 1000)
+    : 0
 
   const vencedorReal = vencedorId !== IA_ID ? vencedorId : null
   await client.query(
@@ -293,10 +298,10 @@ async function finalizarPartida(client, estadoFinal) {
     ).length
 
     await client.query(
-      `INSERT INTO desempenho_jogadores (partida_id, usuario_id, acertos, erros, venceu)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO desempenho_jogadores (partida_id, usuario_id, acertos, erros, venceu, tempo_segundos)
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT DO NOTHING`,
-      [_partidaId, j.id, acertos, erros, venceu]
+      [_partidaId, j.id, acertos, erros, venceu, tempoSegundos]
     )
   }
 }
@@ -424,6 +429,7 @@ router.post('/iniciar', async (req, res) => {
       vencedores: null,
       motivo: null,
       historico: [],
+      iniciadoEm: new Date().toISOString(),
     }
 
     processarTurnosIA(estado)
