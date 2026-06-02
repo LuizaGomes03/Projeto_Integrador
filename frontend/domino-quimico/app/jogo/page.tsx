@@ -485,7 +485,11 @@ export default function GameBoard() {
               {partida.vencedor === meuNome ? "Você venceu!" : `${partida.vencedor} venceu!`}
             </h2>
             <p style={{ fontSize: 13, color: "#94A3B8", margin: "0 0 8px" }}>
-              {partida.motivo === "vitoria" ? `${partida.vencedor} esvaziou a mão primeiro.` : "Jogo travado — ninguém conseguia jogar."}
+              {partida.motivo === "vitoria"
+                ? `${partida.vencedor} esvaziou a mão primeiro.`
+                : partida.motivo === "fechamento"
+                  ? `${partida.vencedor} fechou o ciclo — as pontas se encontraram!`
+                  : "O jogo travou — ninguém conseguia jogar."}
             </p>
             <p style={{ fontSize: 11, color: nivelInfo.cor, fontWeight: 700, margin: "0 0 24px" }}>
               {nivelInfo.emoji} Nível {nivelInfo.nome}

@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Trophy, RefreshCw, RotateCcw, AlertCircle, X } from "lucide-react"
 import { apiFetch } from "@/lib/api"
+import { RichDominoTile, InlineDropZone as RichInlineDropZone, LegendaCores } from "@/components/domino/RichDominoTile"
 
 // ─── TIPOS ─────────────────────────────────────────────────────────────────────
 
@@ -34,126 +35,6 @@ type EstadoPartida = {
 }
 
 type DropZone = "esquerda" | "direita"
-
-// ─── COR POR FUNÇÃO ────────────────────────────────────────────────────────────
-
-const FUNCAO_COR: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  Ácido: { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
-  Base: { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
-  Óxido: { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
-  Sal: { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
-  Hidreto: { bg: "#F9F0FF", border: "#722ED1", text: "#22075E", dot: "#722ED1" },
-  Amida: { bg: "#FCE4EC", border: "#E91E63", text: "#880E4F", dot: "#E91E63" },
-  Éter: { bg: "#E0F2F1", border: "#009688", text: "#004D40", dot: "#009688" },
-  Éster: { bg: "#FFF3E0", border: "#FF9800", text: "#E65100", dot: "#FF9800" },
-}
-
-const getCor = (funcao: string) =>
-  FUNCAO_COR[funcao] ?? { bg: "#F5F5F5", border: "#8C8C8C", text: "#262626", dot: "#8C8C8C" }
-
-// ─── HALF DA PEÇA ──────────────────────────────────────────────────────────────
-
-function PieceHalf({ label, side, small = false }: { label: string; side: "left" | "right"; small?: boolean }) {
-  const cor = getCor(label)
-  const radius = side === "left" ? "8px 0 0 8px" : "0 8px 8px 0"
-  const divider = side === "left"
-    ? { right: 0, borderRight: `2px dashed ${cor.border}33` }
-    : { left: 0, borderLeft: `2px dashed ${cor.border}33` }
-
-  return (
-    <div style={{
-      position: "relative", display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center", gap: small ? 3 : 5,
-      padding: small ? "8px 10px" : "12px 16px", background: cor.bg,
-      borderRadius: radius, minWidth: small ? 58 : 80, flex: 1,
-    }}>
-      <div style={{ position: "absolute", top: "10%", bottom: "10%", width: 0, ...divider }} />
-      <div style={{ width: small ? 10 : 14, height: small ? 10 : 14, borderRadius: "50%", background: cor.dot, flexShrink: 0 }} />
-      <span style={{ fontSize: small ? 11 : 14, fontWeight: 800, color: cor.text, letterSpacing: 0.3, textAlign: "center", lineHeight: 1.2, whiteSpace: "nowrap" }}>
-        {label}
-      </span>
-    </div>
-  )
-}
-
-// ─── PEÇA HORIZONTAL ──────────────────────────────────────────────────────────
-
-function DominoTile({
-  pedra, small = false, selected = false, disabled = false,
-  draggable = false, onDragStart, onClick, style,
-}: {
-  pedra: Pedra; small?: boolean; selected?: boolean; disabled?: boolean
-  draggable?: boolean; onDragStart?: (e: React.DragEvent) => void
-  onClick?: () => void; style?: React.CSSProperties
-}) {
-  const borderColor = selected ? "#2563EB" : "#D1D5DB"
-  const shadow = selected ? "0 0 0 3px #2563EB44" : "0 2px 8px rgba(0,0,0,0.10)"
-
-  return (
-    <div
-      draggable={draggable && !disabled}
-      onDragStart={onDragStart}
-      onClick={disabled ? undefined : onClick}
-      title={`${pedra.left} | ${pedra.right}`}
-      style={{
-        display: "inline-flex", alignItems: "stretch",
-        border: `2px solid ${borderColor}`, borderRadius: 10,
-        overflow: "hidden", boxShadow: shadow,
-        cursor: draggable && !disabled ? "grab" : onClick && !disabled ? "pointer" : "default",
-        opacity: disabled ? 0.45 : 1,
-        transition: "box-shadow 0.15s, transform 0.12s, opacity 0.15s",
-        transform: selected ? "translateY(-4px)" : "none",
-        userSelect: "none", background: "#FFF", flexShrink: 0, ...style,
-      }}
-    >
-      <PieceHalf label={pedra.left} side="left" small={small} />
-      <div style={{ width: small ? 5 : 7, background: "#E5E7EB", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: small ? 5 : 7, height: small ? 5 : 7, borderRadius: "50%", background: "#9CA3AF" }} />
-      </div>
-      <PieceHalf label={pedra.right} side="right" small={small} />
-    </div>
-  )
-}
-
-// ─── DROP ZONE ────────────────────────────────────────────────────────────────
-
-function InlineDropZone({ side, ponta, over, onDragOver, onDragLeave, onDrop, onClick }: {
-  side: DropZone; ponta: string | null; over: boolean
-  onDragOver: (e: React.DragEvent) => void; onDragLeave: () => void
-  onDrop: (e: React.DragEvent, side: DropZone) => void; onClick?: () => void
-}) {
-  const cor = ponta ? getCor(ponta) : null
-  const arrow = side === "esquerda" ? "←" : "→"
-
-  return (
-    <div
-      onDragOver={onDragOver} onDragLeave={onDragLeave}
-      onDrop={(e) => onDrop(e, side)} onClick={onClick}
-      style={{
-        minWidth: 72, minHeight: 72, border: `2px dashed ${over ? "#60A5FA" : "rgba(255,255,255,0.3)"}`,
-        borderRadius: 10, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", gap: 4, padding: "6px 8px",
-        background: over ? "rgba(59,130,246,0.25)" : "rgba(255,255,255,0.07)",
-        transition: "all 0.15s", cursor: "pointer", flexShrink: 0,
-      }}
-    >
-      {ponta && cor ? (
-        <>
-          <span style={{ fontSize: 16, color: "rgba(255,255,255,0.5)" }}>{arrow}</span>
-          <div style={{ padding: "3px 8px", background: cor.bg, border: `1.5px solid ${cor.border}`, borderRadius: 6, fontSize: 11, fontWeight: 800, color: cor.text, textAlign: "center" }}>
-            {ponta}
-          </div>
-          {over && <span style={{ fontSize: 9, color: "#93C5FD", fontWeight: 700 }}>Soltar ✓</span>}
-        </>
-      ) : (
-        <>
-          <span style={{ fontSize: 20, color: "rgba(255,255,255,0.3)" }}>{arrow}</span>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textAlign: "center", lineHeight: 1.3 }}>Arraste<br />aqui</span>
-        </>
-      )}
-    </div>
-  )
-}
 
 // ─── TOAST DE ERRO ─────────────────────────────────────────────────────────────
 
@@ -469,7 +350,11 @@ export default function JogoOnlinePage() {
               {partida.vencedor === meuNome ? "Você venceu! 🎉" : `${partida.vencedor} venceu!`}
             </h2>
             <p style={{ fontSize: 13, color: "#94A3B8", margin: "0 0 28px" }}>
-              {partida.motivo === "vitoria" ? `${partida.vencedor} esvaziou a mão primeiro.` : "O jogo travou — ninguém conseguia jogar."}
+              {partida.motivo === "vitoria"
+                ? `${partida.vencedor} esvaziou a mão primeiro.`
+                : partida.motivo === "fechamento"
+                  ? `${partida.vencedor} fechou o ciclo — as pontas se encontraram!`
+                  : "O jogo travou — ninguém conseguia jogar."}
             </p>
             <button onClick={() => router.push("/aluno")} style={{ width: "100%", background: "#C62828", color: "#fff", border: "none", borderRadius: 12, padding: "14px 0", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <RefreshCw size={16} /> Voltar ao Menu
@@ -545,22 +430,22 @@ export default function JogoOnlinePage() {
                   return (
                     <div key={rowIdx} style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: justif, flexWrap: "nowrap" }}>
                       {dropEsqVisible && (
-                        <InlineDropZone side="esquerda" ponta={partida?.pontas?.esquerda ?? null} over={dropOverLeft}
+                        <RichInlineDropZone side="esquerda" ponta={partida?.pontas?.esquerda ?? null} over={dropOverLeft} nivel={partida?.nivel ?? 1}
                           onDragOver={(e) => handleDragOver(e, "esquerda")} onDragLeave={() => handleDragLeave("esquerda")}
                           onDrop={handleDrop} onClick={() => handleClickPonta("esquerda")} />
                       )}
                       {dropDirReversed && (
-                        <InlineDropZone side="direita" ponta={partida?.pontas?.direita ?? null} over={dropOverRight}
+                        <RichInlineDropZone side="direita" ponta={partida?.pontas?.direita ?? null} over={dropOverRight} nivel={partida?.nivel ?? 1}
                           onDragOver={(e) => handleDragOver(e, "direita")} onDragLeave={() => handleDragLeave("direita")}
                           onDrop={handleDrop} onClick={() => handleClickPonta("direita")} />
                       )}
                       {(row.reversed ? [...row.tiles].reverse() : row.tiles).map(({ pedra, kind }, idx) => (
                         <div key={`${pedra.id}-${rowIdx}-${idx}`} style={{ flexShrink: 0, transform: kind === "v-exit" ? "rotate(90deg)" : "none", margin: kind === "v-exit" ? "0 10px" : "0", transition: "transform 0.2s ease" }}>
-                          <DominoTile pedra={pedra} small />
+                          <RichDominoTile pedra={pedra} nivel={partida?.nivel ?? 1} small />
                         </div>
                       ))}
                       {dropDirVisible && (
-                        <InlineDropZone side="direita" ponta={partida?.pontas?.direita ?? null} over={dropOverRight}
+                        <RichInlineDropZone side="direita" ponta={partida?.pontas?.direita ?? null} over={dropOverRight} nivel={partida?.nivel ?? 1}
                           onDragOver={(e) => handleDragOver(e, "direita")} onDragLeave={() => handleDragLeave("direita")}
                           onDrop={handleDrop} onClick={() => handleClickPonta("direita")} />
                       )}
@@ -612,8 +497,9 @@ export default function JogoOnlinePage() {
                 const isDragging = draggingId === pedra.id
                 return (
                   <div key={pedra.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: isDragging ? 0.4 : 1, transition: "opacity 0.15s" }}>
-                    <DominoTile
-                      pedra={pedra} selected={isSelected}
+                    <RichDominoTile
+                      pedra={pedra} nivel={partida?.nivel ?? 1}
+                      selected={isSelected}
                       disabled={!ehMeuTurno} draggable={ehMeuTurno}
                       onDragStart={(e) => handleDragStart(e, pedra.id)}
                       onClick={() => handleClickPedra(pedra.id)}
@@ -626,13 +512,8 @@ export default function JogoOnlinePage() {
           </div>
 
           {/* Legenda */}
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8, paddingTop: 8, borderTop: "1px solid #1E293B", alignItems: "center" }}>
-            {Object.entries(FUNCAO_COR).map(([funcao, cor]) => (
-              <div key={funcao} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: cor.dot }} />
-                <span style={{ fontSize: 10, color: "#64748B", fontWeight: 500 }}>{funcao}</span>
-              </div>
-            ))}
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #1E293B" }}>
+            <LegendaCores nivel={partida?.nivel ?? 1} />
           </div>
         </div>
       </div>

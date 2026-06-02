@@ -16,45 +16,57 @@
 
 export const COMPOSTOS = [
   // ── Ácidos ──────────────────────────────────────────────────────────────────
-  { funcao: 'Ácido',   formula: 'HCl',        propriedade: 'Corrosivo',     classificacao: 'Hidrácido'  },
-  { funcao: 'Ácido',   formula: 'H₂SO₄',      propriedade: 'Desidratante',  classificacao: 'Oxiácido'   },
-  { funcao: 'Ácido',   formula: 'HNO₃',       propriedade: 'Oxidante',      classificacao: 'Oxiácido'   },
-  { funcao: 'Ácido',   formula: 'H₃PO₄',      propriedade: 'Não-volátil',   classificacao: 'Oxiácido'   },
-  { funcao: 'Ácido',   formula: 'HF',          propriedade: 'Tóxico',        classificacao: 'Hidrácido'  },
-  { funcao: 'Ácido',   formula: 'H₂CO₃',      propriedade: 'Instável',      classificacao: 'Oxiácido'   },
-  { funcao: 'Ácido',   formula: 'HBr',         propriedade: 'Gasoso',        classificacao: 'Hidrácido'  },
+  { funcao: 'Ácido', formula: 'HCl', propriedade: 'Corrosivo', classificacao: 'Hidrácido' },
+  { funcao: 'Ácido', formula: 'H₂SO₄', propriedade: 'Desidratante', classificacao: 'Oxiácido' },
+  { funcao: 'Ácido', formula: 'HNO₃', propriedade: 'Oxidante', classificacao: 'Oxiácido' },
+  { funcao: 'Ácido', formula: 'H₃PO₄', propriedade: 'Não-volátil', classificacao: 'Oxiácido' },
+  { funcao: 'Ácido', formula: 'HF', propriedade: 'Tóxico', classificacao: 'Hidrácido' },
+  { funcao: 'Ácido', formula: 'H₂CO₃', propriedade: 'Instável', classificacao: 'Oxiácido' },
+  { funcao: 'Ácido', formula: 'HBr', propriedade: 'Gasoso', classificacao: 'Hidrácido' },
   // ── Bases ───────────────────────────────────────────────────────────────────
-  { funcao: 'Base',    formula: 'NaOH',        propriedade: 'Solúvel',       classificacao: 'Hidróxido'  },
-  { funcao: 'Base',    formula: 'Ca(OH)₂',     propriedade: 'Pouco solúvel', classificacao: 'Hidróxido'  },
-  { funcao: 'Base',    formula: 'Mg(OH)₂',     propriedade: 'Insolúvel',     classificacao: 'Hidróxido'  },
-  { funcao: 'Base',    formula: 'KOH',         propriedade: 'Cáustico',      classificacao: 'Hidróxido'  },
-  { funcao: 'Base',    formula: 'Al(OH)₃',     propriedade: 'Anfótero',      classificacao: 'Hidróxido'  },
-  { funcao: 'Base',    formula: 'NH₃',         propriedade: 'Gasoso',        classificacao: 'Amônia'     },
+  { funcao: 'Base', formula: 'NaOH', propriedade: 'Solúvel', classificacao: 'Hidróxido' },
+  { funcao: 'Base', formula: 'Ca(OH)₂', propriedade: 'Pouco solúvel', classificacao: 'Hidróxido' },
+  { funcao: 'Base', formula: 'Mg(OH)₂', propriedade: 'Insolúvel', classificacao: 'Hidróxido' },
+  { funcao: 'Base', formula: 'KOH', propriedade: 'Cáustico', classificacao: 'Hidróxido' },
+  { funcao: 'Base', formula: 'Al(OH)₃', propriedade: 'Anfótero', classificacao: 'Hidróxido' },
+  { funcao: 'Base', formula: 'NH₃', propriedade: 'Gasoso', classificacao: 'Amônia' },
   // ── Óxidos ──────────────────────────────────────────────────────────────────
-  { funcao: 'Óxido',   formula: 'CO₂',         propriedade: 'Gasoso',        classificacao: 'Ácido'      },
-  { funcao: 'Óxido',   formula: 'SO₃',         propriedade: 'Irritante',     classificacao: 'Ácido'      },
-  { funcao: 'Óxido',   formula: 'Na₂O',        propriedade: 'Reativo',       classificacao: 'Básico'     },
-  { funcao: 'Óxido',   formula: 'CaO',         propriedade: 'Cal virgem',    classificacao: 'Básico'     },
-  { funcao: 'Óxido',   formula: 'Fe₂O₃',       propriedade: 'Ferrugem',      classificacao: 'Básico'     },
-  { funcao: 'Óxido',   formula: 'Al₂O₃',       propriedade: 'Refratário',    classificacao: 'Anfótero'   },
-  { funcao: 'Óxido',   formula: 'NO',          propriedade: 'Neutro',        classificacao: 'Neutro'     },
+  { funcao: 'Óxido', formula: 'CO₂', propriedade: 'Gasoso', classificacao: 'Ácido' },
+  { funcao: 'Óxido', formula: 'SO₃', propriedade: 'Irritante', classificacao: 'Ácido' },
+  { funcao: 'Óxido', formula: 'Na₂O', propriedade: 'Reativo', classificacao: 'Básico' },
+  { funcao: 'Óxido', formula: 'CaO', propriedade: 'Cal virgem', classificacao: 'Básico' },
+  { funcao: 'Óxido', formula: 'Fe₂O₃', propriedade: 'Ferrugem', classificacao: 'Básico' },
+  { funcao: 'Óxido', formula: 'Al₂O₃', propriedade: 'Refratário', classificacao: 'Anfótero' },
+  { funcao: 'Óxido', formula: 'NO', propriedade: 'Neutro', classificacao: 'Neutro' },
   // ── Sais ────────────────────────────────────────────────────────────────────
-  { funcao: 'Sal',     formula: 'NaCl',        propriedade: 'Solúvel',       classificacao: 'Normal'     },
-  { funcao: 'Sal',     formula: 'CaCO₃',       propriedade: 'Insolúvel',     classificacao: 'Normal'     },
-  { funcao: 'Sal',     formula: 'NaHCO₃',      propriedade: 'Efervescente',  classificacao: 'Ácido'      },
-  { funcao: 'Sal',     formula: 'Ca₃(PO₄)₂',  propriedade: 'Insolúvel',     classificacao: 'Normal'     },
-  { funcao: 'Sal',     formula: 'CuSO₄',       propriedade: 'Cristalino',    classificacao: 'Normal'     },
-  { funcao: 'Sal',     formula: 'AgNO₃',       propriedade: 'Solúvel',       classificacao: 'Normal'     },
+  { funcao: 'Sal', formula: 'NaCl', propriedade: 'Solúvel', classificacao: 'Normal' },
+  { funcao: 'Sal', formula: 'CaCO₃', propriedade: 'Insolúvel', classificacao: 'Normal' },
+  { funcao: 'Sal', formula: 'NaHCO₃', propriedade: 'Efervescente', classificacao: 'Ácido' },
+  { funcao: 'Sal', formula: 'Ca₃(PO₄)₂', propriedade: 'Insolúvel', classificacao: 'Normal' },
+  { funcao: 'Sal', formula: 'CuSO₄', propriedade: 'Cristalino', classificacao: 'Normal' },
+  { funcao: 'Sal', formula: 'AgNO₃', propriedade: 'Solúvel', classificacao: 'Normal' },
   // ── Hidretos ────────────────────────────────────────────────────────────────
-  { funcao: 'Hidreto', formula: 'NaH',         propriedade: 'Reativo',       classificacao: 'Metálico'   },
-  { funcao: 'Hidreto', formula: 'CaH₂',        propriedade: 'Sólido',        classificacao: 'Metálico'   },
-  { funcao: 'Hidreto', formula: 'H₂O',         propriedade: 'Polar',         classificacao: 'Molecular'  },
-  { funcao: 'Hidreto', formula: 'H₂S',         propriedade: 'Tóxico',        classificacao: 'Molecular'  },
-  { funcao: 'Hidreto', formula: 'H₂',          propriedade: 'Inflamável',    classificacao: 'Molecular'  },
+  { funcao: 'Hidreto', formula: 'NaH', propriedade: 'Reativo', classificacao: 'Metálico' },
+  { funcao: 'Hidreto', formula: 'CaH₂', propriedade: 'Sólido', classificacao: 'Metálico' },
+  { funcao: 'Hidreto', formula: 'H₂O', propriedade: 'Polar', classificacao: 'Molecular' },
+  { funcao: 'Hidreto', formula: 'H₂S', propriedade: 'Tóxico', classificacao: 'Molecular' },
+  { funcao: 'Hidreto', formula: 'H₂', propriedade: 'Inflamável', classificacao: 'Molecular' },
+  // ── Amidas ────────────────────────────────────────────────────────────────
+  { funcao: 'Amida', formula: 'CH₃CONH₂', propriedade: 'Polar', classificacao: 'Primária' },
+  { funcao: 'Amida', formula: 'HCONH₂', propriedade: 'Solúvel', classificacao: 'Primária' },
+  { funcao: 'Amida', formula: 'C₆H₅CONH₂', propriedade: 'Cristalino', classificacao: 'Primária' },
+  { funcao: 'Amida', formula: '(CH₃CO)₂NH', propriedade: 'Reativo', classificacao: 'Secundária' },
+  { funcao: 'Amida', formula: 'CH₃CONHCH₃', propriedade: 'Apolar', classificacao: 'Secundária' },
+  // ── Éteres ──────────────────────────────────────────────────────────────────
+  { funcao: 'Éter', formula: 'C₂H₅OC₂H₅', propriedade: 'Volátil', classificacao: 'Simétrico' },
+  { funcao: 'Éter', formula: 'CH₃OCH₃', propriedade: 'Gasoso', classificacao: 'Simétrico' },
+  { funcao: 'Éter', formula: 'CH₃OC₂H₅', propriedade: 'Inflamável', classificacao: 'Misto' },
+  { funcao: 'Éter', formula: 'C₄H₈O', propriedade: 'Cíclico', classificacao: 'Cíclico' },
+  { funcao: 'Éter', formula: 'C₆H₅OC₂H₅', propriedade: 'Aromático', classificacao: 'Misto' },
 ]
 
 // Token list — as cinco funções inorgânicas usadas como chave de encaixe
-export const FUNCOES = ['Ácido', 'Base', 'Óxido', 'Sal', 'Hidreto']
+export const FUNCOES = ['Ácido', 'Base', 'Óxido', 'Sal', 'Hidreto', 'Amida', 'Éter']
 
 // ─── DEFINIÇÃO DOS NÍVEIS ─────────────────────────────────────────────────────
 
@@ -198,7 +210,7 @@ export function gerarTodasAsPedrasParaNivel(nivel) {
 
   for (let i = 0; i < FUNCOES.length; i++) {
     for (let j = i; j < FUNCOES.length; j++) {
-      const left  = gerarFaceRica(FUNCOES[i], nivel, rng)
+      const left = gerarFaceRica(FUNCOES[i], nivel, rng)
       const right = gerarFaceRica(FUNCOES[j], nivel, rng)
       pedras.push({ id: String(id++), left, right })
     }
@@ -215,7 +227,7 @@ export function getPedraInicialParaNivel(nivel) {
   const rng = makeLcg(0xBEEF + nivel * 0xCAFE)
   return {
     id: 'inicial',
-    left:  gerarFaceRica('Ácido',   nivel, rng),
+    left: gerarFaceRica('Ácido', nivel, rng),
     right: gerarFaceRica('Hidreto', nivel, rng),
   }
 }

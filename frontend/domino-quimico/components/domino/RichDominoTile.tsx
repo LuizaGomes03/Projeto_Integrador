@@ -15,18 +15,20 @@ import { FaceRica, Pedra, displayDe, subtituloDe, tipoDe, encaixeDe } from "./ty
 // ─── PALETA DE CORES POR FUNÇÃO ──────────────────────────────────────────────
 
 const FUNCAO_COR: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  Ácido:   { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
-  Base:    { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
-  Óxido:   { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
-  Sal:     { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
+  Ácido: { bg: "#FFF1F0", border: "#FF4D4F", text: "#A8071A", dot: "#FF4D4F" },
+  Base: { bg: "#F0F5FF", border: "#2F54EB", text: "#061178", dot: "#2F54EB" },
+  Óxido: { bg: "#FFF7E6", border: "#FA8C16", text: "#612500", dot: "#FA8C16" },
+  Sal: { bg: "#F6FFED", border: "#52C41A", text: "#135200", dot: "#52C41A" },
   Hidreto: { bg: "#F9F0FF", border: "#722ED1", text: "#22075E", dot: "#722ED1" },
+  Amida: { bg: "#FCE4EC", border: "#E91E63", text: "#880E4F", dot: "#E91E63" },
+  Éter: { bg: "#E0F2F1", border: "#009688", text: "#004D40", dot: "#009688" },
 }
 
 // Ícone por tipo de face — visualmente diferencia o que está sendo exibido
 const TIPO_ICONE: Record<string, string> = {
-  funcao:        "⚗",
-  formula:       "🔣",
-  propriedade:   "✦",
+  funcao: "⚗",
+  formula: "🔣",
+  propriedade: "✦",
   classificacao: "▸",
 }
 
@@ -44,26 +46,26 @@ interface HalfProps {
 }
 
 export function PieceHalf({ face, side, small = false, nivel = 1 }: HalfProps) {
-  const encaixe  = encaixeDe(face)
-  const display  = displayDe(face)
-  const sub      = subtituloDe(face)
-  const tipo     = tipoDe(face)
-  const cor      = getCor(encaixe)
+  const encaixe = encaixeDe(face)
+  const display = displayDe(face)
+  const sub = subtituloDe(face)
+  const tipo = tipoDe(face)
+  const cor = getCor(encaixe)
 
-  const radius   = side === "left" ? "8px 0 0 8px" : "0 8px 8px 0"
-  const divider  = side === "left"
+  const radius = side === "left" ? "8px 0 0 8px" : "0 8px 8px 0"
+  const divider = side === "left"
     ? { right: 0, borderRight: `2px dashed ${cor.border}33` }
-    : { left: 0,  borderLeft:  `2px dashed ${cor.border}33` }
+    : { left: 0, borderLeft: `2px dashed ${cor.border}33` }
 
   // Tamanhos adaptativos
-  const padH   = small ? "8px"  : "12px"
-  const padV   = small ? "10px" : "16px"
-  const minW   = small ? 60    : 88
-  const dotSz  = small ? 8     : 12
+  const padH = small ? "8px" : "12px"
+  const padV = small ? "10px" : "16px"
+  const minW = small ? 60 : 88
+  const dotSz = small ? 8 : 12
   const mainSz = small
     ? (nivel === 1 ? 12 : nivel === 2 ? 11 : 10)
     : (nivel === 1 ? 14 : nivel === 2 ? 13 : 11)
-  const subSz  = small ? 8 : 10
+  const subSz = small ? 8 : 10
 
   const icone = nivel > 1 ? TIPO_ICONE[tipo] : null
 
@@ -224,7 +226,7 @@ export function RichDominoTile({
         ...style,
       }}
     >
-      <PieceHalf face={pedra.left}  side="left"  small={small} nivel={nivel} />
+      <PieceHalf face={pedra.left} side="left" small={small} nivel={nivel} />
 
       {/* Divisor central */}
       <div
@@ -275,7 +277,7 @@ export function InlineDropZone({
   onDrop,
   onClick,
 }: DropZoneProps) {
-  const cor   = ponta ? getCor(ponta) : null
+  const cor = ponta ? getCor(ponta) : null
   const arrow = side === "esquerda" ? "←" : "→"
 
   return (

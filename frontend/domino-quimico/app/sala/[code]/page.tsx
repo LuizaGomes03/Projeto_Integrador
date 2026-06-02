@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { FlaskConical, LogOut, Copy, Check, Clock, Play, DoorOpen, UserPlus } from "lucide-react"
+import { LevelSelector } from "@/components/domino/LevelSelector"
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -15,6 +16,7 @@ type Room = {
   createdAt: string
   players: Player[]
   status: "waiting" | "playing"
+  nivel?: number
 }
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
@@ -34,19 +36,6 @@ export default function SalaPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Bug fix: sessionStorage is browser-only. Reading it directly during render
-  // causes two problems:
-  //   1. On the server (SSR), window doesn't exist → playerId = -99 always.
-  //   2. Even on the client, the value is captured once at the first render, so
-  //      if sessionStorage was written just before navigation it may be stale.
-  // The backend receives usuarioId:-99, finds no user with that id, and the
-  // FK insert on sala_jogadores throws a constraint error → 500, or the sala
-  // lookup returns an unexpected state → 404. This is the root cause of the
-  // "Sala não encontrada" screen even when the room exists.
-  //
-  // Fix: initialise from URL params (safe on server + client) and hydrate from
-  // sessionStorage in a useEffect that runs only after mount. The /entrar fetch
-  // is gated on clientReady so it never fires with the -99 sentinel.
   const nomeParm = searchParams.get("jogador")
   const salaParm = searchParams.get("sala")
 
@@ -62,6 +51,7 @@ export default function SalaPage() {
   const [erro, setErro] = useState("")
   const [entrando, setEntrando] = useState(true)
   const [entradaFeita, setEntradaFeita] = useState(false)
+  const [nivel, setNivel] = useState(1)
 
   useEffect(() => {
     const storedName = sessionStorage.getItem("dominoNome")
@@ -73,9 +63,6 @@ export default function SalaPage() {
     setClientReady(true)
   }, [nomeParm, salaParm])
 
-  // Bug fix: quando o jogador fecha a aba ou navega pra outro lugar,
-  // remove ele da sala no banco pra não ficar como "espectro".
-  // Isso roda quando o component desmonta.
   useEffect(() => {
     return () => {
       if (entradaFeita && playerId !== -99 && roomCode) {
@@ -83,7 +70,7 @@ export default function SalaPage() {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ usuarioId: playerId }),
-        }).catch(() => {})  // silencioso — a aba tá fechando
+        }).catch(() => { })  // silencioso — a aba tá fechando
       }
     }
   }, [entradaFeita, playerId, roomCode])
@@ -91,9 +78,7 @@ export default function SalaPage() {
   // ─── ENTRAR NA SALA VIA BACKEND ──────────────────────────────────────────
 
   useEffect(() => {
-    // Gate: wait until sessionStorage has been read (clientReady) and we have a
-    // real playerId before attempting to join. Without this guard the POST fires
-    // with usuarioId:-99 on the very first render.
+
     if (!roomCode || !clientReady || playerId === -99 || entradaFeita) return
 
     const entrar = async () => {
@@ -121,6 +106,7 @@ export default function SalaPage() {
         const data: Room = await res.json()
         setRoom(data)
         setIsHost(data.hostId === playerId)
+        if (data.nivel) setNivel(data.nivel)
         setEntradaFeita(true)
         setEntrando(false)
       } catch {
@@ -193,11 +179,9 @@ export default function SalaPage() {
       const res = await fetch(`${API_URL}/api/partidas/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           codigoSala: roomCode,
-          // Bug fix: backend precisa saber quais jogadores estão na sala
-          // pra distribuir as pedras corretamente. Sem a lista, a terceira
-          // pessoa e além ficam sem pedras porque a distribuição fica errada.
+          nivel: nivel,
           jogadores: players.map(p => ({ id: p.id, nome: p.nome }))
         }),
       })
@@ -391,6 +375,35 @@ export default function SalaPage() {
                 </span>
               </div>
             </div>
+
+            {/* Nível de dificuldade */}
+            {isHost ? (
+              <div className="px-6 py-5 border-t border-slate-100">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-rose-500 mb-3">
+                  Nível de Dificuldade
+                </p>
+                <LevelSelector
+                  nivelSelecionado={nivel}
+                  onChange={async (n) => {
+                    setNivel(n)
+                    await fetch(`${API_URL}/api/salas/${roomCode}/nivel`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ hostId: playerId, nivel: n }),
+                    })
+                  }}
+                  compact
+                />
+              </div>
+            ) : (
+              <div className="px-6 py-4 border-t border-slate-100 text-center">
+                <span className="text-xs text-slate-400">
+                  Nível: <strong className="text-slate-600">
+                    {["", "Fácil 🧪", "Médio ⚗️", "Difícil 🔬"][nivel]}
+                  </strong>
+                </span>
+              </div>
+            )}
 
             {/* Lista de jogadores */}
             <div className="px-6 py-6">

@@ -73,6 +73,12 @@ function obterPontas(mesa) {
   }
 }
 
+function verificarFechamento(mesa) {
+  if (mesa.length < 2) return false
+  const { esquerda, direita } = obterPontas(mesa)
+  return esquerda === direita
+}
+
 function validarJogada(pedra, mesa) {
   const { esquerda, direita } = obterPontas(mesa)
   const pl = encaixeDe(pedra.left)
@@ -164,7 +170,7 @@ function jogadaIA(estado) {
 
 function processarTurnosIA(estado) {
   let iteracoes = 0
-  const MAX = 10  
+  const MAX = 10
   while (!estado.encerrado && estado.turnoAtualId === IA_ID && iteracoes < MAX) {
     jogadaIA(estado)
     const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
@@ -357,6 +363,7 @@ router.post('/iniciar', async (req, res) => {
 
       salaId = sala.id
       jogadores = jogadoresRows
+      const nivelFinal = sala.nivel ?? nivel
 
       await client.query(
         "UPDATE salas SET status = 'playing' WHERE id = $1",
@@ -400,12 +407,13 @@ router.post('/iniciar', async (req, res) => {
     )
     const partidaId = partidaRows[0].id
 
+    const nivelFinal = salaRows.length > 0 ? (salaRows[0].nivel ?? nivel) : nivel
     const { maos, monte, pedraInicial } = distribuirPedras(jogadores, nivel)
 
     const estado = {
       salaCode: salaCode || jogadores[0]?.nome,
       salaId,
-      nivel,
+      nivel: nivelFinal,
       jogadores,
       turnoAtualId: jogadores[0].id,
       mesa: [pedraInicial],
@@ -522,6 +530,19 @@ router.post('/:sala/jogar', async (req, res) => {
       virar,
       timestamp: new Date().toISOString(),
     })
+
+    // Fechamento do ciclo — pontas iguais após a jogada = vitória imediata
+    const jogadorAtual = estado.jogadores.find((j) => j.id === uid)
+    if (verificarFechamento(estado.mesa)) {
+      estado.encerrado = true
+      estado.vencedorId = uid
+      estado.vencedores = [jogadorAtual]
+      estado.motivo = 'fechamento'
+      await saveEstado(client, estado._partidaId, salaRows[0].id, estado)
+      await finalizarPartida(client, estado)
+      await client.query('COMMIT')
+      return res.json({ sucesso: true, ...sanitizarEstado(estado, uid) })
+    }
 
     const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
     if (fim.encerrado) {
