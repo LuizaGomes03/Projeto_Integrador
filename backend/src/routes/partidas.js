@@ -28,7 +28,7 @@ function embaralhar(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
+      ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
 }
@@ -37,7 +37,7 @@ function distribuirPedras(jogadores, nivel = 1) {
   const todas = embaralhar(gerarTodasAsPedrasParaNivel(nivel))
   const pedraInicial = getPedraInicialParaNivel(nivel)
 
-  // Remove a pedra inicial da lista se ela aparecer (por id ou por encaixe idêntico)
+  // Remove a pedra inicial da lista se ela aparecer (por encaixe idêntico)
   const semInicial = todas.filter(
     (p) =>
       encaixeDe(p.left) !== encaixeDe(pedraInicial.left) ||
@@ -45,15 +45,15 @@ function distribuirPedras(jogadores, nivel = 1) {
   )
 
   const maos = {}
-  const jogadoresHumanos = jogadores.filter((j) => j.id !== IA_ID)
-
   for (const j of jogadores) {
     maos[j.id] = []
   }
 
-  // Distribuição em rodadas (como baralho real)
+  // Distribui para TODOS os jogadores (humanos e IA) em rodadas alternadas
+  // A IA precisa ter pedras para jogar — sem isso, verificarFimDeJogo
+  // a declara vencedora imediatamente por mão vazia.
   for (let i = 0; i < PEDRAS_POR_JOGADOR; i++) {
-    for (const j of jogadoresHumanos) {
+    for (const j of jogadores) {
       if (semInicial.length > 0) {
         maos[j.id].push(semInicial.shift())
       }
@@ -79,10 +79,10 @@ function validarJogada(pedra, mesa) {
   const pr = encaixeDe(pedra.right)
 
   if (esquerda === null) return { valido: true, lado: 'direita', virar: false }
-  if (pl === direita)   return { valido: true, lado: 'direita',   virar: false }
-  if (pr === direita)   return { valido: true, lado: 'direita',   virar: true  }
-  if (pr === esquerda)  return { valido: true, lado: 'esquerda',  virar: false }
-  if (pl === esquerda)  return { valido: true, lado: 'esquerda',  virar: true  }
+  if (pl === direita) return { valido: true, lado: 'direita', virar: false }
+  if (pr === direita) return { valido: true, lado: 'direita', virar: true }
+  if (pr === esquerda) return { valido: true, lado: 'esquerda', virar: false }
+  if (pl === esquerda) return { valido: true, lado: 'esquerda', virar: true }
   return { valido: false, lado: null, virar: false }
 }
 
@@ -164,7 +164,7 @@ function jogadaIA(estado) {
 
 function processarTurnosIA(estado) {
   let iteracoes = 0
-  const MAX = 1
+  const MAX = 10  
   while (!estado.encerrado && estado.turnoAtualId === IA_ID && iteracoes < MAX) {
     jogadaIA(estado)
     const fim = verificarFimDeJogo(estado.maos, estado.mesa, estado.jogadores)
@@ -185,11 +185,17 @@ function processarTurnosIA(estado) {
 function sanitizarEstado(estado, usuarioId) {
   const maosPublicas = {}
   for (const j of estado.jogadores) {
-    const pedras = estado.maos[j.id] ?? []
+    // Compara como string pois JSONB serializa chaves como string
+    const pedras = estado.maos[j.id] ?? estado.maos[String(j.id)] ?? []
     maosPublicas[j.nome] = j.id === usuarioId ? pedras : pedras.length
   }
 
   const jogadorAtual = estado.jogadores.find((j) => j.id === estado.turnoAtualId)
+
+  const uid = usuarioId
+  const minhaMao = uid != null
+    ? (estado.maos[uid] ?? estado.maos[String(uid)] ?? [])
+    : undefined
 
   return {
     sala: estado.salaCode,
@@ -198,7 +204,7 @@ function sanitizarEstado(estado, usuarioId) {
     jogadores: estado.jogadores.map((j) => j.nome),
     turnoAtual: jogadorAtual?.nome ?? '',
     mesa: estado.mesa,
-    minha_mao: usuarioId != null ? (estado.maos[usuarioId] ?? []) : undefined,
+    minha_mao: minhaMao,
     maos: maosPublicas,
     monte: estado.monte?.length ?? 0,
     encerrado: estado.encerrado,
@@ -219,7 +225,28 @@ async function getEstado(client, salaId) {
     [salaId]
   )
   if (rows.length === 0) return null
-  return { ...rows[0].estado, _partidaId: rows[0].partida_id }
+  const estado = { ...rows[0].estado, _partidaId: rows[0].partida_id }
+
+  // JSONB serializa chaves de objetos como strings.
+  // Normaliza as mãos para que chaves numéricas funcionem.
+  if (estado.maos) {
+    const maosNormalizadas = {}
+    for (const [k, v] of Object.entries(estado.maos)) {
+      const num = Number(k)
+      maosNormalizadas[Number.isNaN(num) ? k : num] = v
+    }
+    estado.maos = maosNormalizadas
+  }
+
+  // Normaliza turnoAtualId e jogadores.id
+  if (estado.turnoAtualId !== undefined) {
+    estado.turnoAtualId = Number(estado.turnoAtualId)
+  }
+  if (Array.isArray(estado.jogadores)) {
+    estado.jogadores = estado.jogadores.map(j => ({ ...j, id: Number(j.id) }))
+  }
+
+  return estado
 }
 
 async function saveEstado(client, partidaId, salaId, estado) {
