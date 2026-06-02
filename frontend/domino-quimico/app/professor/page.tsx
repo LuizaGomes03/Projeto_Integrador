@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
@@ -921,7 +921,7 @@ const ALL_STUDENTS: FullStudent[] = [
   { name: "Larissa Teixeira", initials: "LT", email: "larissa.t@escola.br", ano: "2º Ano", sala: "Sala 02", score: 76, color: "#D35400", online: false, partidas: 15 },
 ];
 
-const SALAS = ["Todas as Salas", "Sala 01", "Sala 02", "Sala 03", "Sala 04", "Sala 05"];
+const SALAS = ["Todas as Salas", "Sala A", "Sala B", "Sala C", "Sala D"];
 const ANOS = ["Todos os Anos", "1º Ano", "2º Ano", "3º Ano"];
 const ACCENT_COLORS = ["#D42B2B", "#2563EB", "#7C3AED", "#059669", "#D97706", "#DB2777"];
 
@@ -1149,23 +1149,43 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 function DashboardView() {
-  const [activeTab, setActiveTab] = useState<"Hoje" | "Semana" | "Mês">("Hoje");
-  const matches = MATCHES_BY_TAB[activeTab];
-  const desempMedio = Math.round(ALL_STUDENTS.reduce((acc, s) => acc + s.score, 0) / ALL_STUDENTS.length);
+  const [nivelMedio, setNivelMedio] = useState<number | null>(null);
+  const [partidasReais, setPartidasReais] = useState<{ id: number; codigoSala: string; nivel: number; vencedor: string; finalizadoEm: string }[]>([]);
+  const [nomeProfessor, setNomeProfessor] = useState("Professor");
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("dominoUsuario") ?? "{}");
+      if (user.nome) setNomeProfessor(user.nome);
+    } catch { /* silencioso */ }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("dominoToken");
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/professor/dashboard`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => {
+        setNivelMedio(data.nivelMedio);
+        setPartidasReais(data.partidas);
+      })
+      .catch(() => { });
+  }, []);
 
   return (
     <>
       <div className="page-header">
-        <h1>Olá, Professor <span>Mendes</span></h1>
+        <h1>Olá, <span>{nomeProfessor}</span></h1>
         <p>Acompanhe o engajamento das suas turmas e a evolução dos alunos no Dominó Químico.</p>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card featured">
           <div>
-            <div className="stat-label" style={{ marginBottom: 8 }}>Desempenho Médio</div>
-            <div className="stat-value" style={{ fontSize: 38 }}>{desempMedio}%</div>
-            <div className="stat-trend trend-up">↑ 4% vs mês passado</div>
+            <div className="stat-label" style={{ marginBottom: 8 }}>Nível Médio dos Alunos</div>
+            <div className="stat-value" style={{ fontSize: 38 }}>{nivelMedio ?? "—"}</div>
+            <div className="stat-trend trend-up">Baseado no XP acumulado</div>
           </div>
           <svg className="featured-graph" viewBox="0 0 90 54" fill="none" preserveAspectRatio="none">
             <polyline points="0,44 18,34 36,36 54,20 72,24 90,8" stroke="rgba(255,255,255,0.6)" strokeWidth="2" fill="none" />
@@ -1178,30 +1198,35 @@ function DashboardView() {
         <div>
           <div className="section-header">
             <div className="section-title">Partidas Recentes</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <div className="tabs">
-                {(["Hoje", "Semana", "Mês"] as const).map((t) => (
-                  <button key={t} className={`tab-btn ${activeTab === t ? "active" : ""}`} onClick={() => setActiveTab(t)}>{t}</button>
-                ))}
-              </div>
-              <div className="section-link">Ver Tudo</div>
-            </div>
+            <div className="section-link">Ver Tudo</div>
           </div>
           <div className="activity-list">
-            {matches.map((m, i) => (
-              <div key={i} className="activity-item">
-                <div className="activity-color-bar" style={{ background: m.color }} />
-                <div className="activity-icon">🎲</div>
-                <div className="activity-info">
-                  <div className="activity-name">{m.sala} — {m.tema}</div>
-                  <div className="activity-meta">Vencedor: <strong>{m.vencedor}</strong> · {m.tempoAtras}</div>
-                </div>
-                <div className="activity-right">
-                  <div className="activity-pts">+{m.pontos} pts</div>
-                  <div className="activity-duration">⏱ {m.duracao}</div>
-                </div>
+            {partidasReais.length === 0 ? (
+              <div style={{ padding: "32px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
+                Nenhuma partida finalizada ainda.
               </div>
-            ))}
+            ) : partidasReais.map((p, i) => {
+              const cores = ["#E74C3C", "#D42B2B", "#2563EB", "#27AE60", "#9B59B6", "#F39C12"];
+              const cor = cores[i % cores.length];
+              const dataFormatada = new Date(p.finalizadoEm).toLocaleDateString("pt-BR", {
+                day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+              });
+              return (
+                <div key={p.id} className="activity-item">
+                  <div className="activity-color-bar" style={{ background: cor }} />
+                  <div className="activity-icon">🎲</div>
+                  <div className="activity-info">
+                    <div className="activity-name">Sala {p.codigoSala}</div>
+                    <div className="activity-meta">Vencedor: <strong>{p.vencedor}</strong> · {dataFormatada}</div>
+                  </div>
+                  <div className="activity-right">
+                    <div className="activity-pts" style={{ color: cor }}>
+                      {["", "🧪 Fácil", "⚗️ Médio", "🔬 Difícil"][p.nivel] ?? "🧪 Fácil"}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -1214,8 +1239,34 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
   const [search, setSearch] = useState("");
   const [anoFilter, setAnoFilter] = useState("Todos os Anos");
   const [salaFilter, setSalaFilter] = useState("Todas as Salas");
+  const [alunos, setAlunos] = useState<FullStudent[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
-  const filtered = ALL_STUDENTS.filter((s) => {
+  useEffect(() => {
+    const token = localStorage.getItem("dominoToken");
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/professor/alunos`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => {
+        const CORES = ["#9B59B6", "#E74C3C", "#3498DB", "#27AE60", "#F39C12", "#1ABC9C", "#E67E22", "#8E44AD", "#2980B9", "#C0392B", "#16A085", "#D35400"];
+        setAlunos(data.map((a: any, i: number) => ({
+          name: a.nome,
+          initials: a.nome.split(" ").map((p: string) => p[0]).slice(0, 2).join("").toUpperCase(),
+          email: a.email,
+          ano: a.ano,
+          sala: a.sala,
+          score: Math.min(100, a.nivel * 10),
+          color: CORES[i % CORES.length],
+          online: false,
+          partidas: a.totalPartidas,
+        })));
+        setCarregando(false);
+      })
+      .catch(() => setCarregando(false));
+  }, []);
+
+  const filtered = alunos.filter((s) => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.email.toLowerCase().includes(search.toLowerCase());
     const matchAno = anoFilter === "Todos os Anos" || s.ano === anoFilter;
     const matchSala = salaFilter === "Todas as Salas" || s.sala === salaFilter;
@@ -1261,7 +1312,11 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
               </tr>
             </thead>
             <tbody>
-              {filtered.map((s, i) => (
+              {carregando ? (
+                <tr><td colSpan={4} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>Carregando...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={4} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>Nenhum aluno encontrado.</td></tr>
+              ) : filtered.map((s, i) => (
                 <tr key={i} onClick={() => onSelectStudent(s)} title={`Ver perfil de ${s.name}`}>
                   <td>
                     <div className="td-student">
@@ -1284,13 +1339,6 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>
-                    Nenhum aluno encontrado.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>

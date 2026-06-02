@@ -5,8 +5,9 @@ import dotenv from 'dotenv'
 import salaRoutes from './routes/salas.js'
 import partidaRoutes from './routes/partidas.js'
 import authRoutes from './routes/auth.js'
-import authProfessorRoutes from './routes/authProfessor.js'   // ← NOVO
+import authProfessorRoutes from './routes/authProfessor.js'   
 import desempenhoRoutes from './routes/desempenho.js'
+import professorRoutes from './routes/professor.js'
 
 dotenv.config()
 
@@ -26,6 +27,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api/auth/professor', authProfessorRoutes)
 
 app.use('/api/aluno', desempenhoRoutes)
+
+app.use('/api/professor', professorRoutes)
 
 // ─── ROTAS DO JOGO ─────────────────────────────────────────────────────────────
 app.use('/api/salas', salaRoutes)
