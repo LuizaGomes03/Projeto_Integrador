@@ -114,4 +114,69 @@ router.post('/login', async (req, res) => {
   }
 })
 
+router.put('/me', async (req, res) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ erro: 'Não autorizado.' })
+  const token = authHeader.split(' ')[1]
+
+  let payload
+  try { payload = jwt.verify(token, process.env.JWT_SECRET) }
+  catch { return res.status(401).json({ erro: 'Token inválido.' }) }
+
+  const { nome, senhaAtual, novaSenha } = req.body ?? {}
+  const updates = []; const values = []; let idx = 1
+
+  if (nome?.trim()) {
+    updates.push(`nome = $${idx++}`)
+    values.push(nome.trim())
+  }
+
+  if (novaSenha) {
+    if (!senhaAtual) return res.status(400).json({ erro: 'Informe a senha atual.' })
+    if (novaSenha.length < 6) return res.status(400).json({ erro: 'Mínimo 6 caracteres.' })
+    const client = await pool.connect()
+    try {
+      const { rows } = await client.query('SELECT senha_hash FROM professores WHERE id = $1', [payload.id])
+      const ok = await bcrypt.compare(senhaAtual, rows[0].senha_hash)
+      if (!ok) return res.status(401).json({ erro: 'Senha atual incorreta.' })
+      updates.push(`senha_hash = $${idx++}`)
+      values.push(await bcrypt.hash(novaSenha, 12))
+    } finally { client.release() }
+  }
+
+  if (updates.length === 0) return res.status(400).json({ erro: 'Nada para atualizar.' })
+
+  const client = await pool.connect()
+  try {
+    values.push(payload.id)
+    const { rows } = await client.query(
+      `UPDATE professores SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`,
+      values
+    )
+    return res.json({ mensagem: 'Atualizado.', usuario: sanitizar(rows[0]) })
+  } catch (err) {
+    console.error('[authProfessor/me PUT]', err)
+    return res.status(500).json({ erro: 'Erro interno.' })
+  } finally { client.release() }
+})
+
+router.delete('/me', async (req, res) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ erro: 'Não autorizado.' })
+  const token = authHeader.split(' ')[1]
+
+  let payload
+  try { payload = jwt.verify(token, process.env.JWT_SECRET) }
+  catch { return res.status(401).json({ erro: 'Token inválido.' }) }
+
+  const client = await pool.connect()
+  try {
+    await client.query('DELETE FROM professores WHERE id = $1', [payload.id])
+    return res.json({ mensagem: 'Conta excluída.' })
+  } catch (err) {
+    console.error('[authProfessor/me DELETE]', err)
+    return res.status(500).json({ erro: 'Erro interno.' })
+  } finally { client.release() }
+})
+
 export default router

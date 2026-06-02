@@ -95,4 +95,86 @@ router.get('/alunos', authMiddleware, apenasProfessor, async (req, res) => {
   }
 })
 
+router.get('/alunos/:id', authMiddleware, apenasProfessor, async (req, res) => {
+  const alunoId = Number(req.params.id)
+  if (!alunoId) return res.status(400).json({ erro: 'ID inválido.' })
+
+  const XP_POR_ACERTO  = 10
+  const XP_POR_VITORIA = 50
+
+  const client = await pool.connect()
+  try {
+    // Dados básicos do aluno
+    const { rows: usuario } = await client.query(
+      'SELECT id, nome, email, ano, sala FROM usuarios WHERE id = $1 AND tipo = $2',
+      [alunoId, 'aluno']
+    )
+    if (usuario.length === 0) return res.status(404).json({ erro: 'Aluno não encontrado.' })
+
+    // Totais (mesma query do desempenho do aluno)
+    const { rows: totais } = await client.query(
+      `SELECT
+         COALESCE(SUM(dj.acertos), 0) AS total_acertos,
+         COALESCE(SUM(dj.erros), 0)   AS total_erros,
+         COALESCE(SUM(CASE WHEN dj.venceu THEN 1 ELSE 0 END), 0) AS total_vitorias,
+         COUNT(dj.id) AS total_partidas,
+         COALESCE(SUM(dj.acertos) * $2 + SUM(CASE WHEN dj.venceu THEN 1 ELSE 0 END) * $3, 0) AS xp_total
+       FROM desempenho_jogadores dj
+       WHERE dj.usuario_id = $1`,
+      [alunoId, XP_POR_ACERTO, XP_POR_VITORIA]
+    )
+
+    // Histórico últimas 10
+    const { rows: historico } = await client.query(
+      `SELECT
+         p.id, p.finalizado_em AS data,
+         dj.acertos, dj.erros, dj.venceu, dj.tempo_segundos,
+         (dj.acertos * $2 + CASE WHEN dj.venceu THEN $3 ELSE 0 END) AS xp_ganho,
+         s.code AS codigo_sala
+       FROM desempenho_jogadores dj
+       JOIN partidas p ON p.id = dj.partida_id
+       JOIN salas    s ON s.id = p.sala_id
+       WHERE dj.usuario_id = $1 AND p.encerrado = TRUE
+       ORDER BY p.finalizado_em DESC
+       LIMIT 10`,
+      [alunoId, XP_POR_ACERTO, XP_POR_VITORIA]
+    )
+
+    const xpTotal       = Number(totais[0].xp_total)
+    const totalVitorias = Number(totais[0].total_vitorias)
+    const totalPartidas = Number(totais[0].total_partidas)
+
+    const medalhas = [
+      { titulo: 'Aprendiz de Laboratório', descricao: 'Complete sua primeira partida', desbloqueado: totalPartidas >= 1, emoji: '🥉' },
+      { titulo: 'Pesquisador Estratégico',  descricao: 'Vença 3 partidas',             desbloqueado: totalVitorias >= 3, emoji: '🥈' },
+      { titulo: 'Mestre dos Elementos',     descricao: 'Alcance 500 XP',               desbloqueado: xpTotal >= 500,     emoji: '🥇' },
+    ]
+
+    return res.json({
+      usuario: usuario[0],
+      xpTotal,
+      totalPartidas,
+      totalVitorias,
+      totalAcertos: Number(totais[0].total_acertos),
+      totalErros:   Number(totais[0].total_erros),
+      medalhas,
+      historico: historico.map(h => ({
+        id: h.id,
+        data: h.data,
+        acertos: h.acertos,
+        erros: h.erros,
+        venceu: h.venceu,
+        tempoSegundos: h.tempo_segundos,
+        xpGanho: Number(h.xp_ganho),
+        codigoSala: h.codigo_sala,
+      })),
+    })
+  } catch (err) {
+    console.error('[professor/alunos/:id]', err)
+    return res.status(500).json({ erro: 'Erro ao buscar dados do aluno.' })
+  } finally {
+    client.release()
+  }
+})
+
 export default router

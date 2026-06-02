@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
@@ -874,8 +875,19 @@ const styles = `
 interface NavItemType { icon: string; label: string; badge?: string; }
 interface Match { sala: string; tema: string; vencedor: string; tempoAtras: string; duracao: string; pontos: number; color: string; }
 interface FullStudent {
+  id: number
   name: string; initials: string; email: string; ano: string; sala: string;
   score: number; color: string; online: boolean; partidas: number;
+}
+interface AlunoDetalhe {
+  usuario: { id: number; nome: string; email: string; ano: string; sala: string }
+  xpTotal: number
+  totalPartidas: number
+  totalVitorias: number
+  totalAcertos: number
+  totalErros: number
+  medalhas: { titulo: string; descricao: string; desbloqueado: boolean; emoji: string }[]
+  historico: { id: number; data: string; acertos: number; erros: number; venceu: boolean; tempoSegundos: number; xpGanho: number; codigoSala: string }[]
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -921,8 +933,6 @@ const ALL_STUDENTS: FullStudent[] = [
   { name: "Larissa Teixeira", initials: "LT", email: "larissa.t@escola.br", ano: "2º Ano", sala: "Sala 02", score: 76, color: "#D35400", online: false, partidas: 15 },
 ];
 
-const SALAS = ["Todas as Salas", "Sala A", "Sala B", "Sala C", "Sala D"];
-const ANOS = ["Todos os Anos", "1º Ano", "2º Ano", "3º Ano"];
 const ACCENT_COLORS = ["#D42B2B", "#2563EB", "#7C3AED", "#059669", "#D97706", "#DB2777"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -962,82 +972,124 @@ function Toggle({ checked, onChange, onLabel = "Sim", offLabel = "Não" }: {
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
-function SettingsView() {
-  const [savedVisible, setSavedVisible] = useState(false);
-  const [nome, setNome] = useState("Prof. Mendes");
-  const [email, setEmail] = useState("mendes@escola.br");
-  const [accentColor, setAccentColor] = useState("#D42B2B");
-  const [senhaAtual, setSenhaAtual] = useState("");
-  const [senhaNova, setSenhaNova] = useState("");
-  const [senhaConfirm, setSenhaConfirm] = useState("");
-  const [autenticacao2fa, setAutenticacao2fa] = useState(false);
+interface ProfessorMe {
+  id: number
+  nome: string
+  email: string
+}
 
-  const handleSave = () => {
-    setSavedVisible(true);
-    setTimeout(() => setSavedVisible(false), 2500);
-  };
+function SettingsView() {
+  const router = useRouter()
+  const [savedVisible, setSavedVisible] = useState(false)
+  const [nome, setNome] = useState("")
+  const [email, setEmail] = useState("")
+  const [senhaAtual, setSenhaAtual] = useState("")
+  const [senhaNova, setSenhaNova] = useState("")
+  const [senhaConfirm, setSenhaConfirm] = useState("")
+  const [erroSenha, setErroSenha] = useState("")
+  const [erroNome, setErroNome] = useState("")
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("dominoUsuario") ?? "{}") as ProfessorMe
+      if (user.nome) setNome(user.nome)
+      if (user.email) setEmail(user.email)
+    } catch { /* silencioso */ }
+  }, [])
+
+  const handleSaveNome = async () => {
+    setErroNome("")
+    if (!nome.trim()) { setErroNome("Nome não pode ser vazio."); return }
+    const token = localStorage.getItem("dominoToken")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/auth/professor/me`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ nome: nome.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setErroNome(data.erro ?? "Erro ao salvar."); return }
+      const stored = JSON.parse(localStorage.getItem("dominoUsuario") ?? "{}")
+      localStorage.setItem("dominoUsuario", JSON.stringify({ ...stored, nome: data.usuario.nome }))
+      setSavedVisible(true)
+      setTimeout(() => setSavedVisible(false), 2500)
+    } catch { setErroNome("Erro de conexão.") }
+  }
+
+  const handleSaveSenha = async () => {
+    setErroSenha("")
+    if (!senhaAtual) { setErroSenha("Informe a senha atual."); return }
+    if (!senhaNova) { setErroSenha("Informe a nova senha."); return }
+    if (senhaNova.length < 6) { setErroSenha("Mínimo 6 caracteres."); return }
+    if (senhaNova !== senhaConfirm) { setErroSenha("As senhas não conferem."); return }
+    const token = localStorage.getItem("dominoToken")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/auth/professor/me`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ senhaAtual, novaSenha: senhaNova }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setErroSenha(data.erro ?? "Erro ao alterar senha."); return }
+      setSenhaAtual(""); setSenhaNova(""); setSenhaConfirm("")
+      setSavedVisible(true)
+      setTimeout(() => setSavedVisible(false), 2500)
+    } catch { setErroSenha("Erro de conexão.") }
+  }
+
+  const handleExcluirConta = async () => {
+    const confirmado = window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível e apagará todos os seus dados.")
+    if (!confirmado) return
+    const token = localStorage.getItem("dominoToken")
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/auth/professor/me`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) { alert("Erro ao excluir conta."); return }
+      localStorage.removeItem("dominoToken")
+      localStorage.removeItem("dominoUsuario")
+      router.push("/login/professor")
+    } catch { alert("Erro de conexão.") }
+  }
 
   return (
     <>
       <div className="page-header">
         <h1>Confi<span>gurações</span></h1>
-        <p>Gerencie seu perfil, aparência e segurança da conta.</p>
+        <p>Gerencie seu perfil e segurança da conta.</p>
       </div>
 
       <div className="settings-stack">
+
+        {/* Informações Pessoais */}
         <div className="settings-section">
           <div className="settings-section-header">
             <div className="settings-section-title">👤 Informações Pessoais</div>
-            <div className="settings-section-desc">Dados exibidos para os alunos e relatórios.</div>
-          </div>
-          <div className="settings-field">
-            <div className="settings-field-info">
-              <div className="settings-field-label">Foto de perfil</div>
-              <div className="settings-field-hint">JPG ou PNG, até 2 MB.</div>
-            </div>
-            <div className="settings-avatar-row">
-              <div className="settings-avatar" style={{ background: accentColor }}>PM</div>
-              <div className="settings-avatar-actions">
-                <button className="btn-secondary">📷 Alterar foto</button>
-                <button className="btn-secondary" style={{ color: "var(--red)", borderColor: "#FECACA" }}>🗑 Remover</button>
-              </div>
-            </div>
+            <div className="settings-section-desc">Dados exibidos nos relatórios.</div>
           </div>
           <div className="settings-field">
             <div className="settings-field-info">
               <div className="settings-field-label">Nome completo</div>
               <div className="settings-field-hint">Aparece no cabeçalho e nos relatórios.</div>
             </div>
-            <input className="settings-input" value={nome} onChange={(e) => setNome(e.target.value)} />
+            <input className="settings-input" value={nome} onChange={(e) => { setNome(e.target.value); setErroNome("") }} />
           </div>
           <div className="settings-field">
             <div className="settings-field-info">
               <div className="settings-field-label">E-mail</div>
-              <div className="settings-field-hint">Usado para login e notificações.</div>
+              <div className="settings-field-hint">Não é possível alterar o e-mail.</div>
             </div>
-            <input className="settings-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input className="settings-input" value={email} disabled style={{ opacity: 0.6, cursor: "not-allowed" }} />
+          </div>
+          {erroNome && <div style={{ padding: "0 22px 14px", fontSize: 12, color: "var(--red)", fontWeight: 600 }}>{erroNome}</div>}
+          <div style={{ padding: "14px 22px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
+            <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Salvo!</span>
+            <button className="btn-primary" onClick={handleSaveNome}>Salvar nome</button>
           </div>
         </div>
 
-        <div className="settings-section">
-          <div className="settings-section-header">
-            <div className="settings-section-title">🎨 Aparência</div>
-            <div className="settings-section-desc">Personalize a cor de destaque do painel.</div>
-          </div>
-          <div className="settings-field">
-            <div className="settings-field-info">
-              <div className="settings-field-label">Cor de destaque</div>
-              <div className="settings-field-hint">Afeta botões, badges e indicadores ativos.</div>
-            </div>
-            <div className="color-swatches">
-              {ACCENT_COLORS.map((c) => (
-                <div key={c} className={`color-swatch ${accentColor === c ? "selected" : ""}`}
-                  style={{ background: c }} onClick={() => setAccentColor(c)} title={c} />
-              ))}
-            </div>
-          </div>
-        </div>
-
+        {/* Alterar Senha */}
         <div className="settings-section">
           <div className="settings-section-header">
             <div className="settings-section-title">🔑 Alterar Senha</div>
@@ -1045,35 +1097,27 @@ function SettingsView() {
           </div>
           <div className="settings-field">
             <div className="settings-field-info"><div className="settings-field-label">Senha atual</div></div>
-            <input className="settings-input" type="password" placeholder="••••••••" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} />
+            <input className="settings-input" type="password" placeholder="••••••••" value={senhaAtual} onChange={(e) => { setSenhaAtual(e.target.value); setErroSenha("") }} />
           </div>
           <div className="settings-field">
             <div className="settings-field-info">
               <div className="settings-field-label">Nova senha</div>
-              <div className="settings-field-hint">Mínimo de 8 caracteres.</div>
+              <div className="settings-field-hint">Mínimo de 6 caracteres.</div>
             </div>
-            <input className="settings-input" type="password" placeholder="••••••••" value={senhaNova} onChange={(e) => setSenhaNova(e.target.value)} />
+            <input className="settings-input" type="password" placeholder="••••••••" value={senhaNova} onChange={(e) => { setSenhaNova(e.target.value); setErroSenha("") }} />
           </div>
           <div className="settings-field">
             <div className="settings-field-info"><div className="settings-field-label">Confirmar nova senha</div></div>
-            <input className="settings-input" type="password" placeholder="••••••••" value={senhaConfirm} onChange={(e) => setSenhaConfirm(e.target.value)} />
+            <input className="settings-input" type="password" placeholder="••••••••" value={senhaConfirm} onChange={(e) => { setSenhaConfirm(e.target.value); setErroSenha("") }} />
+          </div>
+          {erroSenha && <div style={{ padding: "0 22px 14px", fontSize: 12, color: "var(--red)", fontWeight: 600 }}>{erroSenha}</div>}
+          <div style={{ padding: "14px 22px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
+            <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Salvo!</span>
+            <button className="btn-primary" onClick={handleSaveSenha}>Alterar senha</button>
           </div>
         </div>
 
-        <div className="settings-section">
-          <div className="settings-section-header">
-            <div className="settings-section-title">🛡 Autenticação em Dois Fatores</div>
-            <div className="settings-section-desc">Adicione uma camada extra de proteção à sua conta.</div>
-          </div>
-          <div className="settings-field">
-            <div className="settings-field-info">
-              <div className="settings-field-label">Ativar 2FA</div>
-              <div className="settings-field-hint">Solicita um código extra ao fazer login.</div>
-            </div>
-            <Toggle checked={autenticacao2fa} onChange={setAutenticacao2fa} onLabel="Ativo" offLabel="Inativo" />
-          </div>
-        </div>
-
+        {/* Zona de Perigo */}
         <div className="settings-section danger-zone">
           <div className="settings-section-header">
             <div className="settings-section-title">⚠️ Zona de Perigo</div>
@@ -1082,24 +1126,34 @@ function SettingsView() {
           <div className="settings-field">
             <div className="settings-field-info">
               <div className="settings-field-label">Excluir conta</div>
-              <div className="settings-field-hint">Remove permanentemente todos os dados, turmas e histórico.</div>
+              <div className="settings-field-hint">Remove permanentemente todos os dados e histórico.</div>
             </div>
-            <button className="btn-danger">🗑 Excluir conta</button>
+            <button className="btn-danger" onClick={handleExcluirConta}>🗑 Excluir conta</button>
           </div>
         </div>
 
-        <div className="settings-actions">
-          <span className={`save-toast ${savedVisible ? "visible" : ""}`}>✓ Alterações salvas!</span>
-          <button className="btn-primary" onClick={handleSave}>Salvar alterações</button>
-        </div>
       </div>
     </>
-  );
+  )
 }
 
 // ─── Student Detail ───────────────────────────────────────────────────────────
 function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: () => void }) {
-  const topics = getStudentTopics(student);
+  const [dados, setDados] = useState<AlunoDetalhe | null>(null)
+  const [carregando, setCarregando] = useState(true)
+
+  useEffect(() => {
+    const token = localStorage.getItem('dominoToken')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/api/professor/alunos/${student.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => { setDados(data); setCarregando(false) })
+      .catch(() => setCarregando(false))
+  }, [student.id])
+
+  const nivelAtual = dados ? Math.max(1, Math.floor(dados.xpTotal / 1000) + 1) : 1
+  const pct = dados ? (dados.xpTotal % 1000) / 10 : 0
 
   return (
     <>
@@ -1117,34 +1171,107 @@ function StudentDetailView({ student, onBack }: { student: FullStudent; onBack: 
         </div>
       </div>
 
-      <div className="detail-grid">
-        <div className="detail-card">
-          <div className="detail-card-title">
-            <div className="detail-card-title-icon">📚</div>
-            Desempenho por Tema
+      {carregando ? (
+        <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--muted)' }}>Carregando...</div>
+      ) : !dados ? (
+        <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--red)' }}>Erro ao carregar dados.</div>
+      ) : (
+        <div className="detail-grid">
+
+          {/* XP e nível */}
+          <div className="detail-card" style={{ background: 'var(--red)', color: 'white', border: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>Potencial Atômico (XP)</div>
+                <div style={{ fontSize: 42, fontWeight: 800, lineHeight: 1 }}>{dados.xpTotal.toLocaleString('pt-BR')}</div>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 999, padding: '4px 14px', fontSize: 13, fontWeight: 700 }}>
+                ⚡ Nível {nivelAtual}
+              </div>
+            </div>
+            <div style={{ marginTop: 16, height: 8, borderRadius: 4, background: 'rgba(255,255,255,0.25)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${pct}%`, background: 'white', borderRadius: 4 }} />
+            </div>
+            <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(255,255,255,0.75)' }}>{pct.toFixed(0)}% para o próximo nível</div>
           </div>
-          <div className="topics-grid">
-            {topics.map((t, i) => {
-              const badge = topicBadge(t.score);
-              return (
-                <div key={i} className="topic-card">
-                  <div className="topic-card-name">{t.name}</div>
-                  <div className="topic-card-score-row">
-                    <div className="topic-card-score-big" style={{ color: student.color }}>{t.score}</div>
-                    <div className="topic-card-score-pct">/ 100</div>
-                  </div>
-                  <div className="topic-card-bar-bg">
-                    <div className="topic-card-bar-fill" style={{ width: `${t.score}%`, background: student.color }} />
-                  </div>
-                  <span className={`topic-card-badge ${badge.cls}`}>{badge.label}</span>
+
+          {/* Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            {[
+              { label: 'Partidas', value: dados.totalPartidas },
+              { label: 'Vitórias', value: dados.totalVitorias },
+              { label: 'Acertos', value: dados.totalAcertos },
+              { label: 'Erros', value: dados.totalErros },
+            ].map(s => (
+              <div key={s.label} className="detail-card" style={{ textAlign: 'center', padding: 16 }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--dark)' }}>{s.value}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--muted)', marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Medalhas */}
+          <div className="detail-card">
+            <div className="detail-card-title">
+              <div className="detail-card-title-icon">🏅</div>
+              Medalhas
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {dados.medalhas.map(m => (
+                <div key={m.titulo} style={{
+                  flex: '1 1 140px', border: '1px solid var(--border)', borderRadius: 12,
+                  padding: '14px 16px', background: m.desbloqueado ? '#ECFDF5' : 'var(--bg)',
+                  opacity: m.desbloqueado ? 1 : 0.5,
+                }}>
+                  <div style={{ fontSize: 24, marginBottom: 6 }}>{m.emoji}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--dark)' }}>{m.titulo}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{m.descricao}</div>
+                  {m.desbloqueado && <div style={{ marginTop: 6, fontSize: 10, fontWeight: 700, color: '#16A34A' }}>✓ Desbloqueada</div>}
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
+
+          {/* Histórico */}
+          <div className="detail-card">
+            <div className="detail-card-title">
+              <div className="detail-card-title-icon">🧪</div>
+              Histórico de Partidas
+            </div>
+            {dados.historico.length === 0 ? (
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Nenhuma partida ainda.</p>
+            ) : (
+              <div className="activity-list" style={{ border: 'none' }}>
+                {dados.historico.map(h => {
+                  const data = new Date(h.data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+                  return (
+                    <div key={h.id} className="activity-item">
+                      <div className="activity-icon" style={{ background: h.venceu ? '#ECFDF5' : '#FEF2F2', fontSize: 14 }}>
+                        {h.venceu ? '✅' : '❌'}
+                      </div>
+                      <div className="activity-info">
+                        <div className="activity-name">Sala {h.codigoSala}</div>
+                        <div className="activity-meta">
+                          {data}
+                          {h.acertos > 0 && ` · ${h.acertos} acertos`}
+                          {h.erros > 0 && ` · ${h.erros} erros`}
+                        </div>
+                      </div>
+                      <div className="activity-right">
+                        <div className="activity-pts">+{h.xpGanho} XP</div>
+                        {h.venceu && <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 700, marginTop: 2 }}>Vitória</div>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
         </div>
-      </div>
+      )}
     </>
-  );
+  )
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -1242,6 +1369,15 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
   const [alunos, setAlunos] = useState<FullStudent[]>([]);
   const [carregando, setCarregando] = useState(true);
 
+  const salas = useMemo(
+    () => ["Todas as Salas", ...Array.from(new Set(alunos.map(a => a.sala))).filter(Boolean).sort()],
+    [alunos]
+  )
+  const anos = useMemo(
+    () => ["Todos os Anos", ...Array.from(new Set(alunos.map(a => a.ano))).filter(Boolean).sort()],
+    [alunos]
+  )
+
   useEffect(() => {
     const token = localStorage.getItem("dominoToken");
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/professor/alunos`, {
@@ -1251,6 +1387,7 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
       .then(data => {
         const CORES = ["#9B59B6", "#E74C3C", "#3498DB", "#27AE60", "#F39C12", "#1ABC9C", "#E67E22", "#8E44AD", "#2980B9", "#C0392B", "#16A085", "#D35400"];
         setAlunos(data.map((a: any, i: number) => ({
+          id: Number(a.id),
           name: a.nome,
           initials: a.nome.split(" ").map((p: string) => p[0]).slice(0, 2).join("").toUpperCase(),
           email: a.email,
@@ -1292,10 +1429,10 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="filter-select" value={anoFilter} onChange={(e) => setAnoFilter(e.target.value)}>
-          {ANOS.map((a) => <option key={a}>{a}</option>)}
+          {anos.map((a) => <option key={a}>{a}</option>)}
         </select>
         <select className="filter-select" value={salaFilter} onChange={(e) => setSalaFilter(e.target.value)}>
-          {SALAS.map((s) => <option key={s}>{s}</option>)}
+          {salas.map((s) => <option key={s}>{s}</option>)}
         </select>
         <span className="students-count">{filtered.length} aluno{filtered.length !== 1 ? "s" : ""}</span>
       </div>
@@ -1317,7 +1454,7 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={4} style={{ textAlign: "center", padding: "40px 20px", color: "var(--muted)", fontSize: 14 }}>Nenhum aluno encontrado.</td></tr>
               ) : filtered.map((s, i) => (
-                <tr key={i} onClick={() => onSelectStudent(s)} title={`Ver perfil de ${s.name}`}>
+                <tr key={s.id} onClick={() => onSelectStudent(s)} title={`Ver perfil de ${s.name}`}>
                   <td>
                     <div className="td-student">
                       <div className="td-avatar" style={{ background: s.color }}>{s.initials}</div>
@@ -1349,6 +1486,7 @@ function StudentsView({ onSelectStudent }: { onSelectStudent: (s: FullStudent) =
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 export default function ProfessorDashboard() {
+  const router = useRouter()
   const [activeNav, setActiveNav] = useState<string>("Dashboard");
   const [selectedStudent, setSelectedStudent] = useState<FullStudent | null>(null);
   const [showSidebarMenu, setShowSidebarMenu] = useState(false);
@@ -1368,6 +1506,15 @@ export default function ProfessorDashboard() {
     Alunos: "Lista de Alunos",
     Configurações: "Configurações",
   };
+
+  const [nomeProfessor, setNomeProfessor] = useState("Professor")
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("dominoUsuario") ?? "{}")
+      if (user.nome) setNomeProfessor(user.nome)
+    } catch { /* silencioso */ }
+  }, [])
 
   return (
     <>
@@ -1397,15 +1544,19 @@ export default function ProfessorDashboard() {
                   <button className="user-menu-item" onClick={() => handleNavChange("Configurações")}>
                     <span className="user-menu-icon">⚙️</span> Configurações
                   </button>
-                  <button className="user-menu-item danger" onClick={() => setShowSidebarMenu(false)}>
+                  <button className="user-menu-item danger" onClick={() => {
+                    localStorage.removeItem("dominoToken")
+                    localStorage.removeItem("dominoUsuario")
+                    router.push("/login/professor")
+                  }}>
                     <span className="user-menu-icon">🚪</span> Sair da conta
                   </button>
                 </div>
               )}
               <div className="sidebar-user" onClick={() => setShowSidebarMenu(v => !v)}>
-                <div className="user-avatar">PM</div>
+                <div className="user-avatar">{nomeProfessor.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()}</div>
                 <div className="user-info">
-                  <div className="user-name">Prof. Mendes</div>
+                  <div className="user-name">{nomeProfessor}</div>
                   <div className="user-role">Administrador</div>
                 </div>
                 <span style={{ color: "#555", fontSize: 14, transition: "transform 0.15s", transform: showSidebarMenu ? "rotate(180deg)" : "none" }}>↗</span>
@@ -1427,7 +1578,7 @@ export default function ProfessorDashboard() {
             )}
           </span>
           <button className="topbar-user-btn" onClick={() => setShowTopbarMenu(v => !v)}>
-            <div className="topbar-user-avatar">PM</div>
+            <div className="topbar-user-avatar">{nomeProfessor.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase()}</div>
           </button>
           {showTopbarMenu && (
             <div style={{
@@ -1441,7 +1592,11 @@ export default function ProfessorDashboard() {
               <button className="user-menu-item" onClick={() => handleNavChange("Configurações")}>
                 <span className="user-menu-icon">⚙️</span> Configurações
               </button>
-              <button className="user-menu-item danger" onClick={() => setShowTopbarMenu(false)}>
+              <button className="user-menu-item danger" onClick={() => {
+                localStorage.removeItem("dominoToken")
+                localStorage.removeItem("dominoUsuario")
+                router.push("/login/professor")
+              }}>
                 <span className="user-menu-icon">🚪</span> Sair da conta
               </button>
             </div>
