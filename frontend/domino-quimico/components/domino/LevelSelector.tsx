@@ -186,8 +186,8 @@ export function NivelBadge({ nivel, small = false }: { nivel: number; small?: bo
   return (
     <div
       style={{
-        background: "#0F172A",
-        border: `1px solid ${n.cor}55`,
+        background: "#FEE2E2",
+        border: `1px solid #FCA5A5`,
         borderRadius: 8,
         padding: small ? "3px 8px" : "4px 10px",
       }}
@@ -206,7 +206,7 @@ export function NivelBadge({ nivel, small = false }: { nivel: number; small?: bo
         style={{
           fontSize: small ? 11 : 13,
           fontWeight: 700,
-          color: n.cor,
+          color: '#B91C1C',
         }}
       >
         {n.emoji} {n.nome}
