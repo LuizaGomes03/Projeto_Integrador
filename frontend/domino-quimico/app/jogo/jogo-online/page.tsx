@@ -32,6 +32,7 @@ type EstadoPartida = {
   vencedores: string[] | null
   motivo: string | null
   pontas: Pontas
+  nivel?: number
 }
 
 type DropZone = "esquerda" | "direita"
@@ -127,7 +128,7 @@ export default function JogoOnlinePage() {
   const searchParams = useSearchParams()
   const nomeParm = searchParams.get("jogador")
   const salaParm = searchParams.get("sala")
-  const [meuNome, setMeuNome] = useState(nomeParm || "Jogador")
+  const [meuNome, setMeuNome] = useState("")
   const [meuId, setMeuId] = useState(-99)
   const [codigoSala, setCodigoSala] = useState((salaParm || "").toUpperCase())
 
