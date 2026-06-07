@@ -272,7 +272,7 @@ export default function SignupPage() {
 
   return (
     <main
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8"
+      className="relative flex min-h-screen items-start justify-center overflow-hidden px-4 py-4 sm:items-center"
       style={{
         backgroundImage: "url('/ChatGPT Image 15 de mai. de 2026, 10_31_00.png')",
         backgroundSize: "cover",
@@ -282,68 +282,68 @@ export default function SignupPage() {
         fontFamily: '"Poppins", sans-serif',
       }}
     >
-      <div className="w-full max-w-[430px]">
+      <div className="w-full max-w-[360px] pt-2 sm:pt-0">
 
         {/* LOGO ETEC */}
-        <div className="flex justify-center pb-10 sm:pb-12">
+        <div className="flex justify-center pb-4 sm:pb-6">
           <Image
             src="/etec_santo_andre.png"
             alt="ETEC Santo André"
             width={340}
             height={120}
-            className="h-auto w-[190px] sm:w-[240px] md:w-[300px]"
+            className="h-auto w-[170px] sm:w-[210px] md:w-[260px]"
             priority
           />
         </div>
 
         {/* CARD */}
-        <div className="relative mt-4 rounded-[34px] border border-white/60 bg-white/88 px-6 pb-7 pt-16 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:px-8 sm:pb-8 sm:pt-20">
+        <div className="relative mt-2 rounded-[34px] border border-white/60 bg-white/88 px-5 pb-5 pt-10 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:px-6 sm:pb-6 sm:pt-12">
 
           {/* LOGO CENTRAL */}
-          <div className="absolute left-1/2 top-0 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#ECECEC] bg-white shadow-xl sm:h-28 sm:w-28">
+          <div className="absolute left-1/2 top-0 flex h-18 w-18 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#ECECEC] bg-white shadow-xl sm:h-22 sm:w-22">
             <Image
               src="/logo.png"
               alt="Dominó Químico"
               width={90}
               height={90}
-              className="h-auto w-[58px] sm:w-[72px]"
+              className="h-auto w-[42px] sm:w-[54px]"
               priority
             />
           </div>
 
           {/* CABEÇALHO */}
           <div className="text-center">
-            <h1 className="text-[30px] font-black leading-none tracking-[-0.05em] text-[#2F2F2F] sm:text-[38px]">
+            <h1 className="text-[25px] font-black leading-none tracking-[-0.05em] text-[#2F2F2F] sm:text-[31px]">
               DOMINÓ
             </h1>
-            <h2 className="mt-1 text-[26px] font-black leading-none tracking-[0.16em] text-[#D62828] sm:text-[32px]">
+            <h2 className="mt-1 text-[20px] font-black leading-none tracking-[0.16em] text-[#D62828] sm:text-[25px]">
               QUÍMICO
             </h2>
-            <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.42em] text-[#A0A0A0]">
+            <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.32em] text-[#A0A0A0]">
               JOGO EDUCATIVO
             </p>
 
-            <div className="mt-9">
-              <h3 className="text-[32px] font-black tracking-[-0.06em] text-[#343434] sm:text-[42px]">
+            <div className="mt-5">
+              <h3 className="text-[26px] font-black tracking-[-0.06em] text-[#343434] sm:text-[31px]">
                 Criar conta
               </h3>
-              <p className="mt-2 text-[15px] text-[#8B8B8B] sm:text-[17px]">
+              <p className="mt-1.5 text-[13px] text-[#8B8B8B] sm:text-[14px]">
                 Crie sua conta para começar sua jornada.
               </p>
             </div>
           </div>
 
           {/* FORMULÁRIO */}
-          <div className="mt-8 space-y-4" onKeyDown={handleKeyDown}>
+          <div className="mt-5 space-y-3" onKeyDown={handleKeyDown}>
 
             {erroGeral && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-[13px] font-semibold text-red-600">
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2.5 text-center text-[12px] font-semibold text-red-600">
                 {erroGeral}
               </div>
             )}
 
             {sucesso && (
-              <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-center text-[13px] font-semibold text-green-700">
+              <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-2.5 text-center text-[12px] font-semibold text-green-700">
                 ✓ Conta criada! Redirecionando...
               </div>
             )}
