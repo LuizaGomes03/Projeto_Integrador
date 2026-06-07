@@ -76,7 +76,7 @@ export default function LoginProfessorPage() {
 
   return (
     <main
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-6"
+      className="relative flex min-h-screen items-start justify-center overflow-hidden px-4 py-4 sm:items-center"
       style={{
         backgroundImage: "url('/ChatGPT Image 15 de mai. de 2026, 10_31_00.png')",
         backgroundSize: "cover",
@@ -86,69 +86,69 @@ export default function LoginProfessorPage() {
         fontFamily: '"Poppins", sans-serif',
       }}
     >
-      <div className="w-full max-w-[540px]">
+      <div className="w-full max-w-[360px] pt-2 sm:pt-0">
 
         {/* LOGO ETEC */}
-        <div className="flex justify-center pb-10 sm:pb-12 md:pb-14">
+        <div className="flex justify-center pb-4 sm:pb-6 md:pb-8">
           <Image
             src="/etec_santo_andre.png"
             alt="ETEC Santo André"
             width={340}
             height={120}
-            className="h-auto w-[190px] sm:w-[240px] md:w-[300px]"
+            className="h-auto w-[170px] sm:w-[210px] md:w-[260px]"
             priority
           />
         </div>
 
         {/* CARD */}
         <div
-          className="relative mt-4 rounded-[34px] border border-white/60 bg-white/88 px-6 pb-7 pt-16 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:px-8 sm:pb-8 sm:pt-20"
+          className="relative mt-2 rounded-[34px] border border-white/60 bg-white/88 px-5 pb-5 pt-10 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:px-6 sm:pb-6 sm:pt-12"
           onKeyDown={handleKeyDown}
         >
 
           {/* LOGO CENTRAL */}
-          <div className="absolute left-1/2 top-0 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#ECECEC] bg-white shadow-xl sm:h-28 sm:w-28">
+          <div className="absolute left-1/2 top-0 flex h-18 w-18 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#ECECEC] bg-white shadow-xl sm:h-22 sm:w-22">
             <Image
               src="/logo.png"
               alt="Dominó Químico"
               width={90}
               height={90}
-              className="h-auto w-[58px] sm:w-[72px]"
+              className="h-auto w-[42px] sm:w-[54px]"
               priority
             />
           </div>
 
           {/* TÍTULO */}
           <div className="text-center">
-            <h1 className="text-[30px] font-black leading-none tracking-[-0.05em] text-[#2F2F2F] sm:text-[38px]">
+            <h1 className="text-[25px] font-black leading-none tracking-[-0.05em] text-[#2F2F2F] sm:text-[31px]">
               DOMINÓ
             </h1>
-            <h2 className="mt-1 text-[26px] font-black leading-none tracking-[0.16em] text-[#D62828] sm:text-[32px]">
+            <h2 className="mt-1 text-[20px] font-black leading-none tracking-[0.16em] text-[#D62828] sm:text-[25px]">
               QUÍMICO
             </h2>
-            <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.42em] text-[#A0A0A0]">
+            <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.32em] text-[#A0A0A0]">
               JOGO EDUCATIVO
             </p>
 
-            <div className="mt-9">
+            <div className="mt-5">
               {/* Badge de professor */}
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f5b8b8] bg-[#FEF2F2] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#D62828]">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#f5b8b8] bg-[#FEF2F2] px-3 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-[#D62828]">
                 🎓 Área do Professor
               </span>
-              <h3 className="mt-3 text-[32px] font-black tracking-[-0.06em] text-[#343434] sm:text-[42px]">
+              <h3 className="mt-3 text-[26px] font-black tracking-[-0.06em] text-[#343434] sm:text-[31px]">
                 Bem-vindo
               </h3>
-              <p className="mt-2 text-[15px] text-[#8B8B8B] sm:text-[17px]">
+              <p className="mt-1.5 text-[13px] text-[#8B8B8B] sm:text-[14px]">
                 Entre para acessar o painel do professor.
               </p>
             </div>
           </div>
 
           {/* FORMULÁRIO */}
-          <div className="mt-8 space-y-5">
+          <div className="mt-5 space-y-3.5">
 
             {erro && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-[13px] font-semibold text-red-600">
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2.5 text-center text-[12px] font-semibold text-red-600">
                 {erro}
               </div>
             )}
@@ -157,11 +157,11 @@ export default function LoginProfessorPage() {
             <div>
               <label
                 htmlFor="email"
-                className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
+                className="mb-2 block text-[9px] font-bold uppercase tracking-[0.24em] text-[#8A8A8A]"
               >
                 Email
               </label>
-              <div className={`flex h-[58px] items-center rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !email ? "border-red-300" : "border-[#EEEEEE]"}`}>
+              <div className={`flex h-[48px] items-center rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !email ? "border-red-300" : "border-[#EEEEEE]"}`}>
                 <input
                   id="email"
                   type="email"
@@ -179,11 +179,11 @@ export default function LoginProfessorPage() {
             <div>
               <label
                 htmlFor="senha"
-                className="mb-3 block text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]"
+                className="mb-2 block text-[9px] font-bold uppercase tracking-[0.24em] text-[#8A8A8A]"
               >
                 Senha
               </label>
-              <div className={`flex h-[58px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !senha ? "border-red-300" : "border-[#EEEEEE]"}`}>
+              <div className={`flex h-[48px] items-center gap-3 rounded-[18px] border bg-[#FAFAFA] px-4 transition-colors focus-within:border-[#D62828] ${erro && !senha ? "border-red-300" : "border-[#EEEEEE]"}`}>
                 <input
                   id="senha"
                   type={showPassword ? "text" : "password"}
@@ -210,7 +210,7 @@ export default function LoginProfessorPage() {
               type="button"
               onClick={handleLogin}
               disabled={carregando}
-              className="mt-2 flex h-[58px] w-full items-center justify-center rounded-full bg-[#D62828] text-[13px] font-black uppercase tracking-[0.28em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-0.5 flex h-[48px] w-full items-center justify-center rounded-full bg-[#D62828] text-[11px] font-black uppercase tracking-[0.22em] text-white shadow-[0_14px_30px_rgba(214,40,40,0.28)] transition hover:scale-[1.01] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {carregando ? (
                 <span className="flex items-center gap-2">
@@ -227,10 +227,10 @@ export default function LoginProfessorPage() {
           </div>
 
           {/* DIVISOR */}
-          <div className="my-7 border-t border-[#EFEFEF]" />
+          <div className="my-4 border-t border-[#EFEFEF]" />
 
           {/* LINK PARA LOGIN DO ALUNO */}
-          <p className="text-center text-[14px] text-[#8D8D8D]">
+          <p className="text-center text-[12px] text-[#8D8D8D]">
             É aluno?{" "}
             <button
               type="button"

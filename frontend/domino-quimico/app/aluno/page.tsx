@@ -15,6 +15,7 @@ import {
   Check,
   ArrowRight,
   TrendingUp,
+  Sparkles,
 } from "lucide-react"
 
 const XP_STORAGE_KEY = "dominoQuimicoXp"
@@ -22,6 +23,15 @@ const HOST_ROOM_CODE_KEY = "dominoQuimicoHostRoomCode"
 const XP_POR_NIVEL = 1000
 const NIVEL_BASE = 1
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
+
+// Saudações rotativas no topo — curtas e animadas
+const SAUDACOES = [
+  "Pronto para o próximo experimento? ",
+  "O laboratório está esperando por você! ",
+  "Cada partida é uma nova descoberta. ",
+  "Sua jornada científica continua aqui! ",
+  "Conecte elementos. Suba de nível. Repita. ",
+]
 
 type Room = {
   code: string
@@ -41,6 +51,7 @@ export default function AlunoHome() {
   const [codigoCriado, setCodigoCriado] = useState("")
   const [copiado, setCopiado] = useState(false)
   const [codigoSala, setCodigoSala] = useState("")
+  const [saudacaoIdx] = useState(() => Math.floor(Math.random() * SAUDACOES.length))
 
   const [playerName, setPlayerName] = useState("Cientista")
   const [playerId,   setPlayerId]   = useState<number>(-99)
@@ -82,7 +93,7 @@ export default function AlunoHome() {
   }
 
   useEffect(() => {
-    if (playerId === -99) return   // aguarda o useEffect de auth carregar o id
+    if (playerId === -99) return
     try {
       const shouldCreate = searchParams?.get("createRoom") === "1"
       if (shouldCreate && !mostrarModalCriada && !criandoSala) criarSala()
@@ -112,8 +123,6 @@ export default function AlunoHome() {
     setMostrarModalEntrada(false)
     setCodigoSala("")
     window.sessionStorage.removeItem(HOST_ROOM_CODE_KEY)
-    // Bug fix: dominoUserId nunca era gravado no sessionStorage, então a página
-    // da sala recebia playerId=-99 e o POST /entrar falhava com 404/500.
     sessionStorage.setItem("dominoNome", playerName)
     sessionStorage.setItem("dominoUserId", String(playerId))
     sessionStorage.setItem("dominoSala", code)
@@ -146,6 +155,15 @@ export default function AlunoHome() {
     }
   }, [xpAtual])
 
+  // Mensagem de boas-vindas personalizada com base no XP
+  const mensagemBoasVindas = useMemo(() => {
+    const primeiro = playerName.split(" ")[0]
+    if (xpAtual === 0) return `Bem-vindo(a), ${primeiro}! Sua história começa agora. `
+    if (xpAtual < 2000) return `Olá, ${primeiro}! Você está evoluindo! Continue assim. `
+    if (xpAtual < 5000) return `E aí, ${primeiro}! Cada partida te deixa mais forte. `
+    return `De volta, ${primeiro}! O laboratório sentiu sua falta. `
+  }, [playerName, xpAtual])
+
   const handleLogout = () => {
     localStorage.removeItem("dominoQuimicoXp")
     localStorage.removeItem("dominoQuimicoHostRoomCode")
@@ -154,11 +172,10 @@ export default function AlunoHome() {
 
   return (
     <>
-      {/* ══ HEADER ══════════════════════════════════════════════════════════ */}
+      {/* ══ HEADER — intocado ══════════════════════════════════════════════ */}
       <header className="sticky top-0 z-50 w-full border-b border-white/30 bg-white/70 backdrop-blur-2xl"
         style={{ fontFamily: '"Poppins", sans-serif', boxShadow: "0 1px 20px rgba(0,0,0,0.06)" }}>
         <div className="w-full px-4 sm:px-6 lg:px-12">
-
           {/* Mobile */}
           <div className="py-3 sm:py-4 lg:hidden">
             <div className="flex items-center justify-between gap-3">
@@ -178,12 +195,11 @@ export default function AlunoHome() {
               </h1>
             </div>
           </div>
-
           {/* Desktop */}
           <div className="hidden items-center py-4 sm:py-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-4 lg:py-5">
             <div className="flex items-center justify-start">
               <Image src="/etec_santo_andre.png" alt="ETEC Santo André" width={150} height={52}
-                className="h-11 w-auto object-contain sm:h-12 lg:h-14" priority />
+                className="h-11 w-auto object-contain sm:h-12 lg:h-13" priority />
             </div>
             <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-5">
               <Image src="/logo.png" alt="Dominó Químico" width={48} height={48}
@@ -194,18 +210,16 @@ export default function AlunoHome() {
             </div>
             <div className="flex justify-end">
               <button onClick={handleLogout}
-                className="flex items-center gap-2.5 rounded-full border border-[#ECECEC] bg-white px-4 py-2.5 text-sm font-bold text-[#666] transition hover:text-[#D62828] lg:px-5"
-              >
+                className="flex items-center gap-2.5 rounded-full border border-[#ECECEC] bg-white px-4 py-2.5 text-sm font-bold text-[#666] transition hover:text-[#D62828] lg:px-5">
                 <LogOut size={15} />
                 <span className="hidden sm:inline">Sair</span>
               </button>
             </div>
           </div>
-
         </div>
       </header>
 
-      {/* ══ FUNDO — mesmo background da tela de login ════════════════════════ */}
+      {/* ══ FUNDO ════════════════════════════════════════════════════════════ */}
       <div
         className="relative min-h-screen w-full overflow-hidden"
         style={{
@@ -217,45 +231,55 @@ export default function AlunoHome() {
           fontFamily: '"Poppins", sans-serif',
         }}
       >
+        <main className="relative mx-auto w-full max-w-3xl px-4 pt-8 pb-12 sm:px-6 lg:pt-10 lg:pb-16">
 
-        {/* ══ MAIN ══════════════════════════════════════════════════════════ */}
-        <main className="relative mx-auto w-full max-w-4xl px-4 pt-8 pb-14 sm:px-6 lg:pt-10 lg:pb-18">
-
-          {/* Cabeçalho */}
-          <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-12">
-            <p className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-[#f5b8b8] bg-white/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#D62828] shadow-sm backdrop-blur-sm sm:px-4 sm:text-[11px] sm:tracking-[0.2em]">
+          {/* Cabeçalho da página */}
+          <div className="mx-auto mb-6 max-w-xl text-center sm:mb-8">
+            <p className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#f5b8b8] bg-white/80 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#D62828] shadow-sm backdrop-blur-sm sm:px-4 sm:text-[11px]">
               <FlaskConical size={13} className="text-[#D62828]" />
               Espaço de aprendizagem molecular
             </p>
-            <h2 className="text-4xl font-black tracking-[-0.03em] text-[#2F2F2F] drop-shadow-sm sm:text-5xl lg:text-6xl">
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-[#2F2F2F] drop-shadow-sm sm:text-4xl lg:text-5xl">
               Menu do Aluno
             </h2>
+
+            {/* Boas-vindas personalizada */}
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 backdrop-blur-sm px-4 py-2 shadow-sm">
+              <Sparkles size={13} className="text-[#D62828] shrink-0" />
+              <p className="text-xs font-semibold text-[#444]">{mensagemBoasVindas}</p>
+            </div>
+
+            {/* Saudação rotativa pequena */}
+            <p className="mt-2 text-[11px] text-[#888] italic">
+              {SAUDACOES[saudacaoIdx]}
+            </p>
           </div>
 
           {/* ══ GRID DE CARDS ════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             {/* ── JOGAR SOZINHO ── */}
             <button
               onClick={() => router.push("/jogo")}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] p-7 text-left shadow-[0_20px_60px_rgba(214,40,40,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(214,40,40,0.35)] min-h-[220px]"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] p-5 text-left shadow-[0_16px_48px_rgba(214,40,40,0.22)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_56px_rgba(214,40,40,0.32)] min-h-[180px] lg:min-h-[170px]"
               style={{ background: "linear-gradient(135deg, #DC2626 0%, #b91c1c 60%, #991b1b 100%)" }}
             >
-              <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10" />
-              <div className="absolute -bottom-8 -left-6 w-28 h-28 rounded-full bg-white/5" />
+              <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" />
+              <div className="absolute -bottom-6 -left-4 w-20 h-20 rounded-full bg-white/5" />
               <div className="relative flex h-full flex-col justify-between w-full">
                 <div>
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-[14px] bg-white/20">
-                    <Orbit size={22} className="text-white" />
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/20">
+                    <Orbit size={19} className="text-white" />
                   </div>
-                  <p className="text-2xl font-black tracking-tight text-white">Jogar Sozinho</p>
-                  <p className="mt-2 text-sm leading-relaxed text-rose-100 sm:text-base">
-                    Pratique suas habilidades de ligações químicas contra a IA do laboratório.
+                  <p className="text-lg font-black tracking-tight text-white">Jogar Sozinho</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-rose-100 sm:text-sm">
+                    Enfrente a IA e prove que a química não tem segredos para você.
                   </p>
                 </div>
-                <div className="mt-5 flex justify-end">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white transition-transform duration-300 group-hover:translate-x-1">
-                    <ArrowRight size={16} />
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-[10px] text-rose-200 font-semibold">Ganhe XP a cada vitória ⚡</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-transform duration-300 group-hover:translate-x-1">
+                    <ArrowRight size={14} />
                   </div>
                 </div>
               </div>
@@ -264,27 +288,27 @@ export default function AlunoHome() {
             {/* ── MEU DESEMPENHO ── */}
             <button
               onClick={() => router.push("/aluno/desempenho")}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-white/60 bg-white/88 p-7 text-left shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_90px_rgba(0,0,0,0.12)] min-h-[220px]"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-white/60 bg-white/88 p-5 text-left shadow-[0_20px_64px_rgba(0,0,0,0.07)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_72px_rgba(0,0,0,0.11)] min-h-[180px] lg:min-h-[170px]"
             >
               <div className="relative flex h-full flex-col justify-between w-full">
                 <div>
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#FEF2F2] transition-colors group-hover:bg-[#FEE2E2]">
-                    <BarChart3 size={22} className="text-[#D62828]" />
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#FEF2F2] transition-colors group-hover:bg-[#FEE2E2]">
+                    <BarChart3 size={19} className="text-[#D62828]" />
                   </div>
-                  <p className="text-2xl font-black tracking-tight text-[#2F2F2F]">Meu Desempenho</p>
-                  <p className="mt-2 text-sm leading-relaxed text-[#8B8B8B] sm:text-base">
-                    Confira suas conquistas, nível atual e histórico de experimentos.
+                  <p className="text-lg font-black tracking-tight text-[#2F2F2F]">Meu Desempenho</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[#8B8B8B] sm:text-sm">
+                    Veja suas medalhas, conquistas e o quanto você já evoluiu.
                   </p>
                 </div>
-                <div className="mt-5">
-                  <div className="mb-1.5 flex items-center justify-between">
+                <div className="mt-4">
+                  <div className="mb-1 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <TrendingUp size={11} className="text-[#D62828]" />
-                      <span className="text-[11px] font-black uppercase tracking-wider text-[#D62828]">Nível {nivelAtual}</span>
+                      <TrendingUp size={10} className="text-[#D62828]" />
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#D62828]">Nível {nivelAtual}</span>
                     </div>
-                    <span className="text-[11px] font-semibold text-[#A0A0A0]">{xpNoNivel} / {XP_POR_NIVEL} XP</span>
+                    <span className="text-[10px] font-semibold text-[#A0A0A0]">{xpNoNivel} / {XP_POR_NIVEL} XP</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[#F0F0F0]">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-[#F0F0F0]">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
@@ -293,6 +317,11 @@ export default function AlunoHome() {
                       }}
                     />
                   </div>
+                  {xpAtual > 0 && (
+                    <p className="mt-1 text-[10px] text-[#AAA]">
+                      {XP_POR_NIVEL - xpNoNivel} XP para o nível {nivelAtual + 1} 🚀
+                    </p>
+                  )}
                 </div>
               </div>
             </button>
@@ -301,72 +330,71 @@ export default function AlunoHome() {
             <button
               onClick={criarSala}
               disabled={criandoSala}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-white/60 bg-white/88 p-7 text-left shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_30px_90px_rgba(0,0,0,0.12)] disabled:cursor-not-allowed disabled:opacity-60 min-h-[180px]"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-white/60 bg-white/88 p-5 text-left shadow-[0_20px_64px_rgba(0,0,0,0.07)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_24px_72px_rgba(0,0,0,0.11)] disabled:cursor-not-allowed disabled:opacity-60 min-h-[150px] lg:min-h-[145px]"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#FEF2F2] transition-colors group-hover:bg-[#FEE2E2]">
-                <UserPlus size={22} className="text-[#D62828]" />
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#FEF2F2] transition-colors group-hover:bg-[#FEE2E2]">
+                <UserPlus size={19} className="text-[#D62828]" />
               </div>
-              <p className="text-2xl font-black tracking-tight text-[#2F2F2F]">
+              <p className="text-lg font-black tracking-tight text-[#2F2F2F]">
                 {criandoSala ? "Criando..." : "Criar Sala"}
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-[#8B8B8B] sm:text-base">
-                Inicie uma nova partida e convide seus colegas para o laboratório.
+              <p className="mt-1.5 text-xs leading-relaxed text-[#8B8B8B] sm:text-sm">
+                Monte seu grupo e dispute com os colegas em tempo real.
               </p>
             </button>
 
             {/* ── ENTRAR EM SALA ── */}
             <button
               onClick={() => setMostrarModalEntrada(true)}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-white/60 bg-white/88 p-7 text-left shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_30px_90px_rgba(0,0,0,0.12)] min-h-[180px]"
+              className="group relative flex flex-col justify-between overflow-hidden rounded-[24px] border border-white/60 bg-white/88 p-5 text-left shadow-[0_20px_64px_rgba(0,0,0,0.07)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_24px_72px_rgba(0,0,0,0.11)] min-h-[150px] lg:min-h-[145px]"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#FEF2F2] transition-colors group-hover:bg-[#FEE2E2]">
-                <LogIn size={22} className="text-[#D62828]" />
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#FEF2F2] transition-colors group-hover:bg-[#FEE2E2]">
+                <LogIn size={19} className="text-[#D62828]" />
               </div>
-              <p className="text-2xl font-black tracking-tight text-[#2F2F2F]">Entrar em Sala</p>
-              <p className="mt-2 text-sm leading-relaxed text-[#8B8B8B] sm:text-base">
-                Use um código de convite para participar de uma partida ativa.
+              <p className="text-lg font-black tracking-tight text-[#2F2F2F]">Entrar em Sala</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-[#8B8B8B] sm:text-sm">
+                Recebeu um código? Entre e mostre do que você é feito.
               </p>
             </button>
 
             {/* ── DESAFIO DIÁRIO ── */}
-            <div className="overflow-hidden rounded-[28px] border border-white/60 bg-white/88 shadow-[0_25px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:col-span-2">
+            <div className="overflow-hidden rounded-[24px] border border-white/60 bg-white/88 shadow-[0_20px_64px_rgba(0,0,0,0.07)] backdrop-blur-xl sm:col-span-2">
               <div
-                className="px-5 py-3.5 flex items-center gap-2"
+                className="px-5 py-3 flex items-center justify-between"
                 style={{ background: "linear-gradient(135deg, #DC2626, #b91c1c)" }}
               >
-                <FlaskConical size={15} className="text-red-200" />
-                <span className="text-[10px] font-black uppercase tracking-wider text-red-100">
-                  Desafio Diário
-                </span>
+                <div className="flex items-center gap-2">
+                  <FlaskConical size={13} className="text-red-200" />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-red-100">
+                    Desafio Diário
+                  </span>
+                </div>
+                <span className="text-[10px] text-rose-200 font-semibold">Não perca! ⏱️</span>
               </div>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-6 py-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-5 py-4">
                 <div>
-                  <p className="text-lg font-black tracking-tight text-[#2F2F2F] sm:text-xl">
+                  <p className="text-base font-black tracking-tight text-[#2F2F2F] sm:text-lg">
                     Conecte 5 compostos seguidos sem errar.
                   </p>
-                  <p className="mt-1 text-sm text-[#8B8B8B]">
-                    Complete o desafio para ganhar experiência bônus no laboratório.
+                  <p className="mt-0.5 text-xs text-[#8B8B8B]">
+                    Mostre que você domina a tabela periódica e ganhe XP bônus hoje!
                   </p>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-[#F0F0F0]">
-                  <span className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 px-3 py-1.5 text-xs font-black text-white whitespace-nowrap shadow-[0_4px_14px_rgba(249,115,22,0.35)]">
-                    <Zap size={11} fill="currentColor" />
+                <div className="flex items-center gap-2.5 flex-shrink-0 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-[#F0F0F0]">
+                  <span className="inline-flex items-center gap-1 rounded-xl bg-orange-500 px-3 py-1.5 text-xs font-black text-white whitespace-nowrap shadow-[0_4px_14px_rgba(249,115,22,0.35)]">
+                    <Zap size={10} fill="currentColor" />
                     +200 XP
                   </span>
                   <button
                     onClick={() => router.push("/jogo")}
-                    className="rounded-xl border border-[#f5b8b8] bg-white px-4 py-1.5 text-sm font-bold text-[#D62828] transition hover:bg-[#FEF2F2] whitespace-nowrap"
+                    className="rounded-xl border border-[#f5b8b8] bg-white px-4 py-1.5 text-xs font-bold text-[#D62828] transition hover:bg-[#FEF2F2] whitespace-nowrap"
                   >
-                    Começar desafio
+                    Aceitar desafio
                   </button>
                 </div>
               </div>
-         
-
-           
-            
-              <div className="px-6 py-5">
-                <div className="h-3 overflow-hidden rounded-full bg-[#F0F0F0]">
+              <div className="px-5 pb-4">
+                <div className="h-2 overflow-hidden rounded-full bg-[#F0F0F0]">
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{
@@ -376,10 +404,10 @@ export default function AlunoHome() {
                     }}
                   />
                 </div>
-                <p className="mt-2.5 text-[12px] font-medium text-[#A0A0A0]">
+                <p className="mt-2 text-[11px] font-medium text-[#A0A0A0]">
                   {porcentagemNivel >= 80
-                    ? `Quase no próximo nível! Faltam ${XP_POR_NIVEL - xpNoNivel} XP`
-                    : `${XP_POR_NIVEL - xpNoNivel} XP para o nível ${nivelAtual + 1}`}
+                    ? `⚡ Quase no próximo nível! Faltam só ${XP_POR_NIVEL - xpNoNivel} XP`
+                    : `${XP_POR_NIVEL - xpNoNivel} XP para o nível ${nivelAtual + 1} — você consegue!`}
                 </p>
               </div>
             </div>
@@ -393,14 +421,12 @@ export default function AlunoHome() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-[6px]" style={{ background: "rgba(0,0,0,0.35)" }}>
           <div className="w-full max-w-md overflow-hidden rounded-[32px] bg-white shadow-[0_25px_80px_rgba(0,0,0,0.25)]"
             style={{ fontFamily: '"Poppins", sans-serif' }}>
-            <div
-              className="px-6 py-7 text-center"
-              style={{ background: "linear-gradient(135deg, #DC2626, #991b1b)" }}
-            >
+            <div className="px-6 py-7 text-center" style={{ background: "linear-gradient(135deg, #DC2626, #991b1b)" }}>
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[18px] bg-white/20">
                 <UserPlus size={26} className="text-white" />
               </div>
               <h2 className="text-2xl font-black tracking-tight text-white">Sala criada!</h2>
+              <p className="mt-1 text-xs text-rose-200">Compartilhe o código com seus colegas 🧪</p>
             </div>
             <div className="px-6 py-7">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.32em] text-[#8A8A8A]">Código da sala</p>
@@ -443,10 +469,7 @@ export default function AlunoHome() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-[6px]" style={{ background: "rgba(0,0,0,0.35)" }}>
           <div className="w-full max-w-md overflow-hidden rounded-[32px] bg-white shadow-[0_25px_80px_rgba(0,0,0,0.25)]"
             style={{ fontFamily: '"Poppins", sans-serif' }}>
-            <div
-              className="px-6 py-7 text-center"
-              style={{ background: "linear-gradient(135deg, #DC2626, #991b1b)" }}
-            >
+            <div className="px-6 py-7 text-center" style={{ background: "linear-gradient(135deg, #DC2626, #991b1b)" }}>
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[18px] bg-white/20">
                 <LogIn size={26} className="text-white" />
               </div>
