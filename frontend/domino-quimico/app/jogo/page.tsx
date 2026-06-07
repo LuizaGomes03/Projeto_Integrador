@@ -306,12 +306,14 @@ function TelaSelecaoNivel({
   onIniciar,
   playerName,
   carregando,
+  erro,
 }: {
   nivelSel: number
   setNivelSel: (n: number) => void
   onIniciar: () => void
   playerName: string
   carregando: boolean
+  erro?: string
 }) {
   const router = useRouter()
   const nivelInfo = NIVEIS_OPCOES.find((n) => n.id === nivelSel)!
@@ -463,6 +465,20 @@ function TelaSelecaoNivel({
           </div>
         </div>
 
+        {/* Erro ao iniciar */}
+        {erro && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            background: "#FEF2F2", border: "1.5px solid #FCA5A5",
+            borderRadius: 12, padding: "12px 16px",
+            fontSize: 13, fontWeight: 600, color: "#991B1B",
+            fontFamily: "'Sora', sans-serif",
+          }}>
+            <AlertCircle size={16} color="#DC2626" style={{ flexShrink: 0 }} />
+            {erro}
+          </div>
+        )}
+
         {/* Botão iniciar */}
         <button
           onClick={onIniciar}
@@ -560,16 +576,13 @@ export default function GameBoard() {
   // ─── INICIAR PARTIDA ──────────────────────────────────────────────────────
 
   const iniciarPartida = useCallback(async (nivelOpt?: number) => {
-    if (!clientReady || meuId === -99) return
+    if (!clientReady || meuId === -99) {
+      setErroBusca("Usuário não identificado. Faça login novamente.")
+      return
+    }
     const nivelParaUsar = nivelOpt ?? nivelSel
     setCarregando(true); setErroBusca("")
     try {
-      if (codigoSala) {
-        await apiFetch(`/api/salas/${codigoSala}/sair`, {
-          method: "DELETE",
-          body: JSON.stringify({ usuarioId: meuId }),
-        }).catch(() => {})
-      }
       const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
       const novaSala = Array.from({ length: 6 }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join("")
       sessionStorage.setItem("dominoSoloCodigo", novaSala)
@@ -595,7 +608,7 @@ export default function GameBoard() {
     } catch (err) {
       setErroBusca(err instanceof Error ? err.message : "Erro ao iniciar.")
     } finally { setCarregando(false) }
-  }, [clientReady, meuId, meuNome, codigoSala, nivelSel])
+  }, [clientReady, meuId, meuNome, nivelSel])
 
   // ─── POLLING ──────────────────────────────────────────────────────────────
 
@@ -742,9 +755,10 @@ export default function GameBoard() {
       <TelaSelecaoNivel
         nivelSel={nivelSel}
         setNivelSel={setNivelSel}
-        onIniciar={iniciarPartida}
+        onIniciar={() => iniciarPartida()}
         playerName={meuNome}
         carregando={carregando}
+        erro={erroBusca}
       />
     )
   }
@@ -1056,7 +1070,7 @@ export default function GameBoard() {
           </div>
 
           {/* Pedras na mão — grade que ocupa toda a largura */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8, padding: "4px 3px 8px 100px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 8, padding: "4px 3px 8px" }}>
             {minhaMao.length === 0 ? (
               <span style={{ fontSize: 13, color: "var(--text3, #9E8E82)", fontWeight: 600, gridColumn: "1/-1" }}>Sem pedras na mão</span>
             ) : (
