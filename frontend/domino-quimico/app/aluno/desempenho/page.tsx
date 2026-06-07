@@ -354,7 +354,7 @@ export default function DesempenhoPage() {
             </div>
             <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-5">
               <Image src="/logo.png" alt="Dominó Químico" width={48} height={48}
-                className="h-10 w-10 object-contain sm:h-12 sm:w-12 lg:h-14 lg:w-14" />
+                className="h-10 w-10 object-contain sm:h-12 sm:w-12 lg:h-13 lg:w-13" />
               <h1 className="text-xl font-black tracking-tight text-[#2F2F2F] sm:text-3xl lg:text-4xl">
                 Dominó <span className="text-[#D62828]">Químico</span>
               </h1>

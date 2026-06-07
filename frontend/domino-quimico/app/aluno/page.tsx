@@ -183,7 +183,7 @@ export default function AlunoHome() {
           <div className="hidden items-center py-4 sm:py-5 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-4 lg:py-5">
             <div className="flex items-center justify-start">
               <Image src="/etec_santo_andre.png" alt="ETEC Santo André" width={150} height={52}
-                className="h-11 w-auto object-contain sm:h-12 lg:h-13" priority />
+                className="h-11 w-auto object-contain sm:h-12 lg:h-14" priority />
             </div>
             <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-5">
               <Image src="/logo.png" alt="Dominó Químico" width={48} height={48}
