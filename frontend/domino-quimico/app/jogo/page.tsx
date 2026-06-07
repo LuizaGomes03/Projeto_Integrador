@@ -67,6 +67,14 @@ const GLOBAL_STYLES = `
   @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 `
 
+const ALUNO_BG_STYLE = {
+  backgroundImage: "url('/ChatGPT Image 15 de mai. de 2026, 10_31_00.png')",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundAttachment: "fixed",
+  backgroundRepeat: "no-repeat",
+} as const
+
 // ─── CORES POR CLASSE QUÍMICA ─────────────────────────────────────────────────
 
 const DOT_COLOR: Record<string, string> = {
@@ -311,7 +319,7 @@ function TelaSelecaoNivel({
   return (
     <div style={{
       minHeight: "100svh",
-      background: "var(--bg, #FAF9F7)",
+      ...ALUNO_BG_STYLE,
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
       padding: "24px 16px",
@@ -745,7 +753,7 @@ export default function GameBoard() {
 
   if (carregando && !partida) {
     return (
-      <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FAF9F7", fontFamily: "'Sora', sans-serif" }}>
+      <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Sora', sans-serif", ...ALUNO_BG_STYLE }}>
         <style>{GLOBAL_STYLES}</style>
         <div style={{ textAlign: "center", color: "#9E8E82" }}>
           <div style={{ width: 40, height: 40, border: "3px solid #E8E0D5", borderTopColor: "#C62828", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 12px" }} />
@@ -759,7 +767,7 @@ export default function GameBoard() {
 
   if (erroBusca && !partida) {
     return (
-      <div style={{ minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "#FAF9F7", fontFamily: "'Sora', sans-serif", color: "#6B5E52" }}>
+      <div style={{ minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "'Sora', sans-serif", color: "#6B5E52", ...ALUNO_BG_STYLE }}>
         <style>{GLOBAL_STYLES}</style>
         <AlertCircle size={36} color="#C62828" />
         <p style={{ fontSize: 14, fontWeight: 600 }}>{erroBusca}</p>
@@ -779,7 +787,7 @@ export default function GameBoard() {
   return (
     <div style={{
       minHeight: "100svh", height: "100svh",
-      background: "var(--bg, #FAF9F7)",
+      ...ALUNO_BG_STYLE,
       fontFamily: "'Sora', 'Segoe UI', sans-serif",
       display: "flex", flexDirection: "column", overflow: "hidden",
     }}>
