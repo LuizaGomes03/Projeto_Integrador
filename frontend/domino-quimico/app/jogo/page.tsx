@@ -21,26 +21,6 @@ import { encaixeDe } from "@/components/domino/types"
 
 const COLS = 6
 
-type TileLayout = { pedra: Pedra; kind: "h" | "v-exit" }
-type SnakeRow = { tiles: TileLayout[]; reversed: boolean }
-
-function buildSnakeRows(mesa: Pedra[]): SnakeRow[] {
-  if (mesa.length === 0) return []
-  const rows: SnakeRow[] = []
-  let i = 0, rowIdx = 0
-  while (i < mesa.length) {
-    const reversed = rowIdx % 2 !== 0
-    const slice = mesa.slice(i, i + COLS)
-    const hasNext = i + COLS < mesa.length
-    const tiles: TileLayout[] = slice.map((pedra, li) => ({
-      pedra,
-      kind: li === slice.length - 1 && hasNext ? "v-exit" : "h",
-    }))
-    rows.push({ tiles, reversed })
-    i += COLS; rowIdx++
-  }
-  return rows
-}
 
 // ─── ESTILOS GLOBAIS ──────────────────────────────────────────────────────────
 
@@ -810,7 +790,6 @@ export default function GameBoard() {
 
   const minhaMao = partida?.minha_mao ?? []
   const mesa = partida?.mesa ?? []
-  const snakeRows = buildSnakeRows(mesa)
 
   return (
     <div style={{
@@ -934,42 +913,47 @@ export default function GameBoard() {
                 Mesa vazia — aguardando...
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "stretch" }}>
-                {snakeRows.map((row, rowIdx) => {
-                  const isFirst = rowIdx === 0
-                  const isLast = rowIdx === snakeRows.length - 1
-                  const isOnly = snakeRows.length === 1
-                  const justif = row.reversed ? "flex-end" : "flex-start"
-                  const dropEsq = ehMeuTurno && (isFirst || isOnly) && !row.reversed
-                  const dropDir = ehMeuTurno && (isLast || isOnly) && !row.reversed
-                  const dropDirRev = ehMeuTurno && isLast && !isOnly && row.reversed
-
-                  return (
-                    <div key={rowIdx} style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: justif, flexWrap: "nowrap" }}>
-                      {dropEsq && (
-                        <InlineDropZone side="esquerda" ponta={partida?.pontas.esquerda ?? null} over={dropOverLeft} nivel={nivel}
-                          onDragOver={(e) => handleDragOver(e, "esquerda")} onDragLeave={() => handleDragLeave("esquerda")}
-                          onDrop={handleDrop} onClick={() => handleClickPonta("esquerda")} />
-                      )}
-                      {dropDirRev && (
-                        <InlineDropZone side="direita" ponta={partida?.pontas.direita ?? null} over={dropOverRight} nivel={nivel}
-                          onDragOver={(e) => handleDragOver(e, "direita")} onDragLeave={() => handleDragLeave("direita")}
-                          onDrop={handleDrop} onClick={() => handleClickPonta("direita")} />
-                      )}
-                      {(row.reversed ? [...row.tiles].reverse() : row.tiles).map(({ pedra, kind }, idx) => (
-                        <div key={`${pedra.id}-${rowIdx}-${idx}`} style={{ flexShrink: 0, transform: kind === "v-exit" ? "rotate(90deg)" : "none", margin: kind === "v-exit" ? "0 10px" : "0", transition: "transform 0.2s" }}>
-                          {/* Peça DEITADA na mesa */}
-                          <DominoTileH pedra={pedra} />
-                        </div>
-                      ))}
-                      {dropDir && (
-                        <InlineDropZone side="direita" ponta={partida?.pontas.direita ?? null} over={dropOverRight} nivel={nivel}
-                          onDragOver={(e) => handleDragOver(e, "direita")} onDragLeave={() => handleDragLeave("direita")}
-                          onDrop={handleDrop} onClick={() => handleClickPonta("direita")} />
-                      )}
-                    </div>
-                  )
-                })}
+              <div style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+                overflowX: "auto",
+                width: "100%",
+                padding: "12px 16px",
+                scrollbarWidth: "thin",
+                scrollbarColor: "rgba(255,255,255,0.2) transparent",
+              }}>
+                {ehMeuTurno && (
+                  <InlineDropZone
+                    side="esquerda"
+                    ponta={partida?.pontas.esquerda ?? null}
+                    over={dropOverLeft}
+                    nivel={nivel}
+                    onDragOver={(e) => handleDragOver(e, "esquerda")}
+                    onDragLeave={() => handleDragLeave("esquerda")}
+                    onDrop={handleDrop}
+                    onClick={() => handleClickPonta("esquerda")}
+                  />
+                )}
+                {mesa.map((pedra) => (
+                  <div key={pedra.id} style={{ flexShrink: 0 }}>
+                    <DominoTileH pedra={pedra} />
+                  </div>
+                ))}
+                {ehMeuTurno && (
+                  <InlineDropZone
+                    side="direita"
+                    ponta={partida?.pontas.direita ?? null}
+                    over={dropOverRight}
+                    nivel={nivel}
+                    onDragOver={(e) => handleDragOver(e, "direita")}
+                    onDragLeave={() => handleDragLeave("direita")}
+                    onDrop={handleDrop}
+                    onClick={() => handleClickPonta("direita")}
+                  />
+                )}
               </div>
             )}
 

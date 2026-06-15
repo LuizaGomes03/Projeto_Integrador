@@ -62,30 +62,6 @@ function ErrorToast({ message, onClose }: { message: string; onClose: () => void
   )
 }
 
-// ─── SERPENTINA ───────────────────────────────────────────────────────────────
-
-const COLS = 6
-
-type TileLayout = { pedra: Pedra; kind: "h" | "v-exit" }
-type SnakeRow = { tiles: TileLayout[]; reversed: boolean }
-
-function buildSnakeRows(mesa: Pedra[]): SnakeRow[] {
-  if (mesa.length === 0) return []
-  const rows: SnakeRow[] = []
-  let i = 0, rowIdx = 0
-  while (i < mesa.length) {
-    const reversed = rowIdx % 2 !== 0
-    const slice = mesa.slice(i, i + COLS)
-    const hasNextRow = i + COLS < mesa.length
-    const tiles: TileLayout[] = slice.map((pedra, li) => ({
-      pedra, kind: li === slice.length - 1 && hasNextRow ? "v-exit" : "h",
-    }))
-    rows.push({ tiles, reversed })
-    i += COLS; rowIdx++
-  }
-  return rows
-}
-
 // ─── CHIP ─────────────────────────────────────────────────────────────────────
 
 function Chip({ label, value, accent }: { label: string; value: string; accent?: string }) {
@@ -298,7 +274,6 @@ export default function JogoOnlinePage() {
   // ─── HELPERS ──────────────────────────────────────────────────────────────────
   const minhaMao = partida?.minha_mao ?? []
   const mesa = partida?.mesa ?? []
-  const snakeRows = buildSnakeRows(mesa)
 
   const quantidadePedras = (nome: string): number => {
     if (!partida) return 0
@@ -419,41 +394,27 @@ export default function JogoOnlinePage() {
                 Mesa vazia — aguardando o host iniciar
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "stretch" }}>
-                {snakeRows.map((row, rowIdx) => {
-                  const isFirst = rowIdx === 0
-                  const isLast = rowIdx === snakeRows.length - 1
-                  const isOnly = snakeRows.length === 1
-                  const justif = row.reversed ? "flex-end" : "flex-start"
-                  const dropEsqVisible = ehMeuTurno && (isFirst || isOnly) && !row.reversed
-                  const dropDirVisible = ehMeuTurno && (isLast || isOnly) && !row.reversed
-                  const dropDirReversed = ehMeuTurno && isLast && !isOnly && row.reversed && !dropDirVisible
-
-                  return (
-                    <div key={rowIdx} style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: justif, flexWrap: "nowrap" }}>
-                      {dropEsqVisible && (
-                        <RichInlineDropZone side="esquerda" ponta={partida?.pontas?.esquerda ?? null} over={dropOverLeft} nivel={partida?.nivel ?? 1}
-                          onDragOver={(e) => handleDragOver(e, "esquerda")} onDragLeave={() => handleDragLeave("esquerda")}
-                          onDrop={handleDrop} onClick={() => handleClickPonta("esquerda")} />
-                      )}
-                      {dropDirReversed && (
-                        <RichInlineDropZone side="direita" ponta={partida?.pontas?.direita ?? null} over={dropOverRight} nivel={partida?.nivel ?? 1}
-                          onDragOver={(e) => handleDragOver(e, "direita")} onDragLeave={() => handleDragLeave("direita")}
-                          onDrop={handleDrop} onClick={() => handleClickPonta("direita")} />
-                      )}
-                      {(row.reversed ? [...row.tiles].reverse() : row.tiles).map(({ pedra, kind }, idx) => (
-                        <div key={`${pedra.id}-${rowIdx}-${idx}`} style={{ flexShrink: 0, transform: kind === "v-exit" ? "rotate(90deg)" : "none", margin: kind === "v-exit" ? "0 10px" : "0", transition: "transform 0.2s ease" }}>
-                          <RichDominoTile pedra={pedra} nivel={partida?.nivel ?? 1} small />
-                        </div>
-                      ))}
-                      {dropDirVisible && (
-                        <RichInlineDropZone side="direita" ponta={partida?.pontas?.direita ?? null} over={dropOverRight} nivel={partida?.nivel ?? 1}
-                          onDragOver={(e) => handleDragOver(e, "direita")} onDragLeave={() => handleDragLeave("direita")}
-                          onDrop={handleDrop} onClick={() => handleClickPonta("direita")} />
-                      )}
-                    </div>
-                  )
-                })}
+              <div style={{
+                display: "flex", flexDirection: "row", alignItems: "center",
+                justifyContent: "center", gap: 4,
+                overflowX: "auto", width: "100%", padding: "12px 16px",
+                scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.2) transparent",
+              }}>
+                {ehMeuTurno && (
+                  <RichInlineDropZone side="esquerda" ponta={partida?.pontas?.esquerda ?? null} over={dropOverLeft} nivel={partida?.nivel ?? 1}
+                    onDragOver={(e) => handleDragOver(e, "esquerda")} onDragLeave={() => handleDragLeave("esquerda")}
+                    onDrop={handleDrop} onClick={() => handleClickPonta("esquerda")} />
+                )}
+                {mesa.map((pedra) => (
+                  <div key={pedra.id} style={{ flexShrink: 0 }}>
+                    <RichDominoTile pedra={pedra} nivel={partida?.nivel ?? 1} small />
+                  </div>
+                ))}
+                {ehMeuTurno && (
+                  <RichInlineDropZone side="direita" ponta={partida?.pontas?.direita ?? null} over={dropOverRight} nivel={partida?.nivel ?? 1}
+                    onDragOver={(e) => handleDragOver(e, "direita")} onDragLeave={() => handleDragLeave("direita")}
+                    onDrop={handleDrop} onClick={() => handleClickPonta("direita")} />
+                )}
               </div>
             )}
 
