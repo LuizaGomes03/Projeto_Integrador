@@ -128,7 +128,7 @@ export default function JogoOnlinePage() {
   const searchParams = useSearchParams()
   const nomeParm = searchParams.get("jogador")
   const salaParm = searchParams.get("sala")
-  const [meuNome, setMeuNome] = useState("")
+  const [meuNome, setMeuNome] = useState(nomeParm ?? "")
   const [meuId, setMeuId] = useState(-99)
   const [codigoSala, setCodigoSala] = useState((salaParm || "").toUpperCase())
 
@@ -136,7 +136,8 @@ export default function JogoOnlinePage() {
     const nomeSession = sessionStorage.getItem("dominoNome")
     const idSession = sessionStorage.getItem("dominoUserId")
     const salaSession = sessionStorage.getItem("dominoSala")
-    if (!nomeParm && nomeSession) setMeuNome(nomeSession)
+    const nome = nomeParm || nomeSession || ""
+    if (nome) setMeuNome(nome)
     if (idSession) setMeuId(Number(idSession))
     if (!salaParm && salaSession) setCodigoSala(salaSession.toUpperCase())
   }, [nomeParm, salaParm])
@@ -257,7 +258,7 @@ export default function JogoOnlinePage() {
         body: JSON.stringify({ usuarioId: id }),
       })
       const data = await res.json()
-      if (!res.ok) { showError(data.erro ?? "Não é possível passar agora."); return }
+      if (!res.ok) { showError(data.erro ?? "Erro ao passar a vez."); return }
       setPartida(data); setSelectedPedra(null)
       if (data.encerrado) setShowVencedor(true)
     } catch { showError("Erro de conexão com o servidor.") }
