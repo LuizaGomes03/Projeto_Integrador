@@ -610,15 +610,6 @@ router.post('/:sala/passar', async (req, res) => {
       return res.status(403).json({ erro: 'Não é o seu turno.' })
     }
 
-    const mao = estado.maos[uid] ?? []
-    const temJogada = mao.some((p) => validarJogada(p, estado.mesa).valido)
-    if (temJogada) {
-      await client.query('ROLLBACK')
-      return res.status(400).json({
-        erro: 'Você ainda possui jogadas válidas. Não é possível passar.',
-      })
-    }
-
     estado.historico.push({
       jogadorId: uid,
       acao: 'passou',

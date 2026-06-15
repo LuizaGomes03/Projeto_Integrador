@@ -65,6 +65,8 @@ const GLOBAL_STYLES = `
   ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @keyframes bounce { from{transform:translateY(0)} to{transform:translateY(-5px)} }
 `
 
 const ALUNO_BG_STYLE = {
@@ -78,28 +80,28 @@ const ALUNO_BG_STYLE = {
 // ─── CORES POR CLASSE QUÍMICA ─────────────────────────────────────────────────
 
 const DOT_COLOR: Record<string, string> = {
-  Ácido:   "#EF4444",
-  Base:    "#2563EB",
-  Sal:     "#16A34A",
+  Ácido: "#EF4444",
+  Base: "#2563EB",
+  Sal: "#16A34A",
   Hidreto: "#9333EA",
-  Amida:   "#E11D48",
-  Óxido:   "#D97706",
-  Éter:    "#0891B2",
+  Amida: "#E11D48",
+  Óxido: "#D97706",
+  Éter: "#0891B2",
 }
 
 const TEXT_COLOR: Record<string, string> = {
-  Ácido:   "#DC2626",
-  Base:    "#1D4ED8",
-  Sal:     "#15803D",
+  Ácido: "#DC2626",
+  Base: "#1D4ED8",
+  Sal: "#15803D",
   Hidreto: "#7E22CE",
-  Amida:   "#BE185D",
-  Óxido:   "#B45309",
-  Éter:    "#0E7490",
+  Amida: "#BE185D",
+  Óxido: "#B45309",
+  Éter: "#0E7490",
 }
 
 // Cada metade da pedra pode ser uma string OU um objeto {encaixe, display, subtitulo, tipo, ...}
 // Esta função normaliza para { encaixe: string, display: string }
-type MetadeRaw = string | { encaixe?: string; display?: string; subtitulo?: string; tipo?: string; [key: string]: unknown }
+type MetadeRaw = string | { encaixe?: string; display?: string; subtitulo?: string; tipo?: string;[key: string]: unknown }
 
 function resolveMetade(raw: MetadeRaw): { encaixe: string; display: string } {
   if (typeof raw === "string") return { encaixe: raw, display: raw }
@@ -165,13 +167,13 @@ function DominoTile({
   onDragStart?: (e: React.DragEvent) => void
   onClick?: () => void
 }) {
-  const tileW    = small ? 52 : 72
-  const halfH    = small ? 40 : 56
-  const fontSize = small ? 9  : 11
-  const dotSize  = small ? 8  : 10
+  const tileW = small ? 52 : 72
+  const halfH = small ? 40 : 56
+  const fontSize = small ? 9 : 11
+  const dotSize = small ? 8 : 10
 
   // Normaliza cada metade — pode ser string ou objeto {encaixe, display, ...}
-  const leftMeta  = resolveMetade(pedra.left  as MetadeRaw)
+  const leftMeta = resolveMetade(pedra.left as MetadeRaw)
   const rightMeta = resolveMetade(pedra.right as MetadeRaw)
 
   const half = (encaixe: string, display: string) => (
@@ -246,12 +248,12 @@ function DominoTile({
 // Peças na mesa ficam HORIZONTAIS — layout em linha como dominó deitado
 
 function DominoTileH({ pedra }: { pedra: Pedra }) {
-  const halfW  = 44
-  const tileH  = 36
+  const halfW = 44
+  const tileH = 36
   const fontSize = 9
-  const dotSize  = 7
+  const dotSize = 7
 
-  const leftMeta  = resolveMetade(pedra.left  as MetadeRaw)
+  const leftMeta = resolveMetade(pedra.left as MetadeRaw)
   const rightMeta = resolveMetade(pedra.right as MetadeRaw)
 
   const half = (encaixe: string, display: string) => (
@@ -680,7 +682,7 @@ export default function GameBoard() {
         body: JSON.stringify({ usuarioId: meuId }),
       })
       const data = await res.json()
-      if (!res.ok) { showError(data.erro ?? "Não é possível passar."); return }
+      if (!res.ok) { showError(data.erro ?? "Erro ao passar a vez."); return }
       setPartida(data); setSelectedPedra(null)
       if ((data.turnoAtual ?? "").toLowerCase().includes("ia")) setAguardeIA(true)
       else setAguardeIA(false)
@@ -991,20 +993,15 @@ export default function GameBoard() {
               )
             })()}
 
-            {/* Mensagem após a sua jogada, enquanto for a vez da IA */}
-            {!ehMeuTurno && aguardeIA && (
-              <div style={{ padding: "7px 18px", borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: 0.3, background: "rgba(15,23,42,0.04)", border: "1px solid rgba(15,23,42,0.06)", color: "#374151" }}>
-                Aguarde, agora é a vez da IA
-              </div>
-            )}
-
-            {/* IA ainda pensando */}
-            {!ehMeuTurno && !iaJogando && (
-              <div style={{ background: "rgba(234,179,8,0.18)", border: "1.5px solid rgba(234,179,8,0.5)", borderRadius: 14, padding: "10px 24px", display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(6px)" }}>
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#EAB308", boxShadow: "0 0 8px #EAB308", animation: "pulse 1.1s ease-in-out infinite" }} />
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#FDE68A" }}>IA Química está pensando...</span>
-                <div style={{ display: "flex", gap: 4 }}>
-                  {[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: "#FDE68A", animation: `bounce 0.5s ${i*0.15}s ease-in-out infinite alternate` }} />)}
+            {/* Vez da IA — sempre visível enquanto não for o turno do jogador */}
+            {!ehMeuTurno && (
+              <div style={{ background: "rgba(234,179,8,0.15)", border: "1.5px solid rgba(234,179,8,0.45)", borderRadius: 14, padding: "10px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#EAB308", flexShrink: 0, animation: "pulse 1.1s ease-in-out infinite" }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#92400E" }}>IA Química está jogando...</span>
+                <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: "#D97706", animation: `bounce 0.5s ${i * 0.15}s ease-in-out infinite alternate` }} />
+                  ))}
                 </div>
               </div>
             )}
@@ -1077,7 +1074,7 @@ export default function GameBoard() {
               minhaMao.map((pedra) => {
                 const isSelected = selectedPedra === pedra.id
                 const isDragging = draggingId === pedra.id
-                const lm = resolveMetade(pedra.left  as MetadeRaw)
+                const lm = resolveMetade(pedra.left as MetadeRaw)
                 const rm = resolveMetade(pedra.right as MetadeRaw)
                 // Verifica se esta pedra encaixa em alguma das pontas
                 const encaixaEsq = partida?.pontas.esquerda ? (lm.encaixe === partida.pontas.esquerda || rm.encaixe === partida.pontas.esquerda) : true
@@ -1092,21 +1089,21 @@ export default function GameBoard() {
                     style={{
                       display: "flex", flexDirection: "row",
                       background: isSelected ? "#FFF5F5" : "var(--domino-bg, #FFFDF9)",
-                      border: `2px solid ${isSelected ? "#C62828" : !ehMeuTurno || !encaixa ? "#E8E0D5" : "var(--domino-border, #C8B89A)"}`,
+                      border: `2px solid ${isSelected ? "#C62828" : !ehMeuTurno ? "#E8E0D5" : "var(--domino-border, #C8B89A)"}`,
                       borderRadius: 10,
                       boxShadow: isSelected
                         ? "3px 4px 0 rgba(198,40,40,0.25), 0 0 0 3px #C6282818"
-                        : encaixa && ehMeuTurno
+                        : ehMeuTurno
                           ? "3px 4px 0 rgba(0,0,0,0.16), 0 1px 4px rgba(0,0,0,0.08)"
                           : "1px 2px 0 rgba(0,0,0,0.08)",
                       cursor: !ehMeuTurno ? "default" : "pointer",
-                      opacity: isDragging ? 0.3 : (!ehMeuTurno || !encaixa) ? 0.5 : 1,
+                      opacity: isDragging ? 0.3 : 1,
                       transition: "transform 0.15s, box-shadow 0.15s, opacity 0.2s",
                       userSelect: "none",
                       overflow: "hidden",
                       width: "100%",
                     }}
-                    onMouseEnter={e => { if (ehMeuTurno && encaixa) (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)" }}
+                    onMouseEnter={e => { if (ehMeuTurno) (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)" }}
                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)" }}
                   >
                     {/* Metade esquerda */}
