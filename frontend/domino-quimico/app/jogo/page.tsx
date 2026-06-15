@@ -515,7 +515,7 @@ function TelaSelecaoNivel({
 
 // ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
 
-const POLL_INTERVAL = 2000
+const POLL_INTERVAL = 5000
 
 export default function GameBoard() {
   const router = useRouter()
@@ -661,10 +661,22 @@ export default function GameBoard() {
         showError((data.erro ?? "Jogada inválida.") + (p ? ` Pontas: ${p.esquerda} e ${p.direita}.` : ""))
         setSelectedPedra(null); setDraggingId(null); return
       }
-      setPartida(data); setSelectedPedra(null); setDraggingId(null)
-      // Se o turno passou para a IA, mostra a mensagem de aguarde
-      if ((data.turnoAtual ?? "").toLowerCase().includes("ia")) setAguardeIA(true)
-      else setAguardeIA(false)
+      const mesaAntesDaIA = data.mesa.slice(0, partida.mesa.length + 1)
+      setPartida({ ...data, mesa: mesaAntesDaIA, turnoAtual: "IA Química" })
+      setSelectedPedra(null)
+      setDraggingId(null)
+      setAguardeIA(true)
+
+      await new Promise(resolve => setTimeout(resolve, 6000))
+      setPartida(data)
+      setAguardeIA(false)
+
+      if (data.mesa.length > mesaAntesDaIA.length) {
+        setIaUltimaPedra(data.mesa[data.mesa.length - 1])
+        setIaJogando(true)
+        setTimeout(() => { setIaJogando(false); setIaUltimaPedra(null) }, 5000)
+      }
+
       if (data.encerrado) setShowVencedor(true)
     } catch { showError("Erro de conexão.") }
     finally { setEnviando(false) }
